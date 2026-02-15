@@ -30,7 +30,7 @@ export default function Home() {
       </header>
 
       {/* Category Grid */}
-      <main className="flex-1 px-5 pb-32">
+      <main className="flex-1 px-5 pb-40">
         <div className="grid grid-cols-2 gap-3.5 max-w-md mx-auto">
           {categories.map((cat, index) => {
             const isSelected = selected === cat.id;
