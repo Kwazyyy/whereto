@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const categories = [
   { id: "study", emoji: "\u{1F4DA}", label: "Study / Work" },
@@ -16,6 +17,13 @@ const categories = [
 
 export default function Home() {
   const [selected, setSelected] = useState<string | null>(null);
+  const router = useRouter();
+
+  function handleFindPlaces() {
+    if (selected) {
+      router.push(`/discover?intent=${selected}`);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -75,6 +83,7 @@ export default function Home() {
       <div className="fixed bottom-0 left-0 right-0 px-5 pb-10 pt-6 bg-gradient-to-t from-white from-60% to-transparent">
         <button
           disabled={!selected}
+          onClick={handleFindPlaces}
           className={`
             w-full max-w-md mx-auto block
             py-4 rounded-2xl text-lg font-bold
