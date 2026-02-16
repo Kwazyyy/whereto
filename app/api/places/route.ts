@@ -95,18 +95,21 @@ export async function GET(request: NextRequest) {
   const intent = searchParams.get("intent") ?? "coffee";
   const lat = parseFloat(searchParams.get("lat") ?? "43.6532");
   const lng = parseFloat(searchParams.get("lng") ?? "-79.3832");
+  const radius = Math.min(Math.max(parseInt(searchParams.get("radius") ?? "5000", 10), 500), 50000);
 
   const query = INTENT_QUERIES[intent] ?? INTENT_QUERIES.coffee;
 
+  const radiusKm = radius / 1000;
+
   const body = {
     textQuery: query,
-    locationBias: {
+    locationRestriction: {
       circle: {
         center: { latitude: lat, longitude: lng },
-        radius: 3000,
+        radius,
       },
     },
-    maxResultCount: 10,
+    maxResultCount: 20,
     languageCode: "en",
   };
 
@@ -148,26 +151,32 @@ export async function GET(request: NextRequest) {
     const data = await res.json();
     const places: PlacesResult[] = data.places ?? [];
 
-    const results = places.map((place) => {
-      const placeLat = place.location?.latitude ?? lat;
-      const placeLng = place.location?.longitude ?? lng;
-      const distKm = haversineKm(lat, lng, placeLat, placeLng);
+    const results = places
+      .map((place) => {
+        const placeLat = place.location?.latitude ?? lat;
+        const placeLng = place.location?.longitude ?? lng;
+        const distKm = haversineKm(lat, lng, placeLat, placeLng);
 
-      return {
-        placeId: place.id,
-        name: place.displayName?.text ?? "Unknown",
-        address: place.formattedAddress ?? "",
-        location: { lat: placeLat, lng: placeLng },
-        price: PRICE_MAP[place.priceLevel ?? ""] ?? "$$",
-        rating: place.rating ?? 0,
-        photoRef: place.photos?.[0]?.name ?? null,
-        type: place.primaryTypeDisplayName?.text ?? "Café",
-        openNow: place.currentOpeningHours?.openNow ?? false,
-        hours: place.currentOpeningHours?.weekdayDescriptions ?? [],
-        distance: distKm < 1 ? `${Math.round(distKm * 1000)}m` : `${distKm.toFixed(1)}km`,
-        tags: generateTags(place, intent),
-      };
-    });
+        return {
+          placeId: place.id,
+          name: place.displayName?.text ?? "Unknown",
+          address: place.formattedAddress ?? "",
+          location: { lat: placeLat, lng: placeLng },
+          price: PRICE_MAP[place.priceLevel ?? ""] ?? "$$",
+          rating: place.rating ?? 0,
+          photoRef: place.photos?.[0]?.name ?? null,
+          type: place.primaryTypeDisplayName?.text ?? "Café",
+          openNow: place.currentOpeningHours?.openNow ?? false,
+          hours: place.currentOpeningHours?.weekdayDescriptions ?? [],
+          distKm,
+          distance: distKm < 1 ? `${Math.round(distKm * 1000)}m` : `${distKm.toFixed(1)}km`,
+          tags: generateTags(place, intent),
+        };
+      })
+      .filter((p) => p.distKm <= radiusKm)
+      .sort((a, b) => a.distKm - b.distKm)
+      .slice(0, 10)
+      .map(({ distKm: _, ...rest }) => rest);
 
     return NextResponse.json({ places: results });
   } catch (err) {

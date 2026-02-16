@@ -395,8 +395,17 @@ function SwipeCard({
 
 // --- Main Page ---
 
+const DISTANCE_OPTIONS = [
+  { label: "1km", value: 1000 },
+  { label: "2km", value: 2000 },
+  { label: "5km", value: 5000 },
+  { label: "10km", value: 10000 },
+  { label: "25km", value: 25000 },
+];
+
 export default function Home() {
   const [intent, setIntent] = useState("trending");
+  const [radius, setRadius] = useState(5000);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [detailPlace, setDetailPlace] = useState<Place | null>(null);
   const [places, setPlaces] = useState<Place[]>([]);
@@ -426,13 +435,13 @@ export default function Home() {
     );
   }, []);
 
-  // Fetch places when intent or location changes
-  const fetchPlaces = useCallback(async (loc: { lat: number; lng: number }, intentId: string) => {
+  // Fetch places when intent, radius, or location changes
+  const fetchPlaces = useCallback(async (loc: { lat: number; lng: number }, intentId: string, rad: number) => {
     setLoading(true);
     setCurrentIndex(0);
     try {
       const res = await fetch(
-        `/api/places?intent=${intentId}&lat=${loc.lat}&lng=${loc.lng}`
+        `/api/places?intent=${intentId}&lat=${loc.lat}&lng=${loc.lng}&radius=${rad}`
       );
       const data = await res.json();
       setPlaces(data.places ?? []);
@@ -445,9 +454,9 @@ export default function Home() {
 
   useEffect(() => {
     if (userLocation) {
-      fetchPlaces(userLocation, intent);
+      fetchPlaces(userLocation, intent, radius);
     }
-  }, [userLocation, intent, fetchPlaces]);
+  }, [userLocation, intent, radius, fetchPlaces]);
 
   const allDone = !loading && currentIndex >= places.length;
 
@@ -497,6 +506,27 @@ export default function Home() {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Distance Chips */}
+      <div className="shrink-0 px-5 pb-2 flex gap-1.5">
+        {DISTANCE_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => setRadius(opt.value)}
+            className={`
+              px-3 py-1 rounded-full text-xs font-medium
+              transition-all duration-200 cursor-pointer
+              ${
+                radius === opt.value
+                  ? "bg-[#1B2A4A] text-white"
+                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              }
+            `}
+          >
+            {opt.label}
+          </button>
+        ))}
       </div>
 
       {/* Loading State */}
