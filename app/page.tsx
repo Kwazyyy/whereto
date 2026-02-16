@@ -393,7 +393,7 @@ function SwipeCard({
   );
 }
 
-// --- Main Page ---
+// --- Distance Bubble ---
 
 const DISTANCE_OPTIONS = [
   { label: "1km", value: 1000 },
@@ -402,6 +402,107 @@ const DISTANCE_OPTIONS = [
   { label: "10km", value: 10000 },
   { label: "25km", value: 25000 },
 ];
+
+function DistanceBubble({
+  radius,
+  onRadiusChange,
+}: {
+  radius: number;
+  onRadiusChange: (value: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const bubbleRef = useRef<HTMLDivElement>(null);
+
+  const currentLabel =
+    DISTANCE_OPTIONS.find((o) => o.value === radius)?.label ?? "5km";
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (bubbleRef.current && !bubbleRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", handleClick);
+    return () => document.removeEventListener("pointerdown", handleClick);
+  }, [open]);
+
+  return (
+    <div ref={bubbleRef}>
+      <motion.div
+        layout
+        className="inline-flex items-center rounded-full overflow-hidden cursor-pointer bg-black/40 backdrop-blur-md border border-white/15 shadow-lg"
+        onClick={() => !open && setOpen(true)}
+        transition={{ type: "spring", stiffness: 500, damping: 35 }}
+      >
+        <AnimatePresence mode="wait">
+          {!open ? (
+            <motion.div
+              key="collapsed"
+              className="flex items-center gap-1.5 px-3 py-1.5"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              onClick={() => setOpen(true)}
+            >
+              {/* Map pin icon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              <span className="text-white text-xs font-semibold">{currentLabel}</span>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="expanded"
+              className="flex items-center gap-0.5 px-1.5 py-1"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              {DISTANCE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRadiusChange(opt.value);
+                    setOpen(false);
+                  }}
+                  className={`
+                    px-2.5 py-1 rounded-full text-xs font-semibold
+                    transition-colors duration-150 cursor-pointer
+                    ${
+                      radius === opt.value
+                        ? "bg-[#E85D2A] text-white"
+                        : "text-white/70 hover:text-white"
+                    }
+                  `}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </div>
+  );
+}
+
+// --- Main Page ---
 
 export default function Home() {
   const [intent, setIntent] = useState("trending");
@@ -508,27 +609,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Distance Chips */}
-      <div className="shrink-0 px-5 pb-2 flex gap-1.5">
-        {DISTANCE_OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => setRadius(opt.value)}
-            className={`
-              px-3 py-1 rounded-full text-xs font-medium
-              transition-all duration-200 cursor-pointer
-              ${
-                radius === opt.value
-                  ? "bg-[#1B2A4A] text-white"
-                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-              }
-            `}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-
       {/* Loading State */}
       {(loading || !userLocation) ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-4">
@@ -569,6 +649,11 @@ export default function Home() {
                 isTop={i === arr.length - 1}
               />
             ))}
+
+          {/* Distance Bubble – floats over card */}
+          <div className="absolute top-6 left-6 z-30">
+            <DistanceBubble radius={radius} onRadiusChange={setRadius} />
+          </div>
         </div>
       )}
 
