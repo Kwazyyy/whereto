@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const INTENT_QUERIES: Record<string, string> = {
-  study: "quiet cafe wifi study",
-  date: "romantic restaurant date night",
-  trending: "popular cafe trending",
-  quiet: "quiet cafe peaceful",
-  laptop: "cafe with wifi laptop friendly",
-  group: "restaurant for groups large table",
-  budget: "cheap eats budget cafe",
-  coffee: "coffee shop cafe",
-  outdoor: "cafe patio outdoor seating",
+const INTENT_QUERIES: Record<string, { primary: string; fallback: string }> = {
+  study:    { primary: "cafe wifi",                fallback: "cafe" },
+  date:     { primary: "romantic restaurant bar",  fallback: "restaurant" },
+  trending: { primary: "popular restaurant cafe",  fallback: "restaurant cafe" },
+  quiet:    { primary: "quiet cafe tea",           fallback: "cafe" },
+  laptop:   { primary: "cafe wifi coworking",      fallback: "cafe" },
+  group:    { primary: "restaurant bar group",     fallback: "restaurant" },
+  budget:   { primary: "cheap restaurant cafe",    fallback: "restaurant cafe" },
+  coffee:   { primary: "coffee shop cafe",         fallback: "cafe" },
+  outdoor:  { primary: "patio restaurant outdoor", fallback: "restaurant" },
 };
 
 const PRICE_MAP: Record<string, string> = {
@@ -85,73 +85,53 @@ function generateTags(place: PlacesResult, intent: string): string[] {
   return tags.slice(0, 3);
 }
 
-export async function GET(request: NextRequest) {
-  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ error: "API key not configured" }, { status: 500 });
-  }
+const MIN_RESULTS = 5;
 
-  const { searchParams } = request.nextUrl;
-  const intent = searchParams.get("intent") ?? "coffee";
-  const lat = parseFloat(searchParams.get("lat") ?? "43.6532");
-  const lng = parseFloat(searchParams.get("lng") ?? "-79.3832");
-  const radius = Math.min(Math.max(parseInt(searchParams.get("radius") ?? "5000", 10), 500), 50000);
-
-  const query = INTENT_QUERIES[intent] ?? INTENT_QUERIES.coffee;
-
-  const radiusKm = radius / 1000;
-
-  const body = {
-    textQuery: query,
-    locationBias: {
-      circle: {
-        center: { latitude: lat, longitude: lng },
-        radius,
+async function searchPlaces(
+  query: string,
+  lat: number,
+  lng: number,
+  radius: number,
+  apiKey: string,
+  fieldMask: string
+): Promise<PlacesResult[]> {
+  const res = await fetch(
+    "https://places.googleapis.com/v1/places:searchText",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": apiKey,
+        "X-Goog-FieldMask": fieldMask,
       },
-    },
-    maxResultCount: 20,
-    languageCode: "en",
-  };
-
-  const fieldMask = [
-    "places.id",
-    "places.displayName",
-    "places.formattedAddress",
-    "places.location",
-    "places.priceLevel",
-    "places.rating",
-    "places.photos",
-    "places.currentOpeningHours",
-    "places.primaryTypeDisplayName",
-    "places.types",
-  ].join(",");
-
-  try {
-    const res = await fetch(
-      "https://places.googleapis.com/v1/places:searchText",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Goog-Api-Key": apiKey,
-          "X-Goog-FieldMask": fieldMask,
+      body: JSON.stringify({
+        textQuery: query,
+        locationBias: {
+          circle: {
+            center: { latitude: lat, longitude: lng },
+            radius,
+          },
         },
-        body: JSON.stringify(body),
-      }
-    );
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      return NextResponse.json(
-        { error: "Google Places API error", details: errorText },
-        { status: res.status }
-      );
+        maxResultCount: 20,
+        languageCode: "en",
+      }),
     }
+  );
 
-    const data = await res.json();
-    const places: PlacesResult[] = data.places ?? [];
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.places ?? [];
+}
 
-    const mapped = places.map((place) => {
+function mapAndFilter(
+  places: PlacesResult[],
+  lat: number,
+  lng: number,
+  radiusKm: number,
+  intent: string
+) {
+  return places
+    .map((place) => {
       const placeLat = place.location?.latitude ?? lat;
       const placeLng = place.location?.longitude ?? lng;
       const distKm = haversineKm(lat, lng, placeLat, placeLng);
@@ -171,15 +151,65 @@ export async function GET(request: NextRequest) {
         distance: distKm < 1 ? `${Math.round(distKm * 1000)}m` : `${distKm.toFixed(1)}km`,
         tags: generateTags(place, intent),
       };
-    });
+    })
+    .filter((p) => p.distKm <= radiusKm)
+    .sort((a, b) => a.distKm - b.distKm);
+}
 
-    const results = mapped
-      .filter((p) => p.distKm <= radiusKm)
-      .sort((a, b) => a.distKm - b.distKm)
+export async function GET(request: NextRequest) {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json({ error: "API key not configured" }, { status: 500 });
+  }
+
+  const { searchParams } = request.nextUrl;
+  const intent = searchParams.get("intent") ?? "coffee";
+  const lat = parseFloat(searchParams.get("lat") ?? "43.6532");
+  const lng = parseFloat(searchParams.get("lng") ?? "-79.3832");
+  const radius = Math.min(Math.max(parseInt(searchParams.get("radius") ?? "5000", 10), 500), 50000);
+  const radiusKm = radius / 1000;
+
+  const queries = INTENT_QUERIES[intent] ?? INTENT_QUERIES.coffee;
+
+  const fieldMask = [
+    "places.id",
+    "places.displayName",
+    "places.formattedAddress",
+    "places.location",
+    "places.priceLevel",
+    "places.rating",
+    "places.photos",
+    "places.currentOpeningHours",
+    "places.primaryTypeDisplayName",
+    "places.types",
+  ].join(",");
+
+  try {
+    // Primary search
+    const primaryRaw = await searchPlaces(queries.primary, lat, lng, radius, apiKey, fieldMask);
+    let results = mapAndFilter(primaryRaw, lat, lng, radiusKm, intent);
+
+    // Fallback if too few results
+    if (results.length < MIN_RESULTS) {
+      const fallbackRaw = await searchPlaces(queries.fallback, lat, lng, radius, apiKey, fieldMask);
+      const fallbackResults = mapAndFilter(fallbackRaw, lat, lng, radiusKm, intent);
+
+      // Merge, deduplicate by placeId
+      const seen = new Set(results.map((r) => r.placeId));
+      for (const place of fallbackResults) {
+        if (!seen.has(place.placeId)) {
+          results.push(place);
+          seen.add(place.placeId);
+        }
+      }
+      results.sort((a, b) => a.distKm - b.distKm);
+    }
+
+    const final = results
       .slice(0, 10)
       .map(({ distKm: _, ...rest }) => rest);
 
-    return NextResponse.json({ places: results });
+    return NextResponse.json({ places: final });
   } catch (err) {
     return NextResponse.json(
       { error: "Failed to fetch places", details: String(err) },
