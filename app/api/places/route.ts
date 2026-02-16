@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
 
   const body = {
     textQuery: query,
-    locationRestriction: {
+    locationBias: {
       circle: {
         center: { latitude: lat, longitude: lng },
         radius,
@@ -151,28 +151,29 @@ export async function GET(request: NextRequest) {
     const data = await res.json();
     const places: PlacesResult[] = data.places ?? [];
 
-    const results = places
-      .map((place) => {
-        const placeLat = place.location?.latitude ?? lat;
-        const placeLng = place.location?.longitude ?? lng;
-        const distKm = haversineKm(lat, lng, placeLat, placeLng);
+    const mapped = places.map((place) => {
+      const placeLat = place.location?.latitude ?? lat;
+      const placeLng = place.location?.longitude ?? lng;
+      const distKm = haversineKm(lat, lng, placeLat, placeLng);
 
-        return {
-          placeId: place.id,
-          name: place.displayName?.text ?? "Unknown",
-          address: place.formattedAddress ?? "",
-          location: { lat: placeLat, lng: placeLng },
-          price: PRICE_MAP[place.priceLevel ?? ""] ?? "$$",
-          rating: place.rating ?? 0,
-          photoRef: place.photos?.[0]?.name ?? null,
-          type: place.primaryTypeDisplayName?.text ?? "Café",
-          openNow: place.currentOpeningHours?.openNow ?? false,
-          hours: place.currentOpeningHours?.weekdayDescriptions ?? [],
-          distKm,
-          distance: distKm < 1 ? `${Math.round(distKm * 1000)}m` : `${distKm.toFixed(1)}km`,
-          tags: generateTags(place, intent),
-        };
-      })
+      return {
+        placeId: place.id,
+        name: place.displayName?.text ?? "Unknown",
+        address: place.formattedAddress ?? "",
+        location: { lat: placeLat, lng: placeLng },
+        price: PRICE_MAP[place.priceLevel ?? ""] ?? "$$",
+        rating: place.rating ?? 0,
+        photoRef: place.photos?.[0]?.name ?? null,
+        type: place.primaryTypeDisplayName?.text ?? "Café",
+        openNow: place.currentOpeningHours?.openNow ?? false,
+        hours: place.currentOpeningHours?.weekdayDescriptions ?? [],
+        distKm,
+        distance: distKm < 1 ? `${Math.round(distKm * 1000)}m` : `${distKm.toFixed(1)}km`,
+        tags: generateTags(place, intent),
+      };
+    });
+
+    const results = mapped
       .filter((p) => p.distKm <= radiusKm)
       .sort((a, b) => a.distKm - b.distKm)
       .slice(0, 10)
