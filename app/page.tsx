@@ -567,7 +567,7 @@ export default function Home() {
   }
 
   return (
-    <div className="h-dvh bg-white flex flex-col overflow-hidden">
+    <div className="h-dvh bg-white flex flex-col overflow-hidden pb-16">
       {/* Header */}
       <header className="shrink-0 px-5 pt-5 pb-2">
         <div className="flex items-center justify-between">
