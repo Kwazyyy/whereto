@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
+import { AnimatePresence } from "framer-motion";
 import { getSavedPlaces, removePlace, SavedPlace } from "@/lib/saved-places";
+import { usePhotoUrl } from "@/lib/use-photo-url";
+import PlaceDetailSheet from "@/components/PlaceDetailSheet";
 
 const INTENT_META: Record<string, { emoji: string; label: string }> = {
   study:    { emoji: "\u{1F4DA}", label: "Study / Work" },
@@ -16,23 +19,15 @@ const INTENT_META: Record<string, { emoji: string; label: string }> = {
   outdoor:  { emoji: "\u{1F305}", label: "Outdoor / Patio" },
 };
 
-// --- Photo hook (same as discover page) ---
+const FALLBACK_GRADIENTS = [
+  "from-amber-800 via-orange-700 to-yellow-600",
+  "from-slate-800 via-slate-600 to-cyan-700",
+  "from-green-800 via-emerald-700 to-teal-600",
+  "from-purple-900 via-violet-700 to-fuchsia-600",
+  "from-stone-800 via-stone-600 to-orange-800",
+];
 
-function usePhotoUrl(photoRef: string | null): string | null {
-  const [url, setUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!photoRef) { setUrl(null); return; }
-    let cancelled = false;
-    fetch(`/api/places/photo?ref=${encodeURIComponent(photoRef)}`)
-      .then((r) => r.json())
-      .then((data) => { if (!cancelled && data.photoUrl) setUrl(data.photoUrl); })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [photoRef]);
-
-  return url;
-}
+// --- Photo Components ---
 
 function PlacePhoto({ photoRef }: { photoRef: string | null }) {
   const url = usePhotoUrl(photoRef);
@@ -86,53 +81,83 @@ function BoardCard({
 
 function PlaceRow({
   place,
+  onTap,
   onRemove,
 }: {
   place: SavedPlace;
+  onTap: () => void;
   onRemove: () => void;
 }) {
+  const [confirming, setConfirming] = useState(false);
+
   return (
     <div className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-b-0">
-      <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative bg-gray-200">
-        <PlacePhoto photoRef={place.photoRef} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <h3 className="text-sm font-bold truncate" style={{ color: "#1B2A4A" }}>
-          {place.name}
-        </h3>
-        <div className="flex items-center gap-1.5 mt-0.5 text-xs text-gray-400 font-medium">
-          <span>{place.distance}</span>
-          <span className="w-1 h-1 rounded-full bg-gray-300" />
-          <span>{place.price}</span>
-          {place.rating > 0 && (
-            <>
-              <span className="w-1 h-1 rounded-full bg-gray-300" />
-              <span>&#9733; {place.rating.toFixed(1)}</span>
-            </>
-          )}
-        </div>
-        <div className="flex gap-1.5 mt-1.5">
-          {place.tags.slice(0, 2).map((tag) => (
-            <span
-              key={tag}
-              className="px-2 py-0.5 rounded-full bg-gray-100 text-[10px] font-semibold text-gray-500"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      </div>
       <button
-        onClick={(e) => { e.stopPropagation(); onRemove(); }}
-        className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 transition-colors cursor-pointer"
-        title="Remove"
+        onClick={onTap}
+        className="flex items-center gap-3 flex-1 min-w-0 text-left cursor-pointer"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 6h18" />
-          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-        </svg>
+        <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative bg-gray-200">
+          <PlacePhoto photoRef={place.photoRef} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-bold truncate" style={{ color: "#1B2A4A" }}>
+            {place.name}
+          </h3>
+          <div className="flex items-center gap-1.5 mt-0.5 text-xs text-gray-400 font-medium">
+            <span>{place.distance}</span>
+            <span className="w-1 h-1 rounded-full bg-gray-300" />
+            <span>{place.price}</span>
+            {place.rating > 0 && (
+              <>
+                <span className="w-1 h-1 rounded-full bg-gray-300" />
+                <span>&#9733; {place.rating.toFixed(1)}</span>
+              </>
+            )}
+          </div>
+          <div className="flex gap-1.5 mt-1.5">
+            {place.tags.slice(0, 2).map((tag) => (
+              <span
+                key={tag}
+                className="px-2 py-0.5 rounded-full bg-gray-100 text-[10px] font-semibold text-gray-500"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
       </button>
+
+      {/* Remove button with confirmation */}
+      <div className="shrink-0">
+        {confirming ? (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => { onRemove(); setConfirming(false); }}
+              className="px-2.5 py-1 rounded-full bg-red-500 text-white text-[10px] font-bold cursor-pointer hover:bg-red-600 transition-colors"
+            >
+              Remove
+            </button>
+            <button
+              onClick={() => setConfirming(false)}
+              className="px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-[10px] font-bold cursor-pointer hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirming(true)}
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 transition-colors cursor-pointer"
+            title="Remove"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 6h18" />
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+            </svg>
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -142,6 +167,7 @@ function PlaceRow({
 export default function BoardsPage() {
   const [saved, setSaved] = useState<SavedPlace[]>([]);
   const [activeBoard, setActiveBoard] = useState<string | null>(null);
+  const [detailPlace, setDetailPlace] = useState<SavedPlace | null>(null);
 
   const refresh = useCallback(() => setSaved(getSavedPlaces()), []);
 
@@ -173,7 +199,7 @@ export default function BoardsPage() {
       : (INTENT_META[activeBoard] ?? { emoji: "\u{1F4CD}", label: activeBoard });
 
     return (
-      <div className="h-dvh bg-white flex flex-col pb-16">
+      <div className="min-h-dvh bg-white flex flex-col pb-20">
         {/* Header */}
         <header className="shrink-0 px-5 pt-5 pb-3 flex items-center gap-3">
           <button
@@ -195,9 +221,9 @@ export default function BoardsPage() {
         </header>
 
         {/* Place List */}
-        <div className="flex-1 overflow-y-auto px-5">
+        <div className="flex-1 px-5">
           {places.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
+            <div className="flex flex-col items-center justify-center h-48 text-center">
               <p className="text-gray-400 text-sm">No saved places here yet.</p>
             </div>
           ) : (
@@ -205,26 +231,40 @@ export default function BoardsPage() {
               <PlaceRow
                 key={place.placeId}
                 place={place}
+                onTap={() => setDetailPlace(place)}
                 onRemove={() => handleRemove(place.placeId)}
               />
             ))
           )}
         </div>
+
+        {/* Place Detail Bottom Sheet */}
+        <AnimatePresence>
+          {detailPlace && (
+            <PlaceDetailSheet
+              place={detailPlace}
+              fallbackGradient={FALLBACK_GRADIENTS[
+                saved.indexOf(detailPlace) % FALLBACK_GRADIENTS.length
+              ]}
+              onClose={() => setDetailPlace(null)}
+            />
+          )}
+        </AnimatePresence>
       </div>
     );
   }
 
   // Boards grid view
   return (
-    <div className="h-dvh bg-white flex flex-col pb-16">
-      <header className="shrink-0 px-5 pt-5 pb-3">
+    <div className="min-h-dvh bg-white pb-20">
+      <header className="px-5 pt-5 pb-3">
         <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: "#E85D2A" }}>
           Boards
         </h1>
       </header>
 
       {saved.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
+        <div className="flex flex-col items-center justify-center px-8 pt-32 text-center gap-4">
           <div className="text-5xl">&#x1F516;</div>
           <h2 className="text-xl font-bold" style={{ color: "#1B2A4A" }}>
             No saved places yet
@@ -234,7 +274,7 @@ export default function BoardsPage() {
           </p>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto px-5">
+        <div className="px-5">
           <div className="grid grid-cols-2 gap-3">
             {/* All Saved board */}
             <BoardCard
@@ -248,20 +288,19 @@ export default function BoardsPage() {
             {/* Intent boards */}
             {boardKeys.map((key) => {
               const meta = INTENT_META[key] ?? { emoji: "\u{1F4CD}", label: key };
-              const places = boards[key];
+              const bPlaces = boards[key];
               return (
                 <BoardCard
                   key={key}
                   title={meta.label}
                   emoji={meta.emoji}
-                  count={places.length}
-                  photoRef={places[0]?.photoRef ?? null}
+                  count={bPlaces.length}
+                  photoRef={bPlaces[0]?.photoRef ?? null}
                   onClick={() => setActiveBoard(key)}
                 />
               );
             })}
           </div>
-          <div className="h-6" />
         </div>
       )}
     </div>
