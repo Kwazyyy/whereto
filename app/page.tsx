@@ -10,6 +10,7 @@ import {
   PanInfo,
 } from "framer-motion";
 import Image from "next/image";
+import { savePlace } from "@/lib/saved-places";
 
 const categories = [
   { id: "study", emoji: "\u{1F4DA}", label: "Study / Work" },
@@ -562,7 +563,16 @@ export default function Home() {
   const allDone = !loading && currentIndex >= places.length;
 
   function handleSwipe(direction: "left" | "right" | "up") {
-    void direction;
+    const place = places[currentIndex];
+    if (place && (direction === "right" || direction === "up")) {
+      savePlace({ ...place, intent });
+      if (direction === "up") {
+        window.open(
+          `https://www.google.com/maps/dir/?api=1&destination=${place.location.lat},${place.location.lng}&destination_place_id=${place.placeId}`,
+          "_blank"
+        );
+      }
+    }
     setCurrentIndex((prev) => prev + 1);
   }
 
