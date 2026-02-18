@@ -1,4 +1,5 @@
 export interface SavedPlace {
+  saveId?: string;
   placeId: string;
   name: string;
   address: string;

@@ -10,10 +10,12 @@ export default function PlaceDetailSheet({
   place,
   fallbackGradient,
   onClose,
+  onSave,
 }: {
   place: Place;
   fallbackGradient: string;
   onClose: () => void;
+  onSave?: (action: "save" | "go_now") => void;
 }) {
   const matchScore = useMemo(() => Math.floor(Math.random() * 19) + 80, []);
   const photoUrl = usePhotoUrl(place.photoRef);
@@ -147,11 +149,23 @@ export default function PlaceDetailSheet({
         {/* Action Buttons */}
         <div className="absolute bottom-0 inset-x-0 px-5 pb-24 pt-4 bg-gradient-to-t from-white from-80% to-transparent">
           <div className="flex gap-3">
-            <button className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-gray-200 text-[#1B2A4A] font-semibold text-sm hover:bg-gray-50 transition-colors cursor-pointer">
+            <button
+              onClick={() => onSave?.("save")}
+              className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-gray-200 text-[#1B2A4A] font-semibold text-sm hover:bg-gray-50 transition-colors cursor-pointer"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
               Save
             </button>
-            <button className="flex-[2] flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-[#E85D2A] text-white font-bold text-sm shadow-lg shadow-[#E85D2A]/30 hover:bg-[#d04e1f] active:scale-[0.98] transition-all cursor-pointer">
+            <button
+              onClick={() => {
+                onSave?.("go_now");
+                window.open(
+                  `https://www.google.com/maps/dir/?api=1&destination=${place.location.lat},${place.location.lng}&destination_place_id=${place.placeId}`,
+                  "_blank"
+                );
+              }}
+              className="flex-[2] flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-[#E85D2A] text-white font-bold text-sm shadow-lg shadow-[#E85D2A]/30 hover:bg-[#d04e1f] active:scale-[0.98] transition-all cursor-pointer"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
               Go Now
             </button>

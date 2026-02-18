@@ -10,9 +10,9 @@ import {
   PanInfo,
 } from "framer-motion";
 import Image from "next/image";
-import { savePlace } from "@/lib/saved-places";
 import { Place } from "@/lib/types";
 import { usePhotoUrl } from "@/lib/use-photo-url";
+import { useSavePlace } from "@/lib/use-save-place";
 import PlaceDetailSheet from "@/components/PlaceDetailSheet";
 
 const categories = [
@@ -316,6 +316,7 @@ export default function Home() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const chipScrollRef = useRef<HTMLDivElement>(null);
   const locationResolved = useRef(false);
+  const { handleSave } = useSavePlace();
 
   // Get user location on mount
   useEffect(() => {
@@ -366,7 +367,8 @@ export default function Home() {
   function handleSwipe(direction: "left" | "right" | "up") {
     const place = places[currentIndex];
     if (place && (direction === "right" || direction === "up")) {
-      savePlace({ ...place, intent });
+      const action = direction === "up" ? "go_now" : "save";
+      handleSave(place, intent, action);
       if (direction === "up") {
         window.open(
           `https://www.google.com/maps/dir/?api=1&destination=${place.location.lat},${place.location.lng}&destination_place_id=${place.placeId}`,
@@ -477,6 +479,9 @@ export default function Home() {
               places.indexOf(detailPlace) % FALLBACK_GRADIENTS.length
             ]}
             onClose={() => setDetailPlace(null)}
+            onSave={(action) => {
+              handleSave(detailPlace, intent, action);
+            }}
           />
         )}
       </AnimatePresence>

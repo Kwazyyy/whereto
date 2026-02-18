@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 import { AnimatePresence } from "framer-motion";
 import { getSavedPlaces, removePlace, SavedPlace } from "@/lib/saved-places";
 import { usePhotoUrl } from "@/lib/use-photo-url";
@@ -165,11 +166,29 @@ function PlaceRow({
 // --- Main Boards Page ---
 
 export default function BoardsPage() {
+  const { status } = useSession();
   const [saved, setSaved] = useState<SavedPlace[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
   const [activeBoard, setActiveBoard] = useState<string | null>(null);
   const [detailPlace, setDetailPlace] = useState<SavedPlace | null>(null);
 
-  const refresh = useCallback(() => setSaved(getSavedPlaces()), []);
+  const refresh = useCallback(async () => {
+    if (status === "loading") return;
+    if (status === "authenticated") {
+      try {
+        const res = await fetch("/api/saves");
+        if (res.ok) {
+          const data: SavedPlace[] = await res.json();
+          setSaved(data);
+        }
+      } catch {
+        setSaved([]);
+      }
+    } else {
+      setSaved(getSavedPlaces());
+    }
+    setLoadingData(false);
+  }, [status]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
@@ -186,9 +205,28 @@ export default function BoardsPage() {
     return order.indexOf(a) - order.indexOf(b);
   });
 
-  function handleRemove(placeId: string) {
-    removePlace(placeId);
+  async function handleRemove(placeId: string, saveId?: string) {
+    if (status === "authenticated" && saveId) {
+      await fetch("/api/saves", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ saveId }),
+      });
+    } else {
+      removePlace(placeId);
+    }
     refresh();
+  }
+
+  if (loadingData) {
+    return (
+      <div className="min-h-dvh bg-white flex items-center justify-center pb-20">
+        <div
+          className="w-10 h-10 rounded-full border-3 border-t-transparent animate-spin"
+          style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
+        />
+      </div>
+    );
   }
 
   // Board detail view
@@ -232,7 +270,7 @@ export default function BoardsPage() {
                 key={place.placeId}
                 place={place}
                 onTap={() => setDetailPlace(place)}
-                onRemove={() => handleRemove(place.placeId)}
+                onRemove={() => handleRemove(place.placeId, place.saveId)}
               />
             ))
           )}
