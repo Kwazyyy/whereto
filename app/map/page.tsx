@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   APIProvider,
   Map,
-  AdvancedMarker,
+  Marker,
   InfoWindow,
   useMap,
 } from "@vis.gl/react-google-maps";
@@ -21,7 +21,7 @@ const DEFAULT_LAT = 43.6532;
 const DEFAULT_LNG = -79.3832;
 
 // Minimal map style — hides POI clutter, softens colours
-const MAP_STYLES: google.maps.MapTypeStyle[] = [
+const MAP_STYLES: Array<{ featureType?: string; elementType?: string; stylers: Array<Record<string, string>> }> = [
   { featureType: "poi.business",      elementType: "all",            stylers: [{ visibility: "off" }] },
   { featureType: "poi.medical",       elementType: "all",            stylers: [{ visibility: "off" }] },
   { featureType: "poi.school",        elementType: "all",            stylers: [{ visibility: "off" }] },
@@ -65,26 +65,20 @@ const categories = [
   { id: "outdoor", emoji: "\u{1F305}", label: "Outdoor / Patio" },
 ];
 
-// --- Teardrop map pin — bottom tip sits at the marker's lat/lng ---
-function MapPin({ color }: { color: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="36"
-      height="46"
-      viewBox="0 0 36 46"
-      style={{ display: "block", filter: "drop-shadow(0 3px 6px rgba(0,0,0,0.35))" }}
-    >
-      {/* Teardrop body */}
-      <path
-        d="M18 0C8.059 0 0 8.059 0 18c0 11.25 18 28 18 28S36 29.25 36 18C36 8.059 27.941 0 18 0z"
-        fill={color}
-      />
-      {/* White inner circle */}
-      <circle cx="18" cy="17" r="7.5" fill="white" opacity="0.9" />
-    </svg>
-  );
+// SVG teardrop pin as a data-URL icon for standard Marker (no mapId needed).
+// Google Maps anchors string icons at the bottom-centre by default — perfect for a teardrop tip.
+function pinUrl(color: string): string {
+  const svg = [
+    `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="46" viewBox="0 0 36 46">`,
+    `<path d="M18 0C8.059 0 0 8.059 0 18c0 11.25 18 28 18 28S36 29.25 36 18C36 8.059 27.941 0 18 0z" fill="${color}"/>`,
+    `<circle cx="18" cy="17" r="7.5" fill="white" opacity="0.9"/>`,
+    `</svg>`,
+  ].join("");
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
+
+const ORANGE_PIN = pinUrl("#E85D2A");
+const BLUE_PIN   = pinUrl("#3B82F6");
 
 // --- Thumbnail photo inside the info card ---
 function InfoPhoto({ photoRef }: { photoRef: string | null }) {
@@ -268,26 +262,24 @@ function MapMarkers({
       {nearbyPlaces
         .filter((p) => !savedIds.has(p.placeId))
         .map((place) => (
-          <AdvancedMarker
+          <Marker
             key={`nearby-${place.placeId}`}
             position={place.location}
+            icon={BLUE_PIN}
             zIndex={1}
             onClick={() => setSelected({ place, isSaved: false })}
-          >
-            <MapPin color="#3B82F6" />
-          </AdvancedMarker>
+          />
         ))}
 
       {/* Orange markers — saved places, always on top */}
       {savedPlaces.map((place) => (
-        <AdvancedMarker
+        <Marker
           key={`saved-${place.placeId}`}
           position={place.location}
+          icon={ORANGE_PIN}
           zIndex={10}
           onClick={() => setSelected({ place, isSaved: true })}
-        >
-          <MapPin color="#E85D2A" />
-        </AdvancedMarker>
+        />
       ))}
 
       {/* Info popup */}
