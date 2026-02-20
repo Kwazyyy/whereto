@@ -187,7 +187,7 @@ export async function GET(request: NextRequest) {
   try {
     // Primary search
     const primaryRaw = await searchPlaces(queries.primary, lat, lng, radius, apiKey, fieldMask);
-    let results = mapAndFilter(primaryRaw, lat, lng, radiusKm, intent);
+    const results = mapAndFilter(primaryRaw, lat, lng, radiusKm, intent);
 
     // Fallback if too few results
     if (results.length < MIN_RESULTS) {
