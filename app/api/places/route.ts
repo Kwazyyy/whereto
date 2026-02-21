@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const INTENT_QUERIES: Record<string, { primary: string; fallback: string }> = {
-  study:    { primary: "cafe wifi",                fallback: "cafe" },
-  date:     { primary: "romantic restaurant bar",  fallback: "restaurant" },
-  trending: { primary: "popular restaurant cafe",  fallback: "restaurant cafe" },
-  quiet:    { primary: "quiet cafe tea",           fallback: "cafe" },
-  laptop:   { primary: "cafe wifi coworking",      fallback: "cafe" },
-  group:    { primary: "restaurant bar group",     fallback: "restaurant" },
-  budget:   { primary: "cheap restaurant cafe",    fallback: "restaurant cafe" },
-  coffee:   { primary: "coffee shop cafe",         fallback: "cafe" },
-  outdoor:  { primary: "patio restaurant outdoor", fallback: "restaurant" },
+  study: { primary: "cafe wifi", fallback: "cafe" },
+  date: { primary: "romantic restaurant bar", fallback: "restaurant" },
+  trending: { primary: "popular restaurant cafe", fallback: "restaurant cafe" },
+  quiet: { primary: "quiet cafe tea", fallback: "cafe" },
+  laptop: { primary: "cafe wifi coworking", fallback: "cafe" },
+  group: { primary: "restaurant bar group", fallback: "restaurant" },
+  budget: { primary: "cheap restaurant cafe", fallback: "restaurant cafe" },
+  coffee: { primary: "coffee shop cafe", fallback: "cafe" },
+  outdoor: { primary: "patio restaurant outdoor", fallback: "restaurant" },
 };
 
 const PRICE_MAP: Record<string, string> = {
@@ -207,7 +207,10 @@ export async function GET(request: NextRequest) {
 
     const final = results
       .slice(0, 10)
-      .map(({ distKm: _, ...rest }) => rest);
+      .map((place) => {
+        const { distKm, ...rest } = place;
+        return rest;
+      });
 
     return NextResponse.json({ places: final });
   } catch (err) {

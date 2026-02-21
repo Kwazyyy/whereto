@@ -76,36 +76,41 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const saves = await prisma.save.findMany({
+      where: { userId: session.user.id },
+      include: { place: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const result = saves.map((s) => ({
+      saveId: s.id,
+      placeId: s.place.googlePlaceId,
+      name: s.place.name,
+      address: s.place.address,
+      location: { lat: s.place.lat, lng: s.place.lng },
+      price: priceLevelToPrice(s.place.priceLevel),
+      rating: s.place.rating ?? 0,
+      photoRef: s.place.photoUrl,
+      type: s.place.placeType,
+      openNow: false,
+      hours: [],
+      distance: "",
+      tags: (s.place.vibeTags as string[]) ?? [],
+      intent: s.intent,
+      savedAt: s.createdAt.getTime(),
+    }));
+
+    return NextResponse.json(result);
+  } catch (err) {
+    console.error("GET /api/saves Failed:", err);
+    return NextResponse.json({ error: "Internal Server Error", details: String(err) }, { status: 500 });
   }
-
-  const saves = await prisma.save.findMany({
-    where: { userId: session.user.id },
-    include: { place: true },
-    orderBy: { createdAt: "desc" },
-  });
-
-  const result = saves.map((s) => ({
-    saveId: s.id,
-    placeId: s.place.googlePlaceId,
-    name: s.place.name,
-    address: s.place.address,
-    location: { lat: s.place.lat, lng: s.place.lng },
-    price: priceLevelToPrice(s.place.priceLevel),
-    rating: s.place.rating ?? 0,
-    photoRef: s.place.photoUrl,
-    type: s.place.placeType,
-    openNow: false,
-    hours: [],
-    distance: "",
-    tags: (s.place.vibeTags as string[]) ?? [],
-    intent: s.intent,
-    savedAt: s.createdAt.getTime(),
-  }));
-
-  return NextResponse.json(result);
 }
 
 export async function DELETE(req: NextRequest) {
