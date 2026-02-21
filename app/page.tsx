@@ -306,9 +306,12 @@ function DistanceBubble({
 
 // --- Main Page ---
 
+const PREFS_KEY = "whereto_prefs";
+
 export default function Home() {
   const [intent, setIntent] = useState("trending");
   const [radius, setRadius] = useState(5000);
+  const [prefsApplied, setPrefsApplied] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [detailPlace, setDetailPlace] = useState<Place | null>(null);
   const [places, setPlaces] = useState<Place[]>([]);
@@ -318,12 +321,38 @@ export default function Home() {
   const locationResolved = useRef(false);
   const { handleSave } = useSavePlace();
 
-  // Get user location on mount
+  // Apply saved preferences on first mount
   useEffect(() => {
-    if (locationResolved.current) return;
+    try {
+      const raw = localStorage.getItem(PREFS_KEY);
+      if (raw) {
+        const p = JSON.parse(raw) as { defaultIntent?: string; defaultDistance?: number };
+        if (p.defaultIntent) setIntent(p.defaultIntent);
+        if (p.defaultDistance) setRadius(p.defaultDistance);
+      }
+    } catch {
+      // ignore
+    }
+    setPrefsApplied(true);
+  }, []);
+
+  // Get user location after prefs are applied
+  useEffect(() => {
+    if (!prefsApplied || locationResolved.current) return;
     locationResolved.current = true;
 
-    if (!navigator.geolocation) {
+    let autoDetect = true;
+    try {
+      const raw = localStorage.getItem(PREFS_KEY);
+      if (raw) {
+        const p = JSON.parse(raw) as { autoDetectLocation?: boolean };
+        if (p.autoDetectLocation === false) autoDetect = false;
+      }
+    } catch {
+      // ignore
+    }
+
+    if (!autoDetect || !navigator.geolocation) {
       setUserLocation({ lat: DEFAULT_LAT, lng: DEFAULT_LNG });
       return;
     }
@@ -337,7 +366,7 @@ export default function Home() {
       },
       { timeout: 8000 }
     );
-  }, []);
+  }, [prefsApplied]);
 
   // Fetch places when intent, radius, or location changes
   const fetchPlaces = useCallback(async (loc: { lat: number; lng: number }, intentId: string, rad: number) => {
@@ -357,10 +386,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (userLocation) {
+    if (userLocation && prefsApplied) {
       fetchPlaces(userLocation, intent, radius);
     }
-  }, [userLocation, intent, radius, fetchPlaces]);
+  }, [userLocation, intent, radius, fetchPlaces, prefsApplied]);
 
   const allDone = !loading && currentIndex >= places.length;
 
