@@ -70,8 +70,8 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 bg-white dark:bg-[#1a1a2e] border-t border-gray-100 dark:border-white/10 shadow-[0_-2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_-2px_8px_rgba(0,0,0,0.3)]">
-      <div className="flex items-end justify-around h-16 max-w-lg mx-auto px-2 pb-1.5">
+    <nav className="fixed bottom-0 inset-x-0 z-50 bg-white dark:bg-[#1a1a2e] border-t border-gray-100 dark:border-white/10 shadow-[0_-2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_-2px_8px_rgba(0,0,0,0.3)]" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      <div className="flex items-end justify-around h-[68px] max-w-lg mx-auto px-2 pb-2">
         {NAV_ITEMS.map((item) => {
           const active = pathname === item.href;
           const isDiscover = item.href === "/";
@@ -79,13 +79,12 @@ export default function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-end flex-1 ${isDiscover ? "-mt-3" : ""}`}
+              className={`flex flex-col items-center justify-end flex-1 min-h-[48px] ${isDiscover ? "-mt-3" : ""}`}
             >
               <item.Icon active={active} />
               <span
-                className={`text-[10px] font-medium mt-0.5 ${
-                  active ? "text-[#E85D2A]" : "text-gray-400"
-                }`}
+                className={`text-[10px] font-medium mt-0.5 ${active ? "text-[#E85D2A]" : "text-gray-400"
+                  }`}
               >
                 {item.label}
               </span>

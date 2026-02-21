@@ -7,7 +7,7 @@ interface ToastContextValue {
   showToast: (message: string) => void;
 }
 
-const ToastContext = createContext<ToastContextValue>({ showToast: () => {} });
+const ToastContext = createContext<ToastContextValue>({ showToast: () => { } });
 
 export function useToast() {
   return useContext(ToastContext);
@@ -30,10 +30,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           <motion.div
             key={toast.id}
             className="fixed top-12 left-1/2 z-[100] -translate-x-1/2 px-5 py-2.5 rounded-full bg-black/80 backdrop-blur-md text-white text-sm font-semibold shadow-lg"
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0, y: -30 }}
+            transition={{ type: "spring", damping: 25, stiffness: 350 }}
           >
             {toast.message}
           </motion.div>

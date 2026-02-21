@@ -40,14 +40,14 @@ interface FriendSave {
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 const INTENT_LABELS: Record<string, string> = {
-  study:   "Study / Work",
-  date:    "Date / Chill",
-  trending:"Trending Now",
-  quiet:   "Quiet Cafés",
-  laptop:  "Laptop-Friendly",
-  group:   "Group Hangouts",
-  budget:  "Budget Eats",
-  coffee:  "Coffee & Catch-Up",
+  study: "Study / Work",
+  date: "Date / Chill",
+  trending: "Trending Now",
+  quiet: "Quiet Cafés",
+  laptop: "Laptop-Friendly",
+  group: "Group Hangouts",
+  budget: "Budget Eats",
+  coffee: "Coffee & Catch-Up",
   outdoor: "Outdoor / Patio",
 };
 
@@ -241,11 +241,17 @@ function FriendSavesView({
 
       {/* Content */}
       {loading ? (
-        <div className="flex-1 flex items-center justify-center">
-          <div
-            className="w-8 h-8 rounded-full border-3 border-t-transparent animate-spin"
-            style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
-          />
+        <div className="flex-1 px-5 mt-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center gap-3 py-3 border-b border-gray-100 dark:border-white/8 last:border-b-0 animate-pulse">
+              <div className="w-16 h-16 rounded-xl bg-gray-200 dark:bg-[#22223b] shrink-0" />
+              <div className="flex-1">
+                <div className="w-2/3 h-4 bg-gray-200 dark:bg-[#22223b] rounded mb-2" />
+                <div className="w-1/2 h-3 bg-gray-200 dark:bg-[#22223b] rounded mb-2" />
+                <div className="w-1/3 h-3 bg-gray-200 dark:bg-[#22223b] rounded" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : saves.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-3">
@@ -347,11 +353,25 @@ export default function FriendsPage() {
   // ── Loading ──
   if (status === "loading" || loading) {
     return (
-      <div className="h-dvh bg-white dark:bg-[#0f0f1a] flex items-center justify-center pb-16">
-        <div
-          className="w-8 h-8 rounded-full border-3 border-t-transparent animate-spin"
-          style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
-        />
+      <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-24">
+        <header className="px-5 pt-5 pb-3">
+          <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: "#E85D2A" }}>
+            Friends
+          </h1>
+        </header>
+        <div className="px-5 mt-4">
+          <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a2e] overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-3 px-4 py-3.5 animate-pulse">
+                <div className="w-11 h-11 rounded-full bg-gray-200 dark:bg-white/10 shrink-0" />
+                <div className="flex-1">
+                  <div className="w-1/2 h-4 bg-gray-200 dark:bg-white/10 rounded mb-2" />
+                  <div className="w-1/3 h-3 bg-gray-200 dark:bg-white/10 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

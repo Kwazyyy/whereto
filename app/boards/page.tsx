@@ -9,15 +9,15 @@ import { usePhotoUrl } from "@/lib/use-photo-url";
 import PlaceDetailSheet from "@/components/PlaceDetailSheet";
 
 const INTENT_META: Record<string, { emoji: string; label: string }> = {
-  study:    { emoji: "\u{1F4DA}", label: "Study / Work" },
-  date:     { emoji: "\u{2764}\u{FE0F}", label: "Date / Chill" },
+  study: { emoji: "\u{1F4DA}", label: "Study / Work" },
+  date: { emoji: "\u{2764}\u{FE0F}", label: "Date / Chill" },
   trending: { emoji: "\u{1F525}", label: "Trending Now" },
-  quiet:    { emoji: "\u{1F92B}", label: "Quiet Caf\u00E9s" },
-  laptop:   { emoji: "\u{1F50C}", label: "Laptop-Friendly" },
-  group:    { emoji: "\u{1F46F}", label: "Group Hangouts" },
-  budget:   { emoji: "\u{1F354}", label: "Budget Eats" },
-  coffee:   { emoji: "\u{2615}", label: "Coffee & Catch-Up" },
-  outdoor:  { emoji: "\u{1F305}", label: "Outdoor / Patio" },
+  quiet: { emoji: "\u{1F92B}", label: "Quiet Caf\u00E9s" },
+  laptop: { emoji: "\u{1F50C}", label: "Laptop-Friendly" },
+  group: { emoji: "\u{1F46F}", label: "Group Hangouts" },
+  budget: { emoji: "\u{1F354}", label: "Budget Eats" },
+  coffee: { emoji: "\u{2615}", label: "Coffee & Catch-Up" },
+  outdoor: { emoji: "\u{1F305}", label: "Outdoor / Patio" },
 };
 
 const FALLBACK_GRADIENTS = [
@@ -220,11 +220,21 @@ export default function BoardsPage() {
 
   if (loadingData) {
     return (
-      <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] flex items-center justify-center pb-20">
-        <div
-          className="w-10 h-10 rounded-full border-3 border-t-transparent animate-spin"
-          style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
-        />
+      <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-20">
+        <header className="px-5 pt-5 pb-3">
+          <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: "#E85D2A" }}>
+            Boards
+          </h1>
+        </header>
+        <div className="px-5">
+          <div className="grid grid-cols-2 gap-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="rounded-2xl overflow-hidden aspect-[4/3] bg-gray-100 dark:bg-[#1a1a2e] animate-pulse">
+                <div className="w-full h-full bg-gray-200 dark:bg-white/5" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

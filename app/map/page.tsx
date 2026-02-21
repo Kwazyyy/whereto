@@ -8,7 +8,7 @@ import {
   InfoWindow,
   useMap,
 } from "@vis.gl/react-google-maps";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { Place } from "@/lib/types";
@@ -16,33 +16,60 @@ import { SavedPlace, getSavedPlaces } from "@/lib/saved-places";
 import PlaceDetailSheet from "@/components/PlaceDetailSheet";
 import { useSavePlace } from "@/lib/use-save-place";
 import { usePhotoUrl } from "@/lib/use-photo-url";
+import { useTheme } from "@/components/ThemeProvider";
 
 const DEFAULT_LAT = 43.6532;
 const DEFAULT_LNG = -79.3832;
 
 // Minimal map style — hides POI clutter, softens colours
 const MAP_STYLES: Array<{ featureType?: string; elementType?: string; stylers: Array<Record<string, string>> }> = [
-  { featureType: "poi.business",      elementType: "all",            stylers: [{ visibility: "off" }] },
-  { featureType: "poi.medical",       elementType: "all",            stylers: [{ visibility: "off" }] },
-  { featureType: "poi.school",        elementType: "all",            stylers: [{ visibility: "off" }] },
-  { featureType: "poi.sports_complex",elementType: "all",            stylers: [{ visibility: "off" }] },
-  { featureType: "poi.attraction",    elementType: "all",            stylers: [{ visibility: "off" }] },
-  { featureType: "poi.government",    elementType: "all",            stylers: [{ visibility: "off" }] },
-  { featureType: "poi.place_of_worship", elementType: "all",        stylers: [{ visibility: "off" }] },
-  { featureType: "poi.park",          elementType: "geometry.fill",  stylers: [{ color: "#e8f5e3" }] },
-  { featureType: "poi.park",          elementType: "labels",         stylers: [{ visibility: "off" }] },
-  { featureType: "transit",           elementType: "all",            stylers: [{ visibility: "off" }] },
-  { featureType: "water",             elementType: "geometry",       stylers: [{ color: "#cde8f7" }] },
-  { featureType: "water",             elementType: "labels.text",    stylers: [{ visibility: "off" }] },
-  { featureType: "landscape",         elementType: "geometry",       stylers: [{ color: "#f5f5f5" }] },
-  { featureType: "landscape.man_made",elementType: "geometry",       stylers: [{ color: "#eeeeee" }] },
-  { featureType: "road",              elementType: "geometry.fill",  stylers: [{ color: "#ffffff" }] },
-  { featureType: "road",              elementType: "geometry.stroke",stylers: [{ color: "#e0e0e0" }] },
-  { featureType: "road.highway",      elementType: "geometry.fill",  stylers: [{ color: "#fde9c4" }] },
-  { featureType: "road.highway",      elementType: "geometry.stroke",stylers: [{ color: "#f0c97a" }] },
-  { featureType: "administrative",    elementType: "geometry.stroke",stylers: [{ color: "#cccccc" }] },
-  { featureType: "administrative.locality",    elementType: "labels.text.fill", stylers: [{ color: "#777777" }] },
-  { featureType: "administrative.neighborhood",elementType: "labels.text.fill", stylers: [{ color: "#999999" }] },
+  { featureType: "poi.business", elementType: "all", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.medical", elementType: "all", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.school", elementType: "all", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.sports_complex", elementType: "all", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.attraction", elementType: "all", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.government", elementType: "all", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.place_of_worship", elementType: "all", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.park", elementType: "geometry.fill", stylers: [{ color: "#e8f5e3" }] },
+  { featureType: "poi.park", elementType: "labels", stylers: [{ visibility: "off" }] },
+  { featureType: "transit", elementType: "all", stylers: [{ visibility: "off" }] },
+  { featureType: "water", elementType: "geometry", stylers: [{ color: "#cde8f7" }] },
+  { featureType: "water", elementType: "labels.text", stylers: [{ visibility: "off" }] },
+  { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
+  { featureType: "landscape.man_made", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
+  { featureType: "road", elementType: "geometry.fill", stylers: [{ color: "#ffffff" }] },
+  { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#e0e0e0" }] },
+  { featureType: "road.highway", elementType: "geometry.fill", stylers: [{ color: "#fde9c4" }] },
+  { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#f0c97a" }] },
+  { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#cccccc" }] },
+  { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#777777" }] },
+  { featureType: "administrative.neighborhood", elementType: "labels.text.fill", stylers: [{ color: "#999999" }] },
+];
+
+const DARK_MAP_STYLES: Array<{ featureType?: string; elementType?: string; stylers: Array<Record<string, string>> }> = [
+  { elementType: "geometry", stylers: [{ color: "#14171c" }] },
+  { featureType: "poi", elementType: "geometry", stylers: [{ color: "#1a1e24" }] },
+  { featureType: "poi.business", elementType: "all", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.medical", elementType: "all", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.school", elementType: "all", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.sports_complex", elementType: "all", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.attraction", elementType: "all", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.government", elementType: "all", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.place_of_worship", elementType: "all", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.park", elementType: "geometry.fill", stylers: [{ color: "#1a2421" }] },
+  { featureType: "poi.park", elementType: "labels", stylers: [{ visibility: "off" }] },
+  { featureType: "transit", elementType: "all", stylers: [{ visibility: "off" }] },
+  { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
+  { featureType: "water", elementType: "labels.text", stylers: [{ visibility: "off" }] },
+  { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#14171c" }] },
+  { featureType: "landscape.man_made", elementType: "geometry", stylers: [{ color: "#1a1e24" }] },
+  { featureType: "road", elementType: "geometry.fill", stylers: [{ color: "#222730" }] },
+  { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#2d333f" }] },
+  { featureType: "road.highway", elementType: "geometry.fill", stylers: [{ color: "#2c3e50" }] },
+  { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#34495e" }] },
+  { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#454d5c" }] },
+  { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#a0aabf" }] },
+  { featureType: "administrative.neighborhood", elementType: "labels.text.fill", stylers: [{ color: "#8793a8" }] },
 ];
 
 const FALLBACK_GRADIENTS = [
@@ -54,14 +81,14 @@ const FALLBACK_GRADIENTS = [
 ];
 
 const categories = [
-  { id: "study",   emoji: "\u{1F4DA}", label: "Study / Work" },
-  { id: "date",    emoji: "\u2764\uFE0F", label: "Date / Chill" },
-  { id: "trending",emoji: "\u{1F525}", label: "Trending Now" },
-  { id: "quiet",   emoji: "\u{1F92B}", label: "Quiet Caf\u00E9s" },
-  { id: "laptop",  emoji: "\u{1F50C}", label: "Laptop-Friendly" },
-  { id: "group",   emoji: "\u{1F46F}", label: "Group Hangouts" },
-  { id: "budget",  emoji: "\u{1F354}", label: "Budget Eats" },
-  { id: "coffee",  emoji: "\u2615", label: "Coffee & Catch-Up" },
+  { id: "study", emoji: "\u{1F4DA}", label: "Study / Work" },
+  { id: "date", emoji: "\u2764\uFE0F", label: "Date / Chill" },
+  { id: "trending", emoji: "\u{1F525}", label: "Trending Now" },
+  { id: "quiet", emoji: "\u{1F92B}", label: "Quiet Caf\u00E9s" },
+  { id: "laptop", emoji: "\u{1F50C}", label: "Laptop-Friendly" },
+  { id: "group", emoji: "\u{1F46F}", label: "Group Hangouts" },
+  { id: "budget", emoji: "\u{1F354}", label: "Budget Eats" },
+  { id: "coffee", emoji: "\u2615", label: "Coffee & Catch-Up" },
   { id: "outdoor", emoji: "\u{1F305}", label: "Outdoor / Patio" },
 ];
 
@@ -78,7 +105,7 @@ function pinUrl(color: string): string {
 }
 
 const ORANGE_PIN = pinUrl("#E85D2A");
-const BLUE_PIN   = pinUrl("#3B82F6");
+const BLUE_PIN = pinUrl("#3B82F6");
 
 // --- Thumbnail photo inside the info card ---
 function InfoPhoto({ photoRef }: { photoRef: string | null }) {
@@ -315,6 +342,24 @@ export default function MapPage() {
   const [savedPlaces, setSavedPlaces] = useState<SavedPlace[]>([]);
   const [nearbyPlaces, setNearbyPlaces] = useState<Place[]>([]);
   const [detailPlace, setDetailPlace] = useState<Place | null>(null);
+  const [loading, setLoading] = useState(false); // Added loading state
+
+  const { theme } = useTheme();
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    setIsDarkMode(
+      theme === "dark" ||
+      (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
+    );
+
+    if (theme === "system") {
+      const mq = window.matchMedia("(prefers-color-scheme: dark)");
+      const handler = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
+      mq.addEventListener("change", handler);
+      return () => mq.removeEventListener("change", handler);
+    }
+  }, [theme]);
 
   // Get GPS location on mount
   useEffect(() => {
@@ -354,6 +399,7 @@ export default function MapPage() {
   // Fetch nearby places when intent or location changes
   const fetchNearby = useCallback(async () => {
     if (!userLocation) return;
+    setLoading(true);
     try {
       const res = await fetch(
         `/api/places?intent=${intent}&lat=${userLocation.lat}&lng=${userLocation.lng}&radius=5000`
@@ -364,6 +410,8 @@ export default function MapPage() {
       }
     } catch {
       setNearbyPlaces([]);
+    } finally {
+      setLoading(false);
     }
   }, [intent, userLocation]);
 
@@ -373,10 +421,10 @@ export default function MapPage() {
 
   const fallbackGradient =
     FALLBACK_GRADIENTS[
-      detailPlace
-        ? nearbyPlaces.findIndex((p) => p.placeId === detailPlace.placeId) %
-          FALLBACK_GRADIENTS.length
-        : 0
+    detailPlace
+      ? nearbyPlaces.findIndex((p) => p.placeId === detailPlace.placeId) %
+      FALLBACK_GRADIENTS.length
+      : 0
     ] ?? FALLBACK_GRADIENTS[0];
 
   return (
@@ -393,11 +441,10 @@ export default function MapPage() {
             <button
               key={cat.id}
               onClick={() => setIntent(cat.id)}
-              className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap ${
-                intent === cat.id
-                  ? "bg-[#E85D2A] text-white shadow-sm"
-                  : "bg-gray-100 dark:bg-white/10 text-[#1B2A4A] dark:text-[#e8edf4] hover:bg-gray-200 dark:hover:bg-white/15"
-              }`}
+              className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap ${intent === cat.id
+                ? "bg-[#E85D2A] text-white shadow-sm"
+                : "bg-gray-100 dark:bg-white/10 text-[#1B2A4A] dark:text-[#e8edf4] hover:bg-gray-200 dark:hover:bg-white/15"
+                }`}
             >
               {cat.emoji} {cat.label}
             </button>
@@ -425,7 +472,7 @@ export default function MapPage() {
               defaultZoom={13}
               gestureHandling="greedy"
               disableDefaultUI
-              styles={MAP_STYLES}
+              styles={isDarkMode ? DARK_MAP_STYLES : MAP_STYLES}
               style={{ width: "100%", height: "100%" }}
             >
               <MapMarkers
@@ -437,6 +484,21 @@ export default function MapPage() {
             </Map>
           </APIProvider>
         )}
+
+        {/* Searching overlay */}
+        <AnimatePresence>
+          {loading && userLocation && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/95 dark:bg-[#1a1a2e]/95 backdrop-blur-md shadow-md border border-gray-100 dark:border-white/10"
+            >
+              <div className="w-3.5 h-3.5 rounded-full border-[2px] border-t-transparent animate-spin" style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }} />
+              <span className="text-xs font-semibold text-[#1B2A4A] dark:text-[#e8edf4]">Searching...</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Legend */}
         {userLocation && (

@@ -168,8 +168,12 @@ function SwipeCard({
 
   return (
     <motion.div
-      className="absolute inset-3 rounded-3xl overflow-hidden shadow-2xl touch-none"
+      className="absolute inset-4 rounded-3xl overflow-hidden shadow-2xl touch-none"
       style={{ x, y, rotate, zIndex: isTop ? 10 : 0 }}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.3 }}
       drag={isTop}
       dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       dragElastic={1}
@@ -328,10 +332,9 @@ function DistanceBubble({
                   className={`
                     px-2.5 py-1 rounded-full text-xs font-semibold
                     transition-colors duration-150 cursor-pointer
-                    ${
-                      radius === opt.value
-                        ? "bg-[#E85D2A] text-white"
-                        : "text-white/70 hover:text-white"
+                    ${radius === opt.value
+                      ? "bg-[#E85D2A] text-white"
+                      : "text-white/70 hover:text-white"
                     }
                   `}
                 >
@@ -442,7 +445,7 @@ export default function Home() {
               )
             );
           })
-          .catch(() => {});
+          .catch(() => { });
       }
     } catch {
       setPlaces([]);
@@ -491,75 +494,97 @@ export default function Home() {
       </header>
 
       {/* Intent Chips */}
-      <div className="shrink-0 px-5 py-3">
+      <div className="shrink-0 px-5 py-3 pt-1">
         <div
           ref={chipScrollRef}
-          className="flex gap-2 overflow-x-auto scrollbar-none pb-1"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          className="flex gap-2 overflow-x-auto scrollbar-none pb-2 snap-x snap-mandatory"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
         >
           {categories.map((cat) => (
-            <button
+            <motion.button
+              whileTap={{ scale: 0.95 }}
               key={cat.id}
               onClick={() => setIntent(cat.id)}
               className={`
-                shrink-0 px-4 py-2 rounded-full text-sm font-semibold
-                transition-all duration-200 cursor-pointer whitespace-nowrap
-                ${
-                  intent === cat.id
-                    ? "bg-[#E85D2A] text-white shadow-sm"
-                    : "bg-gray-100 dark:bg-white/10 text-[#1B2A4A] dark:text-[#e8edf4] hover:bg-gray-200 dark:hover:bg-white/15"
+                shrink-0 px-4 py-2 rounded-full text-sm font-semibold snap-start
+                transition-colors duration-200 cursor-pointer whitespace-nowrap
+                ${intent === cat.id
+                  ? "bg-[#E85D2A] text-white shadow-sm"
+                  : "bg-gray-100 dark:bg-white/10 text-[#1B2A4A] dark:text-[#e8edf4] hover:bg-gray-200 dark:hover:bg-white/15"
                 }
               `}
             >
               {cat.emoji} {cat.label}
-            </button>
+            </motion.button>
           ))}
         </div>
       </div>
 
       {/* Loading State */}
       {(loading || !userLocation) ? (
-        <div className="flex-1 flex flex-col items-center justify-center gap-4">
-          <div
-            className="w-10 h-10 rounded-full border-3 border-t-transparent animate-spin"
-            style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
-          />
-          <p className="text-sm text-gray-400 dark:text-gray-500 font-medium">
-            {!userLocation ? "Getting your location..." : "Finding places..."}
-          </p>
+        <div className="flex-1 relative px-4 pb-4">
+          <div className="w-full h-full rounded-3xl bg-gray-100 dark:bg-[#1a1a2e]/60 animate-pulse shadow-xl flex flex-col justify-end p-6 border border-gray-200/50 dark:border-white/5">
+            <div className="w-2/3 h-8 bg-gray-200 dark:bg-white/10 rounded-xl mb-3"></div>
+            <div className="w-1/2 h-4 bg-gray-200 dark:bg-white/10 rounded-lg mb-4"></div>
+            <div className="flex gap-2 mt-2">
+              <div className="w-16 h-6 bg-gray-200 dark:bg-white/10 rounded-full"></div>
+              <div className="w-20 h-6 bg-gray-200 dark:bg-white/10 rounded-full"></div>
+            </div>
+          </div>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+            <div
+              className="w-10 h-10 rounded-full border-3 border-t-transparent animate-spin drop-shadow-md"
+              style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
+            />
+          </div>
         </div>
       ) : allDone ? (
-        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-5">
-          <div className="text-6xl">&#x1F44B;</div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-4 pb-12"
+        >
+          <div className="w-24 h-24 rounded-full bg-gray-50 dark:bg-[#1a1a2e] flex items-center justify-center text-5xl mb-2 shadow-inner border border-gray-100 dark:border-white/5">
+            {places.length === 0 ? "🗺️" : "✨"}
+          </div>
           <h2 className="text-2xl font-bold text-[#1B2A4A] dark:text-[#e8edf4]">
-            {places.length === 0 ? "No places found" : "No more places!"}
+            {places.length === 0 ? "Nothing nearby" : "You're all caught up!"}
           </h2>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
+          <p className="text-gray-500 dark:text-gray-400 text-sm max-w-[260px] leading-relaxed">
             {places.length === 0
-              ? "Try a different vibe or check back later."
-              : <>You&apos;ve seen all the spots for this vibe.<br />Try a different one above!</>}
+              ? `We couldn't find any spots for this vibe within ${radius >= 1000 ? radius / 1000 + 'km' : radius + 'm'}.`
+              : "You've swiped through all the spots for this vibe. Check out another area or intent!"}
           </p>
-        </div>
+          <button
+            onClick={() => { setRadius(25000); setIntent("trending"); }}
+            className="mt-4 px-6 py-3 rounded-full font-semibold text-white bg-[#E85D2A] hover:bg-[#d04e1f] transition-colors shadow-lg shadow-[#E85D2A]/30 active:scale-95 flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /></svg>
+            Explore wider area
+          </button>
+        </motion.div>
       ) : (
         <div className="flex-1 relative">
-          {places
-            .slice(currentIndex, currentIndex + 2)
-            .reverse()
-            .map((place, i, arr) => (
-              <SwipeCard
-                key={`${intent}-${place.placeId}`}
-                place={place}
-                fallbackGradient={FALLBACK_GRADIENTS[
-                  (currentIndex + (arr.length - 1 - i)) % FALLBACK_GRADIENTS.length
-                ]}
-                onSwipe={handleSwipe}
-                onTap={() => setDetailPlace(place)}
-                isTop={i === arr.length - 1}
-              />
-            ))}
+          <AnimatePresence>
+            {places
+              .slice(currentIndex, currentIndex + 2)
+              .reverse()
+              .map((place, i, arr) => (
+                <SwipeCard
+                  key={`${intent}-${place.placeId}`}
+                  place={place}
+                  fallbackGradient={FALLBACK_GRADIENTS[
+                    (currentIndex + (arr.length - 1 - i)) % FALLBACK_GRADIENTS.length
+                  ]}
+                  onSwipe={handleSwipe}
+                  onTap={() => setDetailPlace(place)}
+                  isTop={i === arr.length - 1}
+                />
+              ))}
+          </AnimatePresence>
 
           {/* Distance Bubble – floats over card */}
-          <div className="absolute top-6 left-6 z-30">
+          <div className="absolute top-7 right-7 z-30">
             <DistanceBubble radius={radius} onRadiusChange={setRadius} />
           </div>
         </div>
