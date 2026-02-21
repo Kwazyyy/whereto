@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { motion, PanInfo } from "framer-motion";
 import Image from "next/image";
-import { Place } from "@/lib/types";
+import { Place, FriendSignal } from "@/lib/types";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 
 export default function PlaceDetailSheet({
@@ -104,6 +104,39 @@ export default function PlaceDetailSheet({
 
             {place.address && (
               <p className="mt-4 text-sm text-gray-500">{place.address}</p>
+            )}
+
+            {/* Friends who saved this */}
+            {place.friendSaves && place.friendSaves.length > 0 && (
+              <div className="mt-5">
+                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">
+                  Friends Love This
+                </h3>
+                <div className="flex flex-col gap-2.5">
+                  {place.friendSaves.map((f: FriendSignal) => (
+                    <div key={f.userId} className="flex items-center gap-3">
+                      {f.image ? (
+                        <Image
+                          src={f.image}
+                          alt={f.name ?? ""}
+                          width={32}
+                          height={32}
+                          className="rounded-full shrink-0"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-[#E85D2A] flex items-center justify-center text-white text-xs font-bold shrink-0">
+                          {f.name?.[0]?.toUpperCase() ?? "?"}
+                        </div>
+                      )}
+                      <span className="text-sm font-medium" style={{ color: "#1B2A4A" }}>
+                        {f.name ?? "A friend"}
+                      </span>
+                      <span className="ml-auto text-xs text-gray-400">saved this</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
 
             {/* Details Grid */}

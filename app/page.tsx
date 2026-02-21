@@ -10,7 +10,8 @@ import {
   PanInfo,
 } from "framer-motion";
 import Image from "next/image";
-import { Place } from "@/lib/types";
+import { useSession } from "next-auth/react";
+import { Place, FriendSignal } from "@/lib/types";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useSavePlace } from "@/lib/use-save-place";
 import PlaceDetailSheet from "@/components/PlaceDetailSheet";
@@ -48,6 +49,39 @@ const SWIPE_THRESHOLD = 100;
 const SWIPE_UP_THRESHOLD = 80;
 const TAP_MOVE_LIMIT = 10;
 const TAP_TIME_LIMIT = 200;
+
+// --- Friend Signal Helpers ---
+
+function friendLabel(friends: FriendSignal[]): string {
+  const first = (f: FriendSignal) => f.name?.split(" ")[0] ?? "someone";
+  if (friends.length === 1) return `Liked by ${first(friends[0])}`;
+  if (friends.length === 2) return `Liked by ${first(friends[0])} & ${first(friends[1])}`;
+  return `Liked by ${first(friends[0])} & ${friends.length - 1} others`;
+}
+
+function FriendAvatars({ friends }: { friends: FriendSignal[] }) {
+  const shown = friends.slice(0, 3);
+  return (
+    <div className="flex items-center">
+      {shown.map((f, i) => (
+        <div
+          key={f.userId}
+          className="w-5 h-5 rounded-full border-[1.5px] border-black/30 overflow-hidden bg-[#E85D2A] flex items-center justify-center shrink-0"
+          style={{ marginLeft: i === 0 ? 0 : -6, zIndex: shown.length - i }}
+        >
+          {f.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={f.image} alt={f.name ?? ""} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-white text-[7px] font-bold leading-none">
+              {f.name?.[0]?.toUpperCase() ?? "?"}
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 // --- Card Photo ---
 
@@ -183,7 +217,15 @@ function SwipeCard({
             </>
           )}
         </div>
-        <div className="flex flex-wrap gap-2 mt-4">
+        {place.friendSaves && place.friendSaves.length > 0 && (
+          <div className="mt-3 inline-flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-black/50 backdrop-blur-sm">
+            <FriendAvatars friends={place.friendSaves} />
+            <span className="text-white text-xs font-semibold leading-none">
+              {friendLabel(place.friendSaves)}
+            </span>
+          </div>
+        )}
+        <div className="flex flex-wrap gap-2 mt-3">
           {place.tags.map((tag) => (
             <span key={tag} className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white text-xs font-semibold">
               {tag}
@@ -320,6 +362,10 @@ export default function Home() {
   const chipScrollRef = useRef<HTMLDivElement>(null);
   const locationResolved = useRef(false);
   const { handleSave } = useSavePlace();
+  const { status } = useSession();
+  // Ref so fetchPlaces can read auth status without being in its dep array
+  const sessionStatusRef = useRef(status);
+  useEffect(() => { sessionStatusRef.current = status; }, [status]);
 
   // Apply saved preferences on first mount
   useEffect(() => {
@@ -377,7 +423,27 @@ export default function Home() {
         `/api/places?intent=${intentId}&lat=${loc.lat}&lng=${loc.lng}&radius=${rad}`
       );
       const data = await res.json();
-      setPlaces(data.places ?? []);
+      const rawPlaces: Place[] = data.places ?? [];
+      setPlaces(rawPlaces);
+
+      // Fire-and-forget: enrich with friend signals for authenticated users
+      if (rawPlaces.length > 0 && sessionStatusRef.current === "authenticated") {
+        fetch("/api/friends/place-signals", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ placeIds: rawPlaces.map((p) => p.placeId) }),
+        })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((signals: Record<string, FriendSignal[]> | null) => {
+            if (!signals || Object.keys(signals).length === 0) return;
+            setPlaces((prev) =>
+              prev.map((p) =>
+                signals[p.placeId] ? { ...p, friendSaves: signals[p.placeId] } : p
+              )
+            );
+          })
+          .catch(() => {});
+      }
     } catch {
       setPlaces([]);
     } finally {

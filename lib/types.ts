@@ -1,3 +1,9 @@
+export interface FriendSignal {
+  userId: string;
+  name: string | null;
+  image: string | null;
+}
+
 export interface Place {
   placeId: string;
   name: string;
@@ -11,4 +17,5 @@ export interface Place {
   hours: string[];
   distance: string;
   tags: string[];
+  friendSaves?: FriendSignal[];
 }
