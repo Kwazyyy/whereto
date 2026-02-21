@@ -87,7 +87,7 @@ function Avatar({
 function PlacePhoto({ photoRef }: { photoRef: string | null }) {
   const url = usePhotoUrl(photoRef);
   if (!url) {
-    return <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300" />;
+    return <div className="w-full h-full bg-gradient-to-br from-gray-200 dark:from-[#22223b] to-gray-300 dark:to-[#2d2d44]" />;
   }
   return <Image src={url} alt="" fill className="object-cover" unoptimized />;
 }
@@ -138,15 +138,15 @@ function AddFriendModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-white rounded-t-3xl px-6 pt-4 pb-28"
+        className="w-full max-w-lg bg-white dark:bg-[#1a1a2e] rounded-t-3xl px-6 pt-4 pb-28"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="w-10 h-1 rounded-full bg-gray-200 mx-auto mb-6" />
+        <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-6" />
 
-        <h2 className="text-lg font-bold mb-1" style={{ color: "#1B2A4A" }}>
+        <h2 className="text-lg font-bold mb-1 text-[#1B2A4A] dark:text-[#e8edf4]">
           Add a Friend
         </h2>
-        <p className="text-sm text-gray-400 mb-5">
+        <p className="text-sm text-gray-400 dark:text-gray-500 mb-5">
           Enter their email address to send a friend request.
         </p>
 
@@ -157,8 +157,7 @@ function AddFriendModal({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoFocus
-            className="w-full px-4 py-3.5 rounded-2xl bg-gray-50 text-sm font-medium outline-none border-2 border-transparent focus:border-[#E85D2A] transition-colors"
-            style={{ color: "#1B2A4A" }}
+            className="w-full px-4 py-3.5 rounded-2xl bg-gray-50 dark:bg-[#22223b] text-sm font-medium outline-none border-2 border-transparent focus:border-[#E85D2A] transition-colors text-[#1B2A4A] dark:text-[#e8edf4] placeholder:text-gray-400 dark:placeholder:text-gray-500"
           />
 
           {error && (
@@ -166,7 +165,7 @@ function AddFriendModal({
           )}
 
           {success && (
-            <p className="text-xs text-green-600 font-medium px-1">
+            <p className="text-xs text-green-600 dark:text-green-400 font-medium px-1">
               Friend request sent!
             </p>
           )}
@@ -206,12 +205,12 @@ function FriendSavesView({
   }, [friend.userId]);
 
   return (
-    <div className="min-h-dvh bg-white flex flex-col pb-20">
+    <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] flex flex-col pb-20">
       {/* Header */}
       <header className="shrink-0 px-5 pt-5 pb-3 flex items-center gap-3">
         <button
           onClick={onBack}
-          className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 cursor-pointer hover:bg-gray-200 transition-colors"
+          className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 cursor-pointer hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -219,10 +218,10 @@ function FriendSavesView({
             height="18"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#1B2A4A"
             strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
+            className="stroke-[#1B2A4A] dark:stroke-[#e8edf4]"
           >
             <path d="m15 18-6-6 6-6" />
           </svg>
@@ -230,10 +229,10 @@ function FriendSavesView({
         <div className="flex items-center gap-3 min-w-0">
           <Avatar image={friend.image} name={friend.name} size={36} />
           <div className="min-w-0">
-            <h1 className="text-base font-bold truncate" style={{ color: "#1B2A4A" }}>
+            <h1 className="text-base font-bold truncate text-[#1B2A4A] dark:text-[#e8edf4]">
               {friend.name ?? friend.email}
             </h1>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-400 dark:text-gray-500">
               {saves.length} saved {saves.length === 1 ? "place" : "places"}
             </p>
           </div>
@@ -251,7 +250,7 @@ function FriendSavesView({
       ) : saves.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-3">
           <div className="text-4xl">🔖</div>
-          <p className="text-gray-400 text-sm">
+          <p className="text-gray-400 dark:text-gray-500 text-sm">
             {friend.name ?? "This friend"} hasn&apos;t saved any places yet.
           </p>
         </div>
@@ -268,27 +267,27 @@ function FriendSavesView({
 
 function SaveRow({ place }: { place: FriendSave }) {
   return (
-    <div className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-b-0">
-      <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative bg-gray-200">
+    <div className="flex items-center gap-3 py-3 border-b border-gray-100 dark:border-white/8 last:border-b-0">
+      <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative bg-gray-200 dark:bg-[#22223b]">
         <PlacePhoto photoRef={place.photoRef} />
       </div>
       <div className="flex-1 min-w-0">
-        <h3 className="text-sm font-bold truncate" style={{ color: "#1B2A4A" }}>
+        <h3 className="text-sm font-bold truncate text-[#1B2A4A] dark:text-[#e8edf4]">
           {place.name}
         </h3>
-        <p className="text-xs text-gray-400 truncate mt-0.5">{place.address}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5">{place.address}</p>
         <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
           {place.intent && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-50 text-[#E85D2A]">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-50 dark:bg-[#E85D2A]/15 text-[#E85D2A]">
               {INTENT_LABELS[place.intent] ?? place.intent}
             </span>
           )}
           {place.rating > 0 && (
-            <span className="text-[10px] text-gray-400 font-medium">
+            <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">
               ★ {place.rating.toFixed(1)}
             </span>
           )}
-          <span className="text-[10px] text-gray-400 font-medium">{place.price}</span>
+          <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">{place.price}</span>
         </div>
       </div>
     </div>
@@ -348,7 +347,7 @@ export default function FriendsPage() {
   // ── Loading ──
   if (status === "loading" || loading) {
     return (
-      <div className="h-dvh bg-white flex items-center justify-center pb-16">
+      <div className="h-dvh bg-white dark:bg-[#0f0f1a] flex items-center justify-center pb-16">
         <div
           className="w-8 h-8 rounded-full border-3 border-t-transparent animate-spin"
           style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
@@ -360,14 +359,14 @@ export default function FriendsPage() {
   // ── Not signed in ──
   if (!session?.user) {
     return (
-      <div className="min-h-dvh bg-white pb-20">
+      <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-20">
         <header className="px-5 pt-5 pb-3">
           <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: "#E85D2A" }}>
             Friends
           </h1>
         </header>
         <div className="flex flex-col items-center justify-center px-8 pt-24 text-center gap-5">
-          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-[#1a1a2e] flex items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
@@ -376,15 +375,14 @@ export default function FriendsPage() {
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-bold" style={{ color: "#1B2A4A" }}>Sign in to see friends</h2>
-            <p className="text-sm text-gray-400 mt-1.5 max-w-xs">
+            <h2 className="text-xl font-bold text-[#1B2A4A] dark:text-[#e8edf4]">Sign in to see friends</h2>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1.5 max-w-xs">
               Add friends and see what places they&apos;re saving.
             </p>
           </div>
           <button
             onClick={() => signIn("google")}
-            className="flex items-center justify-center gap-3 w-full max-w-xs py-3.5 rounded-2xl bg-white border-2 border-gray-200 font-semibold text-sm hover:bg-gray-50 transition-colors cursor-pointer"
-            style={{ color: "#1B2A4A" }}
+            className="flex items-center justify-center gap-3 w-full max-w-xs py-3.5 rounded-2xl bg-white dark:bg-[#1a1a2e] border-2 border-gray-200 dark:border-white/10 font-semibold text-sm text-[#1B2A4A] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#22223b] transition-colors cursor-pointer"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -413,7 +411,7 @@ export default function FriendsPage() {
 
   // ── Main friends list ──
   return (
-    <div className="min-h-dvh bg-white pb-24">
+    <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-24">
       {/* Header */}
       <header className="px-5 pt-5 pb-3 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: "#E85D2A" }}>
@@ -439,8 +437,8 @@ export default function FriendsPage() {
         <div className="flex flex-col items-center justify-center px-8 pt-28 text-center gap-5">
           <div className="text-5xl">👫</div>
           <div>
-            <h2 className="text-xl font-bold" style={{ color: "#1B2A4A" }}>No friends yet</h2>
-            <p className="text-sm text-gray-400 mt-2 max-w-xs">
+            <h2 className="text-xl font-bold text-[#1B2A4A] dark:text-[#e8edf4]">No friends yet</h2>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-2 max-w-xs">
               Add friends by email to see what places they love!
             </p>
           </div>
@@ -457,25 +455,25 @@ export default function FriendsPage() {
           {/* ── Friend Requests ── */}
           {incoming.length > 0 && (
             <>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-1 mt-5 mb-2">
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider px-1 mt-5 mb-2">
                 Friend Requests ({incoming.length})
               </p>
-              <div className="rounded-2xl bg-gray-50 overflow-hidden divide-y divide-gray-100">
+              <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a2e] overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
                 {incoming.map((req) => (
                   <div key={req.friendshipId} className="flex items-center gap-3 px-4 py-3.5">
                     <Avatar image={req.image} name={req.name} size={44} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold truncate" style={{ color: "#1B2A4A" }}>
+                      <p className="text-sm font-bold truncate text-[#1B2A4A] dark:text-[#e8edf4]">
                         {req.name ?? req.email}
                       </p>
                       {req.name && (
-                        <p className="text-xs text-gray-400 truncate">{req.email}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{req.email}</p>
                       )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={() => handleRequest(req.friendshipId, "decline")}
-                        className="px-3 py-1.5 rounded-full bg-gray-200 text-xs font-semibold text-gray-500 cursor-pointer hover:bg-gray-300 transition-colors"
+                        className="px-3 py-1.5 rounded-full bg-gray-200 dark:bg-white/10 text-xs font-semibold text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-gray-300 dark:hover:bg-white/15 transition-colors"
                       >
                         Decline
                       </button>
@@ -496,10 +494,10 @@ export default function FriendsPage() {
           {/* ── Friends ── */}
           {friends.length > 0 && (
             <>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-1 mt-7 mb-2">
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider px-1 mt-7 mb-2">
                 Friends ({friends.length})
               </p>
-              <div className="rounded-2xl bg-gray-50 overflow-hidden divide-y divide-gray-100">
+              <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a2e] overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
                 {friends.map((friend) => (
                   <div key={friend.friendshipId} className="flex items-center gap-3 px-4 py-3.5">
                     {/* Tappable main area */}
@@ -509,11 +507,11 @@ export default function FriendsPage() {
                     >
                       <Avatar image={friend.image} name={friend.name} size={44} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold truncate" style={{ color: "#1B2A4A" }}>
+                        <p className="text-sm font-bold truncate text-[#1B2A4A] dark:text-[#e8edf4]">
                           {friend.name ?? friend.email}
                         </p>
                         {friend.name && (
-                          <p className="text-xs text-gray-400 truncate">{friend.email}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{friend.email}</p>
                         )}
                       </div>
                       <svg
@@ -543,7 +541,7 @@ export default function FriendsPage() {
                         </button>
                         <button
                           onClick={() => setRemovingId(null)}
-                          className="px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-[10px] font-bold cursor-pointer hover:bg-gray-200 transition-colors"
+                          className="px-2 py-1 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 text-[10px] font-bold cursor-pointer hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
                         >
                           Cancel
                         </button>
@@ -551,7 +549,7 @@ export default function FriendsPage() {
                     ) : (
                       <button
                         onClick={() => setRemovingId(friend.friendshipId)}
-                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 transition-colors cursor-pointer shrink-0"
+                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer shrink-0"
                         title="Remove friend"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

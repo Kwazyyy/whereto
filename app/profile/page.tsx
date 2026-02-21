@@ -5,6 +5,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { getSavedPlaces } from "@/lib/saved-places";
+import { useTheme, type Theme } from "@/components/ThemeProvider";
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -28,6 +29,12 @@ const DISTANCE_OPTIONS = [
   { label: "25 km", value: 25000 },
 ];
 
+const THEME_OPTIONS: { label: string; value: Theme }[] = [
+  { label: "Light", value: "light" },
+  { label: "Dark",  value: "dark" },
+  { label: "System", value: "system" },
+];
+
 export const PREFS_KEY = "whereto_prefs";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -36,6 +43,7 @@ export interface Prefs {
   defaultIntent: string;
   defaultDistance: number;
   autoDetectLocation: boolean;
+  theme: Theme;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -44,6 +52,7 @@ const DEFAULT_PREFS: Prefs = {
   defaultIntent: "trending",
   defaultDistance: 5000,
   autoDetectLocation: true,
+  theme: "system",
 };
 
 export function loadPrefs(): Prefs {
@@ -73,7 +82,7 @@ function formatJoinDate(iso: string): string {
 
 function SectionHeader({ title }: { title: string }) {
   return (
-    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-1 mt-7 mb-2">
+    <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider px-1 mt-7 mb-2">
       {title}
     </p>
   );
@@ -81,7 +90,7 @@ function SectionHeader({ title }: { title: string }) {
 
 function SettingsCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-gray-50 overflow-hidden divide-y divide-gray-100">
+    <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a2e] overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
       {children}
     </div>
   );
@@ -90,7 +99,7 @@ function SettingsCard({ children }: { children: React.ReactNode }) {
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between px-4 py-3.5 min-h-[52px]">
-      <span className="text-sm font-medium" style={{ color: "#1B2A4A" }}>
+      <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
         {label}
       </span>
       {children}
@@ -112,11 +121,11 @@ function SelectRow({
   const currentLabel = options.find((o) => String(o.value) === String(value))?.label ?? "";
   return (
     <div className="flex items-center justify-between px-4 py-3.5 min-h-[52px]">
-      <span className="text-sm font-medium" style={{ color: "#1B2A4A" }}>
+      <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
         {label}
       </span>
       <div className="relative flex items-center gap-1.5">
-        <span className="text-sm text-gray-400">{currentLabel}</span>
+        <span className="text-sm text-gray-400 dark:text-gray-500">{currentLabel}</span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="14"
@@ -146,6 +155,41 @@ function SelectRow({
   );
 }
 
+function SegmentedRow({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: { label: string; value: string }[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between px-4 py-3.5 min-h-[52px]">
+      <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
+        {label}
+      </span>
+      <div className="flex gap-0.5 p-0.5 rounded-xl bg-gray-100 dark:bg-[#22223b]">
+        {options.map((o) => (
+          <button
+            key={o.value}
+            onClick={() => onChange(o.value)}
+            className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+              value === o.value
+                ? "bg-white dark:bg-[#1a1a2e] text-[#1B2A4A] dark:text-[#e8edf4] shadow-sm"
+                : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
+            }`}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function Toggle({
   checked,
   onChange,
@@ -159,7 +203,7 @@ function Toggle({
       aria-checked={checked}
       onClick={() => onChange(!checked)}
       className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer shrink-0 ${
-        checked ? "bg-[#E85D2A]" : "bg-gray-200"
+        checked ? "bg-[#E85D2A]" : "bg-gray-200 dark:bg-[#22223b]"
       }`}
     >
       <span
@@ -193,6 +237,7 @@ function ChevronRight() {
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
+  const { theme, setTheme } = useTheme();
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [saveCount, setSaveCount] = useState<number | null>(null);
   const [joinedDate, setJoinedDate] = useState<string | null>(null);
@@ -201,6 +246,11 @@ export default function ProfilePage() {
   useEffect(() => {
     setPrefs(loadPrefs());
   }, []);
+
+  // Keep local prefs theme in sync with ThemeProvider
+  useEffect(() => {
+    setPrefs((p) => ({ ...p, theme }));
+  }, [theme]);
 
   // Fetch user data when authenticated
   useEffect(() => {
@@ -232,9 +282,15 @@ export default function ProfilePage() {
     savePrefsToStorage(updated);
   }
 
+  function handleThemeChange(v: string) {
+    const t = v as Theme;
+    updatePref("theme", t);
+    setTheme(t);
+  }
+
   if (status === "loading") {
     return (
-      <div className="h-dvh bg-white flex items-center justify-center pb-16">
+      <div className="h-dvh bg-white dark:bg-[#0f0f1a] flex items-center justify-center pb-16">
         <div
           className="w-8 h-8 rounded-full border-3 border-t-transparent animate-spin"
           style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
@@ -244,7 +300,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-dvh bg-white pb-24">
+    <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-24">
       <header className="px-5 pt-5 pb-1">
         <h1
           className="text-2xl font-extrabold tracking-tight"
@@ -264,7 +320,7 @@ export default function ProfilePage() {
                 alt={session.user.name ?? ""}
                 width={80}
                 height={80}
-                className="rounded-full ring-2 ring-gray-100"
+                className="rounded-full ring-2 ring-gray-100 dark:ring-white/10"
                 unoptimized
               />
             ) : (
@@ -272,17 +328,14 @@ export default function ProfilePage() {
                 {session.user.name?.[0]?.toUpperCase() ?? "?"}
               </div>
             )}
-            <h2
-              className="text-xl font-bold mt-3"
-              style={{ color: "#1B2A4A" }}
-            >
+            <h2 className="text-xl font-bold mt-3 text-[#1B2A4A] dark:text-[#e8edf4]">
               {session.user.name}
             </h2>
-            <p className="text-sm text-gray-400 mt-0.5">{session.user.email}</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-0.5">{session.user.email}</p>
           </div>
         ) : (
           <div className="flex flex-col items-center text-center pt-5 pb-4">
-            <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-[#1a1a2e] flex items-center justify-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="36"
@@ -298,13 +351,12 @@ export default function ProfilePage() {
                 <path d="M20 21a8 8 0 0 0-16 0" />
               </svg>
             </div>
-            <p className="text-sm text-gray-500 mt-3 mb-4 max-w-xs">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 mb-4 max-w-xs">
               Sign in to save your places across devices
             </p>
             <button
               onClick={() => signIn("google")}
-              className="flex items-center justify-center gap-3 w-full max-w-xs py-3.5 rounded-2xl bg-white border-2 border-gray-200 font-semibold text-sm hover:bg-gray-50 transition-colors cursor-pointer"
-              style={{ color: "#1B2A4A" }}
+              className="flex items-center justify-center gap-3 w-full max-w-xs py-3.5 rounded-2xl bg-white dark:bg-[#1a1a2e] border-2 border-gray-200 dark:border-white/10 font-semibold text-sm text-[#1B2A4A] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#22223b] transition-colors cursor-pointer"
             >
               <svg width="18" height="18" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -338,6 +390,12 @@ export default function ProfilePage() {
               onChange={(v) => updatePref("autoDetectLocation", v)}
             />
           </Row>
+          <SegmentedRow
+            label="Theme"
+            options={THEME_OPTIONS}
+            value={prefs.theme}
+            onChange={handleThemeChange}
+          />
         </SettingsCard>
 
         {/* ── Account ── */}
@@ -347,11 +405,11 @@ export default function ProfilePage() {
             href="/boards"
             className="flex items-center justify-between px-4 py-3.5 min-h-[52px]"
           >
-            <span className="text-sm font-medium" style={{ color: "#1B2A4A" }}>
+            <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
               Your Saves
             </span>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-400">
+              <span className="text-sm text-gray-400 dark:text-gray-500">
                 {saveCount !== null
                   ? `${saveCount} ${saveCount === 1 ? "place" : "places"}`
                   : "—"}
@@ -361,7 +419,7 @@ export default function ProfilePage() {
           </Link>
           {session?.user && (
             <Row label="Joined">
-              <span className="text-sm text-gray-400">{joinedDate ?? "—"}</span>
+              <span className="text-sm text-gray-400 dark:text-gray-500">{joinedDate ?? "—"}</span>
             </Row>
           )}
         </SettingsCard>
@@ -369,7 +427,7 @@ export default function ProfilePage() {
         {session?.user && (
           <button
             onClick={() => signOut()}
-            className="mt-3 w-full py-3.5 rounded-2xl bg-gray-50 text-red-500 font-semibold text-sm cursor-pointer hover:bg-red-50 transition-colors"
+            className="mt-3 w-full py-3.5 rounded-2xl bg-gray-50 dark:bg-[#1a1a2e] text-red-500 font-semibold text-sm cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
           >
             Sign Out
           </button>
@@ -379,38 +437,38 @@ export default function ProfilePage() {
         <SectionHeader title="About" />
         <SettingsCard>
           <Row label="App Version">
-            <span className="text-sm text-gray-400">1.0.0 (Beta)</span>
+            <span className="text-sm text-gray-400 dark:text-gray-500">1.0.0 (Beta)</span>
           </Row>
           <a
             href="mailto:hello@whereto.app?subject=WhereTo%20Feedback"
             className="flex items-center justify-between px-4 py-3.5 min-h-[52px]"
           >
-            <span className="text-sm font-medium" style={{ color: "#1B2A4A" }}>
+            <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
               Send Feedback
             </span>
             <ChevronRight />
           </a>
           <button className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer">
-            <span className="text-sm font-medium" style={{ color: "#1B2A4A" }}>
+            <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
               Rate WhereTo
             </span>
             <ChevronRight />
           </button>
           <button className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer">
-            <span className="text-sm font-medium" style={{ color: "#1B2A4A" }}>
+            <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
               Privacy Policy
             </span>
             <ChevronRight />
           </button>
           <button className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-full cursor-pointer">
-            <span className="text-sm font-medium" style={{ color: "#1B2A4A" }}>
+            <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
               Terms of Service
             </span>
             <ChevronRight />
           </button>
         </SettingsCard>
 
-        <p className="text-center text-xs text-gray-300 mt-8 pb-2">
+        <p className="text-center text-xs text-gray-300 dark:text-gray-600 mt-8 pb-2">
           Made with love in Toronto
         </p>
       </div>

@@ -93,7 +93,7 @@ function InfoPhoto({ photoRef }: { photoRef: string | null }) {
       style={{ borderRadius: 8 }}
     />
   ) : (
-    <div style={{ width: "100%", height: "100%", background: "#e5e7eb", borderRadius: 8 }} />
+    <div style={{ width: "100%", height: "100%", background: "var(--color-surface-raised)", borderRadius: 8 }} />
   );
 }
 
@@ -126,7 +126,7 @@ function InfoCard({
           borderRadius: 8,
           overflow: "hidden",
           marginBottom: 10,
-          background: "#f3f4f6",
+          background: "var(--color-surface-card)",
         }}
       >
         <InfoPhoto photoRef={place.photoRef} />
@@ -155,7 +155,7 @@ function InfoCard({
           margin: 0,
           fontWeight: 700,
           fontSize: 14,
-          color: "#1B2A4A",
+          color: "var(--color-navy)",
           lineHeight: 1.3,
           marginBottom: 3,
           whiteSpace: "nowrap",
@@ -212,8 +212,8 @@ function RecenterButton({
         width: 48,
         height: 48,
         borderRadius: "50%",
-        background: "white",
-        border: "1px solid #e5e7eb",
+        background: "var(--color-btn-bg)",
+        border: "1px solid var(--color-btn-border)",
         boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
         display: "flex",
         alignItems: "center",
@@ -227,7 +227,7 @@ function RecenterButton({
         height="20"
         viewBox="0 0 24 24"
         fill="none"
-        stroke="#1B2A4A"
+        stroke="var(--color-navy)"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -380,10 +380,10 @@ export default function MapPage() {
     ] ?? FALLBACK_GRADIENTS[0];
 
   return (
-    <div className="h-dvh bg-white flex flex-col overflow-hidden pb-16">
+    <div className="h-dvh bg-white dark:bg-[#0f0f1a] flex flex-col overflow-hidden pb-16">
       {/* Intent chips */}
       <div
-        className="shrink-0 px-5 py-3 border-b border-gray-100"
+        className="shrink-0 px-5 py-3 border-b border-gray-100 dark:border-white/10"
       >
         <div
           className="flex gap-2 overflow-x-auto pb-1"
@@ -396,7 +396,7 @@ export default function MapPage() {
               className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap ${
                 intent === cat.id
                   ? "bg-[#E85D2A] text-white shadow-sm"
-                  : "bg-gray-100 text-[#1B2A4A] hover:bg-gray-200"
+                  : "bg-gray-100 dark:bg-white/10 text-[#1B2A4A] dark:text-[#e8edf4] hover:bg-gray-200 dark:hover:bg-white/15"
               }`}
             >
               {cat.emoji} {cat.label}
@@ -414,7 +414,7 @@ export default function MapPage() {
               className="w-10 h-10 rounded-full border-[3px] border-t-transparent animate-spin"
               style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
             />
-            <p className="text-sm text-gray-400 font-medium">
+            <p className="text-sm text-gray-400 dark:text-gray-500 font-medium">
               Getting your location...
             </p>
           </div>
@@ -440,14 +440,14 @@ export default function MapPage() {
 
         {/* Legend */}
         {userLocation && (
-          <div className="absolute top-3 left-3 z-10 flex flex-col gap-2 bg-white/95 backdrop-blur-sm rounded-xl px-3 py-2.5 shadow-md border border-gray-100">
+          <div className="absolute top-3 left-3 z-10 flex flex-col gap-2 bg-white/95 dark:bg-[#1a1a2e]/95 backdrop-blur-sm rounded-xl px-3 py-2.5 shadow-md border border-gray-100 dark:border-white/10">
             <div className="flex items-center gap-2">
               <div className="w-3.5 h-3.5 rounded-full bg-[#E85D2A] shadow-sm shrink-0" />
-              <span className="text-[11px] font-semibold text-[#1B2A4A]">Saved</span>
+              <span className="text-[11px] font-semibold text-[#1B2A4A] dark:text-[#e8edf4]">Saved</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3.5 h-3.5 rounded-full bg-[#3B82F6] shadow-sm shrink-0" />
-              <span className="text-[11px] font-semibold text-[#1B2A4A]">Nearby</span>
+              <span className="text-[11px] font-semibold text-[#1B2A4A] dark:text-[#e8edf4]">Nearby</span>
             </div>
           </div>
         )}

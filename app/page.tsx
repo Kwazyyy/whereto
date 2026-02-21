@@ -475,7 +475,7 @@ export default function Home() {
   }
 
   return (
-    <div className="h-dvh bg-white flex flex-col overflow-hidden pb-16">
+    <div className="h-dvh bg-white dark:bg-[#0f0f1a] flex flex-col overflow-hidden pb-16">
       {/* Header */}
       <header className="shrink-0 px-5 pt-5 pb-2">
         <div className="flex items-center justify-between">
@@ -483,7 +483,7 @@ export default function Home() {
             WhereTo
           </h1>
           {!loading && !allDone && places.length > 0 && (
-            <span className="text-xs text-gray-400 font-medium">
+            <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">
               {currentIndex + 1} / {places.length}
             </span>
           )}
@@ -507,7 +507,7 @@ export default function Home() {
                 ${
                   intent === cat.id
                     ? "bg-[#E85D2A] text-white shadow-sm"
-                    : "bg-gray-100 text-[#1B2A4A] hover:bg-gray-200"
+                    : "bg-gray-100 dark:bg-white/10 text-[#1B2A4A] dark:text-[#e8edf4] hover:bg-gray-200 dark:hover:bg-white/15"
                 }
               `}
             >
@@ -524,17 +524,17 @@ export default function Home() {
             className="w-10 h-10 rounded-full border-3 border-t-transparent animate-spin"
             style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
           />
-          <p className="text-sm text-gray-400 font-medium">
+          <p className="text-sm text-gray-400 dark:text-gray-500 font-medium">
             {!userLocation ? "Getting your location..." : "Finding places..."}
           </p>
         </div>
       ) : allDone ? (
         <div className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-5">
           <div className="text-6xl">&#x1F44B;</div>
-          <h2 className="text-2xl font-bold" style={{ color: "#1B2A4A" }}>
+          <h2 className="text-2xl font-bold text-[#1B2A4A] dark:text-[#e8edf4]">
             {places.length === 0 ? "No places found" : "No more places!"}
           </h2>
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             {places.length === 0
               ? "Try a different vibe or check back later."
               : <>You&apos;ve seen all the spots for this vibe.<br />Try a different one above!</>}

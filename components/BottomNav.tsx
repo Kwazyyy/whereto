@@ -70,7 +70,7 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 bg-white border-t border-gray-100 shadow-[0_-2px_8px_rgba(0,0,0,0.06)]">
+    <nav className="fixed bottom-0 inset-x-0 z-50 bg-white dark:bg-[#1a1a2e] border-t border-gray-100 dark:border-white/10 shadow-[0_-2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_-2px_8px_rgba(0,0,0,0.3)]">
       <div className="flex items-end justify-around h-16 max-w-lg mx-auto px-2 pb-1.5">
         {NAV_ITEMS.map((item) => {
           const active = pathname === item.href;

@@ -34,7 +34,7 @@ function PlacePhoto({ photoRef }: { photoRef: string | null }) {
   const url = usePhotoUrl(photoRef);
   if (!url) {
     return (
-      <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+      <div className="w-full h-full bg-gradient-to-br from-gray-200 dark:from-[#22223b] to-gray-300 dark:to-[#2d2d44] flex items-center justify-center">
         <span className="text-gray-400 text-2xl">&#x1F37D;&#xFE0F;</span>
       </div>
     );
@@ -60,7 +60,7 @@ function BoardCard({
   return (
     <button
       onClick={onClick}
-      className="relative rounded-2xl overflow-hidden aspect-[4/3] bg-gray-100 cursor-pointer group"
+      className="relative rounded-2xl overflow-hidden aspect-[4/3] bg-gray-100 dark:bg-[#1a1a2e] cursor-pointer group"
     >
       <div className="absolute inset-0">
         <PlacePhoto photoRef={photoRef} />
@@ -92,25 +92,25 @@ function PlaceRow({
   const [confirming, setConfirming] = useState(false);
 
   return (
-    <div className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-b-0">
+    <div className="flex items-center gap-3 py-3 border-b border-gray-100 dark:border-white/8 last:border-b-0">
       <button
         onClick={onTap}
         className="flex items-center gap-3 flex-1 min-w-0 text-left cursor-pointer"
       >
-        <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative bg-gray-200">
+        <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative bg-gray-200 dark:bg-[#22223b]">
           <PlacePhoto photoRef={place.photoRef} />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-bold truncate" style={{ color: "#1B2A4A" }}>
+          <h3 className="text-sm font-bold truncate text-[#1B2A4A] dark:text-[#e8edf4]">
             {place.name}
           </h3>
-          <div className="flex items-center gap-1.5 mt-0.5 text-xs text-gray-400 font-medium">
+          <div className="flex items-center gap-1.5 mt-0.5 text-xs text-gray-400 dark:text-gray-500 font-medium">
             <span>{place.distance}</span>
-            <span className="w-1 h-1 rounded-full bg-gray-300" />
+            <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
             <span>{place.price}</span>
             {place.rating > 0 && (
               <>
-                <span className="w-1 h-1 rounded-full bg-gray-300" />
+                <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
                 <span>&#9733; {place.rating.toFixed(1)}</span>
               </>
             )}
@@ -119,7 +119,7 @@ function PlaceRow({
             {place.tags.slice(0, 2).map((tag) => (
               <span
                 key={tag}
-                className="px-2 py-0.5 rounded-full bg-gray-100 text-[10px] font-semibold text-gray-500"
+                className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-[10px] font-semibold text-gray-500 dark:text-gray-400"
               >
                 {tag}
               </span>
@@ -140,7 +140,7 @@ function PlaceRow({
             </button>
             <button
               onClick={() => setConfirming(false)}
-              className="px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-[10px] font-bold cursor-pointer hover:bg-gray-200 transition-colors"
+              className="px-2 py-1 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 text-[10px] font-bold cursor-pointer hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
             >
               Cancel
             </button>
@@ -148,7 +148,7 @@ function PlaceRow({
         ) : (
           <button
             onClick={() => setConfirming(true)}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 transition-colors cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
             title="Remove"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -220,7 +220,7 @@ export default function BoardsPage() {
 
   if (loadingData) {
     return (
-      <div className="min-h-dvh bg-white flex items-center justify-center pb-20">
+      <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] flex items-center justify-center pb-20">
         <div
           className="w-10 h-10 rounded-full border-3 border-t-transparent animate-spin"
           style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
@@ -237,22 +237,25 @@ export default function BoardsPage() {
       : (INTENT_META[activeBoard] ?? { emoji: "\u{1F4CD}", label: activeBoard });
 
     return (
-      <div className="min-h-dvh bg-white flex flex-col pb-20">
+      <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] flex flex-col pb-20">
         {/* Header */}
         <header className="shrink-0 px-5 pt-5 pb-3 flex items-center gap-3">
           <button
             onClick={() => setActiveBoard(null)}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 cursor-pointer hover:bg-gray-200 transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 cursor-pointer hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B2A4A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B2A4A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="dark:hidden">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e8edf4" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="hidden dark:block">
               <path d="m15 18-6-6 6-6" />
             </svg>
           </button>
           <div>
-            <h1 className="text-xl font-bold" style={{ color: "#1B2A4A" }}>
+            <h1 className="text-xl font-bold text-[#1B2A4A] dark:text-[#e8edf4]">
               {meta.emoji} {meta.label}
             </h1>
-            <p className="text-xs text-gray-400 font-medium">
+            <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">
               {places.length} {places.length === 1 ? "place" : "places"}
             </p>
           </div>
@@ -262,7 +265,7 @@ export default function BoardsPage() {
         <div className="flex-1 px-5">
           {places.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-center">
-              <p className="text-gray-400 text-sm">No saved places here yet.</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm">No saved places here yet.</p>
             </div>
           ) : (
             places.map((place) => (
@@ -294,7 +297,7 @@ export default function BoardsPage() {
 
   // Boards grid view
   return (
-    <div className="min-h-dvh bg-white pb-20">
+    <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-20">
       <header className="px-5 pt-5 pb-3">
         <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: "#E85D2A" }}>
           Boards
@@ -304,10 +307,10 @@ export default function BoardsPage() {
       {saved.length === 0 ? (
         <div className="flex flex-col items-center justify-center px-8 pt-32 text-center gap-4">
           <div className="text-5xl">&#x1F516;</div>
-          <h2 className="text-xl font-bold" style={{ color: "#1B2A4A" }}>
+          <h2 className="text-xl font-bold text-[#1B2A4A] dark:text-[#e8edf4]">
             No saved places yet
           </h2>
-          <p className="text-gray-400 text-sm">
+          <p className="text-gray-400 dark:text-gray-500 text-sm">
             Swipe right on places you love to save them here.
           </p>
         </div>
