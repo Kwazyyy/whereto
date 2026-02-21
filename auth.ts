@@ -10,10 +10,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      // Disable PKCE — keeps state-based CSRF protection but avoids the
-      // pkceCodeVerifier cookie that breaks on Vercel's proxied environment.
-      // Safe for confidential clients (we have a clientSecret).
-      checks: ["state"],
+      checks: [],
     }),
   ],
   pages: {
