@@ -138,7 +138,7 @@ function AddFriendModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-white rounded-t-3xl px-6 pt-4 pb-10 safe-area-inset-bottom"
+        className="w-full max-w-lg bg-white rounded-t-3xl px-6 pt-4 pb-28"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-10 h-1 rounded-full bg-gray-200 mx-auto mb-6" />
