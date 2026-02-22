@@ -2,10 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { getSavedPlaces, SavedPlace } from "@/lib/saved-places";
 import { usePhotoUrl } from "@/lib/use-photo-url";
+import { Place } from "@/lib/types";
+import PlaceDetailSheet from "@/components/PlaceDetailSheet";
+import { useSavePlace } from "@/lib/use-save-place";
 
 const INTENT_LABELS: Record<string, string> = {
     study: "Study / Work",
@@ -46,11 +50,11 @@ function StarIcon({ size = 16, className = "" }: { size?: number, className?: st
     );
 }
 
-function PlaceListItem({ place }: { place: SavedPlace }) {
+function PlaceListItem({ place, onTap }: { place: SavedPlace; onTap: () => void }) {
     const photoUrl = usePhotoUrl(place.photoRef);
 
     return (
-        <div className="flex bg-white dark:bg-[#1a1a2e] rounded-2xl overflow-hidden border border-gray-100 dark:border-white/10 shadow-sm mb-4">
+        <div onClick={onTap} className="flex bg-white dark:bg-[#1a1a2e] rounded-2xl overflow-hidden border border-gray-100 dark:border-white/10 shadow-sm mb-4 cursor-pointer active:scale-[0.98] transition-transform">
             <div className="h-28 w-28 relative flex-shrink-0 bg-gray-100 dark:bg-[#22223b]">
                 {photoUrl ? (
                     <Image
@@ -97,6 +101,8 @@ export default function BoardDetailPage() {
 
     const [places, setPlaces] = useState<SavedPlace[]>([]);
     const [loading, setLoading] = useState(true);
+    const [detailPlace, setDetailPlace] = useState<SavedPlace | null>(null);
+    const { handleSave } = useSavePlace();
 
     useEffect(() => {
         if (status === "loading") return;
@@ -134,6 +140,18 @@ export default function BoardDetailPage() {
 
     const label = INTENT_LABELS[intent] || intent;
 
+    const FALLBACK_GRADIENTS = [
+        "from-amber-800 via-orange-700 to-yellow-600",
+        "from-slate-800 via-slate-600 to-cyan-700",
+        "from-green-800 via-emerald-700 to-teal-600",
+        "from-purple-900 via-violet-700 to-fuchsia-600",
+        "from-stone-800 via-stone-600 to-orange-800",
+    ];
+
+    const fallbackGradient = detailPlace
+        ? FALLBACK_GRADIENTS[places.findIndex(p => p.placeId === detailPlace.placeId) % FALLBACK_GRADIENTS.length]
+        : FALLBACK_GRADIENTS[0];
+
     return (
         <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-24">
             <header className="flex items-center px-5 pt-5 pb-4 sticky top-0 bg-white/80 dark:bg-[#0f0f1a]/80 backdrop-blur-md z-10 border-b border-gray-100 dark:border-white/10">
@@ -159,11 +177,27 @@ export default function BoardDetailPage() {
                 ) : (
                     <div className="flex flex-col gap-1">
                         {places.map((place) => (
-                            <PlaceListItem key={`${place.placeId}-${place.savedAt}`} place={place} />
+                            <PlaceListItem
+                                key={`${place.placeId}-${place.savedAt}`}
+                                place={place}
+                                onTap={() => setDetailPlace(place)}
+                            />
                         ))}
                     </div>
                 )}
             </div>
+
+            <AnimatePresence>
+                {detailPlace && (
+                    <PlaceDetailSheet
+                        place={detailPlace as Place}
+                        fallbackGradient={fallbackGradient}
+                        isSaved={true}
+                        onClose={() => setDetailPlace(null)}
+                        onSave={(action) => handleSave(detailPlace as Place, intent, action)}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }

@@ -476,7 +476,7 @@ export default function MapPage() {
               style={{ width: "100%", height: "100%" }}
             >
               <MapMarkers
-                savedPlaces={savedPlaces}
+                savedPlaces={savedPlaces.filter(p => p.intent === intent)}
                 nearbyPlaces={nearbyPlaces}
                 onSelectPlace={setDetailPlace}
               />
