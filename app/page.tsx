@@ -248,17 +248,18 @@ function SwipeCard({
       >
         {/* ===================== FRONT FACE ===================== */}
         <div
-          className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl bg-gray-300 pointer-events-none"
+          className={`absolute inset-0 rounded-3xl overflow-hidden shadow-2xl bg-gray-300 transition-opacity duration-300 ${isFlipped ? "opacity-0 pointer-events-none" : "opacity-100 pointer-events-auto"
+            }`}
           style={{ backfaceVisibility: "hidden" }}
         >
-          <div className="absolute inset-0 bg-gray-300">
+          <div className="absolute inset-0 bg-gray-300 pointer-events-none">
             <CardPhoto photoRef={place.photoRef} gradient={fallbackGradient} />
           </div>
 
-          <div className="absolute bottom-0 inset-x-0 h-[50%] bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+          <div className="absolute bottom-0 inset-x-0 h-[50%] bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none" />
 
           {isSaved && (
-            <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-black/50 backdrop-blur-sm">
+            <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-black/50 backdrop-blur-sm pointer-events-none">
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="#E85D2A" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
               </svg>
@@ -268,19 +269,19 @@ function SwipeCard({
 
           {isTop && !isFlipped && (
             <>
-              <motion.div className="absolute inset-0 flex items-center justify-center bg-green-500/30 z-20" style={{ opacity: saveOpacity }}>
+              <motion.div className="absolute inset-0 flex items-center justify-center bg-green-500/30 z-20 pointer-events-none" style={{ opacity: saveOpacity }}>
                 <span className="text-5xl font-black text-white border-4 border-white rounded-2xl px-8 py-4 rotate-[-15deg]">SAVE</span>
               </motion.div>
-              <motion.div className="absolute inset-0 flex items-center justify-center bg-gray-500/30 z-20" style={{ opacity: skipOpacity }}>
+              <motion.div className="absolute inset-0 flex items-center justify-center bg-gray-500/30 z-20 pointer-events-none" style={{ opacity: skipOpacity }}>
                 <span className="text-5xl font-black text-white border-4 border-white rounded-2xl px-8 py-4 rotate-[15deg]">SKIP</span>
               </motion.div>
-              <motion.div className="absolute inset-0 flex items-center justify-center bg-blue-500/30 z-20" style={{ opacity: goNowOpacity }}>
+              <motion.div className="absolute inset-0 flex items-center justify-center bg-blue-500/30 z-20 pointer-events-none" style={{ opacity: goNowOpacity }}>
                 <span className="text-5xl font-black text-white border-4 border-white rounded-2xl px-6 py-4">GO NOW</span>
               </motion.div>
             </>
           )}
 
-          <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
+          <div className="absolute bottom-0 left-0 right-0 p-6 z-10 pointer-events-none">
             <h2 className="text-3xl font-bold text-white leading-tight">{place.name}</h2>
             <div className="flex items-center gap-3 mt-2 text-white/80 text-sm font-medium">
               <span>{place.distance}</span>
@@ -315,7 +316,8 @@ function SwipeCard({
 
         {/* ===================== BACK FACE ===================== */}
         <div
-          className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl bg-white dark:bg-[#1a1a2e] flex flex-col pointer-events-auto"
+          className={`absolute inset-0 rounded-3xl overflow-hidden shadow-2xl bg-white dark:bg-[#1a1a2e] flex flex-col transition-opacity duration-300 ${isFlipped ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            }`}
           style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
         >
           {/* Flip Back Button */}
