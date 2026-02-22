@@ -14,65 +14,70 @@ function priceLevelToPrice(level: number | null): string {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const body = await req.json() as {
-    place: Place;
-    intent: string;
-    action: "save" | "go_now";
-  };
+    const body = await req.json() as {
+      place: Place;
+      intent: string;
+      action: "save" | "go_now";
+    };
 
-  const { place, intent, action } = body;
+    const { place, intent, action } = body;
 
-  // Upsert the Place record
-  const dbPlace = await prisma.place.upsert({
-    where: { googlePlaceId: place.placeId },
-    update: {
-      name: place.name,
-      lat: place.location.lat,
-      lng: place.location.lng,
-      address: place.address,
-      placeType: place.type,
-      priceLevel: priceToPriceLevel(place.price),
-      rating: place.rating,
-      photoUrl: place.photoRef,
-      vibeTags: place.tags,
-    },
-    create: {
-      googlePlaceId: place.placeId,
-      name: place.name,
-      lat: place.location.lat,
-      lng: place.location.lng,
-      address: place.address,
-      placeType: place.type,
-      priceLevel: priceToPriceLevel(place.price),
-      rating: place.rating,
-      photoUrl: place.photoRef,
-      vibeTags: place.tags,
-    },
-  });
+    // Upsert the Place record
+    const dbPlace = await prisma.place.upsert({
+      where: { googlePlaceId: place.placeId },
+      update: {
+        name: place.name,
+        lat: place.location.lat,
+        lng: place.location.lng,
+        address: place.address,
+        placeType: place.type,
+        priceLevel: priceToPriceLevel(place.price),
+        rating: place.rating,
+        photoUrl: place.photoRef,
+        vibeTags: place.tags,
+      },
+      create: {
+        googlePlaceId: place.placeId,
+        name: place.name,
+        lat: place.location.lat,
+        lng: place.location.lng,
+        address: place.address,
+        placeType: place.type,
+        priceLevel: priceToPriceLevel(place.price),
+        rating: place.rating,
+        photoUrl: place.photoRef,
+        vibeTags: place.tags,
+      },
+    });
 
-  // Upsert the Save record
-  const save = await prisma.save.upsert({
-    where: {
-      userId_placeId: {
+    // Upsert the Save record
+    const save = await prisma.save.upsert({
+      where: {
+        userId_placeId: {
+          userId: session.user.id,
+          placeId: dbPlace.id,
+        },
+      },
+      update: { intent, action },
+      create: {
         userId: session.user.id,
         placeId: dbPlace.id,
+        intent,
+        action,
       },
-    },
-    update: { intent, action },
-    create: {
-      userId: session.user.id,
-      placeId: dbPlace.id,
-      intent,
-      action,
-    },
-  });
+    });
 
-  return NextResponse.json({ saveId: save.id });
+    return NextResponse.json({ saveId: save.id });
+  } catch (err) {
+    console.error("POST /api/saves Failed:", err);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
 }
 
 export async function GET() {

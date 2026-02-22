@@ -261,6 +261,7 @@ export async function GET(request: NextRequest) {
     const final = results
       .slice(0, 10)
       .map((place) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { distKm, ...rest } = place;
         return rest;
       });

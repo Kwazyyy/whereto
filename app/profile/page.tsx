@@ -623,25 +623,31 @@ export default function ProfilePage() {
               </span>
               <ChevronRight />
             </button>
-            <button className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+            <Link
+              href="/privacy"
+              className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+            >
               <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
                 Privacy Policy
               </span>
               <ChevronRight />
-            </button>
-            <button className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-full cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+            </Link>
+            <Link
+              href="/terms"
+              className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+            >
               <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
                 Terms of Service
               </span>
               <ChevronRight />
-            </button>
+            </Link>
           </SettingsCard>
 
-          <p className="text-center md:text-left text-xs text-gray-300 dark:text-gray-600 mt-8 pb-2 px-1">
+          <p className="text-center md:text-left text-xs text-gray-400 dark:text-gray-500 mt-8 pb-2 px-1">
             Made with love in Toronto
           </p>
-        </div>
 
+        </div>
       </div>
     </div>
   );
