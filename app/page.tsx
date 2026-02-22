@@ -79,7 +79,7 @@ export default function Home() {
 
   useEffect(() => {
     sessionStatusRef.current = status;
-    if (status === "unauthenticated") {
+    if (status === "unauthenticated" && !localStorage.getItem("whereto_seen_landing")) {
       router.replace("/landing");
     }
   }, [status, router]);

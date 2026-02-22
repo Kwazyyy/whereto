@@ -190,6 +190,11 @@ export default function LandingPage() {
     const [mobileMenu, setMobileMenu] = useState(false);
     const { scrollY } = useScroll();
 
+    // Mark that this user has seen the landing page so they won't be redirected here again
+    useEffect(() => {
+        localStorage.setItem("whereto_seen_landing", "true");
+    }, []);
+
     useEffect(() => {
         return scrollY.on("change", (latest) => {
             setIsScrolled(latest > 50);
