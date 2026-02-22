@@ -18,6 +18,7 @@ import { useSavePlace } from "@/lib/use-save-place";
 import { SwipeCard } from "@/components/SwipeCard";
 import { DistanceBubble, BudgetBubble } from "@/components/Filters";
 import { SignInModal } from "@/components/SignInModal";
+import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { loadSkippedForIntent, persistSkippedForIntent, clearSkippedForIntent } from "@/lib/storage";
 
 const categories = [
@@ -68,6 +69,7 @@ export default function Home() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [savedPlaceIds, setSavedPlaceIds] = useState<Set<string>>(new Set());
   const [showSignInModal, setShowSignInModal] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   // skippedPerIntent: per-intent set of placeIds that have been swiped (left=persisted, right/up=session-only)
   const [skippedPerIntent, setSkippedPerIntent] = useState<Record<string, Set<string>>>({});
 
@@ -82,6 +84,8 @@ export default function Home() {
     if (status === "loading") return;
     if (!localStorage.getItem("whereto_seen_landing")) {
       router.replace("/landing");
+    } else if (!localStorage.getItem("hasSeenTutorial")) {
+      setShowTutorial(true);
     }
   }, [status, router]);
 
@@ -221,10 +225,15 @@ export default function Home() {
 
   function handleSwipeUpSync(place: Place) {
     if (sessionStatusRef.current === "authenticated") {
-      window.open(
-        `https://www.google.com/maps/dir/?api=1&destination=${place.location.lat},${place.location.lng}&destination_place_id=${place.placeId}`,
-        "_blank"
-      );
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${place.location.lat},${place.location.lng}&destination_place_id=${place.placeId}`;
+      // Use anchor click for reliable mobile browser popup handling
+      const a = document.createElement("a");
+      a.href = url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
   }
 
@@ -431,6 +440,16 @@ export default function Home() {
           <SignInModal onClose={() => setShowSignInModal(false)} />
         )}
       </AnimatePresence>
+
+      {/* Onboarding Tutorial */}
+      {!loading && showTutorial && (
+        <OnboardingTutorial
+          onDismiss={() => {
+            localStorage.setItem("hasSeenTutorial", "true");
+            setShowTutorial(false);
+          }}
+        />
+      )}
     </div>
   );
 }

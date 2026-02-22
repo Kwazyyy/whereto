@@ -451,7 +451,12 @@ export function SwipeCard({
                                 </div>
                             </div>
                             {/* Action Buttons — in scroll flow, clear nav bar */}
-                            <div className="flex gap-3 mt-6 mb-20">
+                            {/* onPointerDown/Up stopPropagation prevents the scroll container's tap-to-flip-back handler from firing when buttons are tapped */}
+                            <div
+                                className="flex gap-3 mt-6 mb-20"
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onPointerUp={(e) => e.stopPropagation()}
+                            >
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onAction("save"); }}
                                     className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 font-semibold text-sm transition-colors cursor-pointer ${isSaved

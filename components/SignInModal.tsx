@@ -6,7 +6,7 @@ import { signIn } from "next-auth/react";
 export function SignInModal({ onClose }: { onClose: () => void }) {
     return (
         <div
-            className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 backdrop-blur-[2px]"
             onClick={onClose}
         >
             <motion.div
