@@ -19,9 +19,14 @@ const TAP_TIME_LIMIT = 200;
 
 export function friendLabel(friends: FriendSignal[]): string {
     const first = (f: FriendSignal) => f.name?.split(" ")[0] ?? "someone";
-    if (friends.length === 1) return `Liked by ${first(friends[0])}`;
-    if (friends.length === 2) return `Liked by ${first(friends[0])} & ${first(friends[1])}`;
-    return `Liked by ${first(friends[0])} & ${friends.length - 1} others`;
+    const scoreTag = (f: FriendSignal) =>
+        f.tasteScore !== undefined ? ` (${f.tasteScore}% match)` : "";
+
+    if (friends.length === 1)
+        return `Liked by ${first(friends[0])}${scoreTag(friends[0])}`;
+    if (friends.length === 2)
+        return `Liked by ${first(friends[0])}${scoreTag(friends[0])} & ${first(friends[1])}`;
+    return `Liked by ${first(friends[0])}${scoreTag(friends[0])} & ${friends.length - 1} others`;
 }
 
 export function FriendAvatars({ friends }: { friends: FriendSignal[] }) {

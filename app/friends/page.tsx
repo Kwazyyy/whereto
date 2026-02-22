@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Image from "next/image";
+import { usePhotoUrl } from "@/lib/use-photo-url";
+import type { CompatibilityResult, SharedPlace } from "@/lib/tasteScore";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -13,6 +15,7 @@ interface Friend {
   email: string;
   image: string | null;
   friendsSince: string;
+  compatibility?: CompatibilityResult | null;
 }
 
 interface FriendRequest {
@@ -22,6 +25,14 @@ interface FriendRequest {
   email: string;
   image: string | null;
   sentAt: string;
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+function scoreBadgeClass(score: number): string {
+  if (score >= 80) return "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400";
+  if (score >= 50) return "bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-400";
+  return "bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400";
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────
@@ -42,7 +53,7 @@ function Avatar({
         alt={name ?? ""}
         width={size}
         height={size}
-        className="rounded-full shrink-0"
+        className="rounded-full shrink-0 object-cover"
         unoptimized
       />
     );
@@ -53,6 +64,148 @@ function Avatar({
       style={{ width: size, height: size, fontSize: size * 0.38 }}
     >
       {name?.[0]?.toUpperCase() ?? "?"}
+    </div>
+  );
+}
+
+// ── Shared Place Card ──────────────────────────────────────────────────────
+
+function SharedPlaceCard({ place }: { place: SharedPlace }) {
+  const photoUrl = usePhotoUrl(place.photoRef);
+  return (
+    <div className="flex items-center gap-3 py-2.5">
+      <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-[#22223b] relative">
+        {photoUrl ? (
+          <Image src={photoUrl} alt={place.name} fill className="object-cover" unoptimized />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-600">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
+            </svg>
+          </div>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-[#1B2A4A] dark:text-[#e8edf4] truncate">{place.name}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{place.intent}</p>
+      </div>
+    </div>
+  );
+}
+
+// ── Compatibility Drawer ───────────────────────────────────────────────────
+
+function CompatibilityDrawer({
+  friend,
+  compat,
+  onClose,
+}: {
+  friend: Friend;
+  compat: CompatibilityResult | null | undefined;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-40 flex items-end justify-center bg-black/40 backdrop-blur-[2px]"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg bg-white dark:bg-[#1a1a2e] rounded-t-3xl px-6 pt-4 pb-10 max-h-[85dvh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Handle bar */}
+        <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-5" />
+
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <Avatar image={friend.image} name={friend.name} size={48} />
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-[#1B2A4A] dark:text-[#e8edf4] truncate">{friend.name ?? friend.email}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">Taste Compatibility</p>
+          </div>
+        </div>
+
+        {!compat ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-7 h-7 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }} />
+          </div>
+        ) : compat.noData || compat.sharedCount === 0 ? (
+          <div className="text-center py-10 flex flex-col items-center gap-3">
+            <div className="text-4xl">🗺️</div>
+            <p className="text-base font-semibold text-[#1B2A4A] dark:text-[#e8edf4]">Keep exploring!</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 max-w-xs">
+              Save more places and discover your taste match with {friend.name?.split(" ")[0] ?? "your friend"}.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Score ring */}
+            <div className="flex justify-center mb-6">
+              <div className="relative flex items-center justify-center w-28 h-28">
+                <svg className="absolute inset-0" viewBox="0 0 110 110">
+                  <circle cx="55" cy="55" r="48" fill="none" stroke="#F3F4F6" strokeWidth="8" className="dark:stroke-white/10" />
+                  <circle
+                    cx="55" cy="55" r="48"
+                    fill="none"
+                    stroke={compat.score >= 80 ? "#22c55e" : compat.score >= 50 ? "#E85D2A" : "#9CA3AF"}
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                    strokeDasharray={`${(compat.score / 100) * 301.6} 301.6`}
+                    transform="rotate(-90 55 55)"
+                  />
+                </svg>
+                <div className="text-center z-10">
+                  <p className="text-2xl font-black text-[#1B2A4A] dark:text-[#e8edf4] leading-none">{compat.score}%</p>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium mt-0.5">match</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="flex flex-col gap-3 mb-6">
+              <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-gray-50 dark:bg-[#22223b]">
+                <span className="text-xl">🏠</span>
+                <p className="text-sm text-[#1B2A4A] dark:text-[#e8edf4] font-medium">
+                  You both saved <span className="font-bold">{compat.sharedCount} place{compat.sharedCount !== 1 ? "s" : ""}</span>
+                </p>
+              </div>
+
+              {compat.sharedIntents.length > 0 && (
+                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-gray-50 dark:bg-[#22223b]">
+                  <span className="text-xl">✨</span>
+                  <div>
+                    <p className="text-sm text-[#1B2A4A] dark:text-[#e8edf4] font-medium">Top shared vibes</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{compat.sharedIntents.join(", ")}</p>
+                  </div>
+                </div>
+              )}
+
+              {compat.sharedPrice && (
+                <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-gray-50 dark:bg-[#22223b]">
+                  <span className="text-xl">💰</span>
+                  <p className="text-sm text-[#1B2A4A] dark:text-[#e8edf4] font-medium">
+                    You both love <span className="font-bold">{compat.sharedPrice}</span> restaurants
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Shared places */}
+            {compat.sharedPlaces.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-1">
+                  Shared Saves
+                </p>
+                <div className="divide-y divide-gray-100 dark:divide-white/8">
+                  {compat.sharedPlaces.map((p) => (
+                    <SharedPlaceCard key={p.placeId} place={p} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -99,7 +252,7 @@ function AddFriendModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-[2px]"
+      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 backdrop-blur-[2px]"
       onClick={onClose}
     >
       <div
@@ -158,14 +311,36 @@ export default function FriendsPage() {
   const [loading, setLoading] = useState(true);
   const [addFriendOpen, setAddFriendOpen] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
 
   const fetchFriends = useCallback(async () => {
     try {
       const res = await fetch("/api/friends");
       if (res.ok) {
         const data = await res.json() as { friends: Friend[]; incoming: FriendRequest[] };
-        setFriends(data.friends ?? []);
+        const fetchedFriends = data.friends ?? [];
+        setFriends(fetchedFriends);
         setIncoming(data.incoming ?? []);
+
+        // Fetch compatibility scores for all friends in parallel
+        if (fetchedFriends.length > 0) {
+          const scores = await Promise.all(
+            fetchedFriends.map(async (f) => {
+              try {
+                const r = await fetch(`/api/friends/${f.userId}/compatibility`);
+                if (!r.ok) return { userId: f.userId, compat: null };
+                const compat = await r.json() as CompatibilityResult;
+                return { userId: f.userId, compat };
+              } catch {
+                return { userId: f.userId, compat: null };
+              }
+            })
+          );
+          const scoreMap = Object.fromEntries(scores.map((s) => [s.userId, s.compat]));
+          setFriends((prev) =>
+            prev.map((f) => ({ ...f, compatibility: scoreMap[f.userId] }))
+          );
+        }
       }
     } catch {
       // ignore
@@ -356,53 +531,90 @@ export default function FriendsPage() {
                 Friends ({friends.length})
               </p>
               <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a2e] overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
-                {friends.map((friend) => (
-                  <div key={friend.friendshipId} className="flex items-center gap-3 px-4 py-3.5">
-                    <Avatar image={friend.image} name={friend.name} size={44} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold truncate text-[#1B2A4A] dark:text-[#e8edf4]">
-                        {friend.name ?? friend.email}
-                      </p>
-                      {friend.name && (
-                        <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{friend.email}</p>
+                {friends.map((friend) => {
+                  const compat = friend.compatibility;
+                  const hasScore = compat && compat.sharedCount > 0;
+
+                  return (
+                    <div
+                      key={friend.friendshipId}
+                      className="flex items-center gap-3 px-4 py-3.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors active:bg-gray-100 dark:active:bg-white/5"
+                      onClick={() => setSelectedFriend(friend)}
+                    >
+                      <Avatar image={friend.image} name={friend.name} size={44} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-bold text-[#1B2A4A] dark:text-[#e8edf4] truncate">
+                            {friend.name ?? friend.email}
+                          </p>
+                          {/* Score badge */}
+                          {hasScore && (
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${scoreBadgeClass(compat.score)}`}>
+                              {compat.score}% match
+                            </span>
+                          )}
+                          {/* Score loading placeholder */}
+                          {compat === undefined && (
+                            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-400 dark:text-gray-500 animate-pulse shrink-0">
+                              …
+                            </span>
+                          )}
+                        </div>
+                        {friend.name && (
+                          <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{friend.email}</p>
+                        )}
+                      </div>
+
+                      {/* Remove or chevron */}
+                      {removingId === friend.friendshipId ? (
+                        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => handleRemove(friend.friendshipId)}
+                            className="px-2.5 py-1 rounded-full bg-red-500 text-white text-[10px] font-bold cursor-pointer hover:bg-red-600 transition-colors"
+                          >
+                            Remove
+                          </button>
+                          <button
+                            onClick={() => setRemovingId(null)}
+                            className="px-2 py-1 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 text-[10px] font-bold cursor-pointer hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setRemovingId(friend.friendshipId); }}
+                            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                            title="Remove friend"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                              <circle cx="9" cy="7" r="4" />
+                              <line x1="17" y1="11" x2="23" y2="11" />
+                            </svg>
+                          </button>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="m9 18 6-6-6-6" />
+                          </svg>
+                        </div>
                       )}
                     </div>
-
-                    {/* Remove with inline confirmation */}
-                    {removingId === friend.friendshipId ? (
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button
-                          onClick={() => handleRemove(friend.friendshipId)}
-                          className="px-2.5 py-1 rounded-full bg-red-500 text-white text-[10px] font-bold cursor-pointer hover:bg-red-600 transition-colors"
-                        >
-                          Remove
-                        </button>
-                        <button
-                          onClick={() => setRemovingId(null)}
-                          className="px-2 py-1 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 text-[10px] font-bold cursor-pointer hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setRemovingId(friend.friendshipId)}
-                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer shrink-0"
-                        title="Remove friend"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                          <circle cx="9" cy="7" r="4" />
-                          <line x1="17" y1="11" x2="23" y2="11" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           )}
         </div>
+      )}
+
+      {/* Compatibility Drawer */}
+      {selectedFriend && (
+        <CompatibilityDrawer
+          friend={selectedFriend}
+          compat={selectedFriend.compatibility}
+          onClose={() => setSelectedFriend(null)}
+        />
       )}
 
       {/* Add Friend Modal */}

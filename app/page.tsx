@@ -177,12 +177,41 @@ export default function Home() {
           body: JSON.stringify({ placeIds: rawPlaces.map((p) => p.placeId) }),
         })
           .then((r) => (r.ok ? r.json() : null))
-          .then((signals: Record<string, FriendSignal[]> | null) => {
+          .then(async (signals: Record<string, FriendSignal[]> | null) => {
             if (!signals || Object.keys(signals).length === 0) return;
+
+            // Collect unique friend IDs across all signals
+            const friendIds = new Set<string>();
+            for (const friends of Object.values(signals)) {
+              for (const f of friends) friendIds.add(f.userId);
+            }
+
+            // Fetch compatibility scores in parallel
+            const scoreEntries = await Promise.all(
+              [...friendIds].map(async (fid) => {
+                try {
+                  const r = await fetch(`/api/friends/${fid}/compatibility`);
+                  if (!r.ok) return [fid, undefined] as const;
+                  const data = await r.json() as { score: number };
+                  return [fid, data.score] as const;
+                } catch {
+                  return [fid, undefined] as const;
+                }
+              })
+            );
+            const scoreMap = Object.fromEntries(scoreEntries.filter(([, s]) => s !== undefined)) as Record<string, number>;
+
+            // Attach scores to each FriendSignal and merge into places
             setPlaces((prev) =>
-              prev.map((p) =>
-                signals[p.placeId] ? { ...p, friendSaves: signals[p.placeId] } : p
-              )
+              prev.map((p) => {
+                if (!signals[p.placeId]) return p;
+                const enriched = signals[p.placeId].map((f) =>
+                  scoreMap[f.userId] !== undefined
+                    ? { ...f, tasteScore: scoreMap[f.userId] }
+                    : f
+                );
+                return { ...p, friendSaves: enriched };
+              })
             );
           })
           .catch(() => { });

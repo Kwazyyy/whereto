@@ -2,6 +2,7 @@ export interface FriendSignal {
   userId: string;
   name: string | null;
   image: string | null;
+  tasteScore?: number; // 0–100, only present when score has been fetched
 }
 
 export interface Place {
