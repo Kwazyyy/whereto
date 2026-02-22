@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import {
     motion,
     useMotionValue,
@@ -13,7 +13,7 @@ import { Place, FriendSignal } from "@/lib/types";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 
 const SWIPE_THRESHOLD = 100;
-const SWIPE_UP_THRESHOLD = 80;
+const SWIPE_UP_THRESHOLD = 50;
 const TAP_MOVE_LIMIT = 10;
 const TAP_TIME_LIMIT = 200;
 
@@ -100,6 +100,9 @@ export function SwipeCard({
     const skipOpacity = useTransform(x, [-SWIPE_THRESHOLD, 0], [1, 0]);
     const goNowOpacity = useTransform(y, [-SWIPE_UP_THRESHOLD, 0], [1, 0]);
 
+    const cardRef = useRef<HTMLDivElement>(null);
+    const dragEnabledRef = useRef(false);
+
     const [isFlipped, setIsFlipped] = useState(false);
     const [activePhotoIndex, setActivePhotoIndex] = useState(0);
     const matchScore = useMemo(() => Math.floor(Math.random() * 19) + 80, []);
@@ -109,6 +112,23 @@ export function SwipeCard({
         const today = days[new Date().getDay()];
         return place.hours.find((h) => h.startsWith(today)) ?? null;
     }, [place.hours]);
+
+    // Keep ref current so the native touchmove handler can read the latest value
+    const dragEnabled = isTop && !isFlipped;
+    dragEnabledRef.current = dragEnabled;
+
+    // Prevent the browser from intercepting vertical touch gestures as page scroll.
+    // Must be a non-passive native listener — React's synthetic events can't call
+    // preventDefault on touchmove in React 17+.
+    useEffect(() => {
+        const el = cardRef.current;
+        if (!el) return;
+        function preventScroll(e: TouchEvent) {
+            if (dragEnabledRef.current) e.preventDefault();
+        }
+        el.addEventListener("touchmove", preventScroll, { passive: false });
+        return () => el.removeEventListener("touchmove", preventScroll);
+    }, []);
 
     function handlePointerDown(e: React.PointerEvent) {
         pointerStart.current = { x: e.clientX, y: e.clientY, time: Date.now() };
@@ -148,10 +168,9 @@ export function SwipeCard({
         }
     }
 
-    const dragEnabled = isTop && !isFlipped;
-
     return (
         <motion.div
+            ref={cardRef}
             className="absolute inset-4 z-10 touch-none"
             style={{ x, y, rotateZ, zIndex: isTop ? 10 : 0, perspective: 1500 }}
             initial={{ opacity: 0, scale: 0.95 }}
@@ -161,6 +180,7 @@ export function SwipeCard({
             drag={dragEnabled}
             dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
             dragElastic={1}
+            dragDirectionLock={false}
             onPointerDown={dragEnabled ? handlePointerDown : undefined}
             onPointerUp={dragEnabled ? handlePointerUp : undefined}
             onDragStart={dragEnabled ? handleDragStart : undefined}
@@ -238,6 +258,20 @@ export function SwipeCard({
                             ))}
                         </div>
                     </div>
+
+                    {/* Go Now tap button — fallback for mobile when swipe-up is hard */}
+                    {isTop && (
+                        <button
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onPointerUp={(e) => e.stopPropagation()}
+                            onClick={(e) => { e.stopPropagation(); onAction("go_now"); }}
+                            className="absolute bottom-5 right-5 z-20 w-12 h-12 rounded-full bg-[#E85D2A] shadow-lg shadow-[#E85D2A]/40 flex items-center justify-center pointer-events-auto active:scale-90 transition-transform"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polygon points="3 11 22 2 13 21 11 13 3 11" />
+                            </svg>
+                        </button>
+                    )}
                 </div>
 
                 {/* ===================== BACK FACE ===================== */}
