@@ -124,15 +124,16 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { saveId } = await req.json() as { saveId: string };
+  const { placeId } = await req.json() as { placeId: string };
 
-  // Verify ownership
-  const save = await prisma.save.findUnique({ where: { id: saveId } });
-  if (!save || save.userId !== session.user.id) {
+  const dbPlace = await prisma.place.findUnique({ where: { googlePlaceId: placeId } });
+  if (!dbPlace) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  await prisma.save.delete({ where: { id: saveId } });
+  await prisma.save.deleteMany({
+    where: { userId: session.user.id, placeId: dbPlace.id },
+  });
 
   return NextResponse.json({ ok: true });
 }

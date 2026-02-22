@@ -41,5 +41,20 @@ export function useSavePlace() {
     showToast(`Saved to ${label}`);
   }
 
-  return { handleSave };
+  async function handleUnsave(placeId: string): Promise<void> {
+    if (status !== "authenticated") return;
+
+    const res = await fetch("/api/saves", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ placeId }),
+    });
+    if (!res.ok) {
+      showToast("Failed to remove");
+      return;
+    }
+    showToast("Removed from saved");
+  }
+
+  return { handleSave, handleUnsave };
 }

@@ -41,7 +41,7 @@ export default function PlaceDetailSheet({
   return (
     <>
       <motion.div
-        className="fixed inset-0 bg-black/50 z-40"
+        className="fixed inset-0 bg-black/50 z-[55]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -49,7 +49,7 @@ export default function PlaceDetailSheet({
       />
 
       <motion.div
-        className="fixed inset-x-0 bottom-0 z-50 bg-white dark:bg-[#1a1a2e] rounded-t-3xl overflow-hidden flex flex-col"
+        className="fixed inset-x-0 bottom-0 z-[60] bg-white dark:bg-[#1a1a2e] rounded-t-3xl overflow-hidden flex flex-col"
         style={{ height: "85dvh" }}
         initial={{ y: "100%" }}
         animate={{ y: 0 }}

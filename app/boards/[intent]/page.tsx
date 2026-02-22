@@ -102,7 +102,7 @@ export default function BoardDetailPage() {
     const [places, setPlaces] = useState<SavedPlace[]>([]);
     const [loading, setLoading] = useState(true);
     const [detailPlace, setDetailPlace] = useState<SavedPlace | null>(null);
-    const { handleSave } = useSavePlace();
+    const { handleSave, handleUnsave } = useSavePlace();
 
     useEffect(() => {
         if (status === "loading") return;
@@ -194,7 +194,16 @@ export default function BoardDetailPage() {
                         fallbackGradient={fallbackGradient}
                         isSaved={true}
                         onClose={() => setDetailPlace(null)}
-                        onSave={(action) => handleSave(detailPlace as Place, intent, action)}
+                        onSave={async (action) => {
+                            if (action === "save") {
+                                // Already saved — unsave and remove from list
+                                await handleUnsave(detailPlace.placeId);
+                                setPlaces(prev => prev.filter(p => p.placeId !== detailPlace.placeId));
+                                setDetailPlace(null);
+                            } else {
+                                handleSave(detailPlace as Place, intent, action);
+                            }
+                        }}
                     />
                 )}
             </AnimatePresence>

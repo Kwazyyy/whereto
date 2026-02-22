@@ -73,7 +73,7 @@ export default function Home() {
 
   const chipScrollRef = useRef<HTMLDivElement>(null);
   const locationResolved = useRef(false);
-  const { handleSave } = useSavePlace();
+  const { handleSave, handleUnsave } = useSavePlace();
   const { status } = useSession();
   const sessionStatusRef = useRef(status);
 
@@ -253,6 +253,12 @@ export default function Home() {
   function handleCardFlipAction(place: Place, action: "save" | "go_now") {
     if (sessionStatusRef.current !== "authenticated") {
       setShowSignInModal(true);
+      return;
+    }
+    if (action === "save" && savedPlaceIds.has(place.placeId)) {
+      // Toggle off — unsave
+      handleUnsave(place.placeId);
+      setSavedPlaceIds((prev) => { const next = new Set(prev); next.delete(place.placeId); return next; });
       return;
     }
     handleSave(place, intent, action);

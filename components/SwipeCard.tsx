@@ -345,7 +345,7 @@ export function SwipeCard({
                             )}
                         </div>
 
-                        <div className="px-5 pt-2 relative z-10 pb-32">
+                        <div className="px-5 pt-2 relative z-10">
                             <div className="flex items-start justify-between gap-3">
                                 <div>
                                     <h2 className="text-2xl font-bold text-[#1B2A4A] dark:text-[#e8edf4]">
@@ -450,45 +450,42 @@ export function SwipeCard({
                                     </p>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Action Buttons (Sticky at bottom of back face) */}
-                    <div className="absolute bottom-0 inset-x-0 px-5 pb-5 pt-4 bg-gradient-to-t from-white dark:from-[#1a1a2e] from-80% to-transparent pointer-events-none">
-                        <div className="flex gap-3 pointer-events-auto">
-                            <button
-                                onClick={(e) => { e.stopPropagation(); onAction("save"); }}
-                                className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 font-semibold text-sm transition-colors cursor-pointer ${isSaved
-                                    ? "border-[#E85D2A] text-[#E85D2A] bg-orange-50 dark:bg-[#E85D2A]/10"
-                                    : "border-gray-200 dark:border-white/15 text-[#1B2A4A] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-white/5"
-                                    }`}
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="18"
-                                    height="18"
-                                    viewBox="0 0 24 24"
-                                    fill={isSaved ? "#E85D2A" : "none"}
-                                    stroke={isSaved ? "#E85D2A" : "currentColor"}
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
+                            {/* Action Buttons — in scroll flow, clear nav bar */}
+                            <div className="flex gap-3 mt-6 mb-20">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onAction("save"); }}
+                                    className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 font-semibold text-sm transition-colors cursor-pointer ${isSaved
+                                        ? "border-[#E85D2A] text-[#E85D2A] bg-orange-50 dark:bg-[#E85D2A]/10"
+                                        : "border-gray-200 dark:border-white/15 text-[#1B2A4A] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-white/5"
+                                        }`}
                                 >
-                                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-                                </svg>
-                                {isSaved ? "Saved" : "Save"}
-                            </button>
-                            <button
-                                onClick={(e) => { e.stopPropagation(); onAction("go_now"); }}
-                                className="flex-[2] flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-[#E85D2A] text-white font-bold text-sm shadow-lg shadow-[#E85D2A]/30 hover:bg-[#d04e1f] active:scale-[0.98] transition-all cursor-pointer"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11" /></svg>
-                                Go Now
-                            </button>
-                            <button className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-gray-200 dark:border-white/15 text-[#1B2A4A] dark:text-[#e8edf4] font-semibold text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" x2="12" y1="2" y2="15" /></svg>
-                                Share
-                            </button>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="18"
+                                        height="18"
+                                        viewBox="0 0 24 24"
+                                        fill={isSaved ? "#E85D2A" : "none"}
+                                        stroke={isSaved ? "#E85D2A" : "currentColor"}
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
+                                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                                    </svg>
+                                    {isSaved ? "Saved" : "Save"}
+                                </button>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onAction("go_now"); }}
+                                    className="flex-[2] flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-[#E85D2A] text-white font-bold text-sm shadow-lg shadow-[#E85D2A]/30 hover:bg-[#d04e1f] active:scale-[0.98] transition-all cursor-pointer"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11" /></svg>
+                                    Go Now
+                                </button>
+                                <button className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-gray-200 dark:border-white/15 text-[#1B2A4A] dark:text-[#e8edf4] font-semibold text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" x2="12" y1="2" y2="15" /></svg>
+                                    Share
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
