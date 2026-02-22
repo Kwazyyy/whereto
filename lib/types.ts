@@ -20,4 +20,8 @@ export interface Place {
   distance: string;
   tags: string[];
   friendSaves?: FriendSignal[];
+  // Direct recommendation fields (set when this card is a friend recommendation)
+  recommendationId?: string;
+  recommendedBy?: { name: string | null; image: string | null };
+  recommenderNote?: string | null;
 }

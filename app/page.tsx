@@ -18,6 +18,7 @@ import { useSavePlace } from "@/lib/use-save-place";
 import { SwipeCard } from "@/components/SwipeCard";
 import { DistanceBubble, BudgetBubble } from "@/components/Filters";
 import { SignInModal } from "@/components/SignInModal";
+import { ShareModal } from "@/components/ShareModal";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { loadSkippedForIntent, persistSkippedForIntent, clearSkippedForIntent } from "@/lib/storage";
 
@@ -72,6 +73,8 @@ export default function Home() {
   const [showTutorial, setShowTutorial] = useState(false);
   // skippedPerIntent: per-intent set of placeIds that have been swiped (left=persisted, right/up=session-only)
   const [skippedPerIntent, setSkippedPerIntent] = useState<Record<string, Set<string>>>({});
+  const [recommendations, setRecommendations] = useState<Place[]>([]);
+  const [shareModalPlace, setShareModalPlace] = useState<{ placeId: string; name: string } | null>(null);
 
   const chipScrollRef = useRef<HTMLDivElement>(null);
   const locationResolved = useRef(false);
@@ -124,6 +127,29 @@ export default function Home() {
         if (Array.isArray(data)) {
           setSavedPlaceIds(new Set(data.map(s => s.placeId).filter(Boolean) as string[]));
         }
+      })
+      .catch(() => { });
+  }, [status]);
+
+  // Fetch unseen recommendations
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    fetch("/api/recommendations")
+      .then(r => r.ok ? r.json() : [])
+      .then((data: Array<{
+        recommendationId: string;
+        note: string | null;
+        sender: { name: string | null; image: string | null };
+        place: Place;
+      }>) => {
+        if (!Array.isArray(data) || data.length === 0) return;
+        const recPlaces: Place[] = data.map(rec => ({
+          ...rec.place,
+          recommendationId: rec.recommendationId,
+          recommendedBy: rec.sender,
+          recommenderNote: rec.note,
+        }));
+        setRecommendations(recPlaces);
       })
       .catch(() => { });
   }, [status]);
@@ -237,8 +263,10 @@ export default function Home() {
 
   const visiblePlaces = useMemo(() => {
     const skipped = skippedPerIntent[intent] ?? new Set<string>();
-    return budgetFilteredPlaces.filter(p => !skipped.has(p.placeId));
-  }, [budgetFilteredPlaces, skippedPerIntent, intent]);
+    const filtered = budgetFilteredPlaces.filter(p => !skipped.has(p.placeId));
+    // Recommendation cards go first; they bypass intent/budget filters
+    return [...recommendations, ...filtered];
+  }, [budgetFilteredPlaces, skippedPerIntent, intent, recommendations]);
 
   const allDone = !loading && visiblePlaces.length === 0;
   const noBudgetMatches = !loading && places.length > 0 && budgetFilteredPlaces.length === 0;
@@ -269,6 +297,23 @@ export default function Home() {
   function handleSwipe(direction: "left" | "right" | "up") {
     const place = visiblePlaces[0];
     if (!place) return;
+
+    // Recommendation card: mark seen, remove from recommendations state
+    if (place.recommendationId) {
+      fetch("/api/recommendations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [place.recommendationId] }),
+      }).catch(() => { });
+      setRecommendations(prev => prev.filter(r => r.recommendationId !== place.recommendationId));
+      if (direction === "right" || direction === "up") {
+        if (sessionStatusRef.current === "authenticated") {
+          handleSave(place, intent, direction === "up" ? "go_now" : "save");
+          setSavedPlaceIds(prev => new Set([...prev, place.placeId]));
+        }
+      }
+      return;
+    }
 
     if (direction === "right" || direction === "up") {
       if (sessionStatusRef.current !== "authenticated") {
@@ -442,7 +487,7 @@ export default function Home() {
 
               return (
                 <SwipeCard
-                  key={place.placeId}
+                  key={place.recommendationId ?? place.placeId}
                   place={place}
                   fallbackGradient={gradient}
                   onSwipe={handleSwipe}
@@ -450,6 +495,7 @@ export default function Home() {
                   isTop={isTop}
                   isSaved={isSaved}
                   onAction={(action) => handleCardFlipAction(place, action)}
+                  onShare={() => setShareModalPlace({ placeId: place.placeId, name: place.name })}
                 />
               );
             })}
@@ -467,6 +513,16 @@ export default function Home() {
       <AnimatePresence>
         {showSignInModal && (
           <SignInModal onClose={() => setShowSignInModal(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* Share Modal */}
+      <AnimatePresence>
+        {shareModalPlace && (
+          <ShareModal
+            place={shareModalPlace}
+            onClose={() => setShareModalPlace(null)}
+          />
         )}
       </AnimatePresence>
 

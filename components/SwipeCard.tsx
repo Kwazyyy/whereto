@@ -85,6 +85,7 @@ export function SwipeCard({
     isTop,
     isSaved,
     onAction,
+    onShare,
 }: {
     place: Place;
     fallbackGradient: string;
@@ -93,6 +94,7 @@ export function SwipeCard({
     isTop: boolean;
     isSaved: boolean;
     onAction: (action: "save" | "go_now") => void;
+    onShare?: () => void;
 }) {
     const x = useMotionValue(0);
     const y = useMotionValue(0);
@@ -208,6 +210,23 @@ export function SwipeCard({
                     </div>
 
                     <div className="absolute bottom-0 inset-x-0 h-[50%] bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none" />
+
+                    {/* Recommendation banner */}
+                    {place.recommendedBy && (
+                        <div className="absolute top-4 left-4 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-600/90 backdrop-blur-sm pointer-events-none shadow-lg shadow-violet-900/40">
+                            {place.recommendedBy.image ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={place.recommendedBy.image} alt={place.recommendedBy.name ?? ""} className="w-4 h-4 rounded-full object-cover" />
+                            ) : (
+                                <span className="text-white text-[9px] font-bold">
+                                    {place.recommendedBy.name?.[0]?.toUpperCase() ?? "★"}
+                                </span>
+                            )}
+                            <span className="text-white text-[11px] font-semibold leading-none">
+                                Rec'd by {place.recommendedBy.name?.split(" ")[0] ?? "a friend"}
+                            </span>
+                        </div>
+                    )}
 
                     {isSaved && (
                         <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-black/50 backdrop-blur-sm pointer-events-none">
@@ -525,7 +544,9 @@ export function SwipeCard({
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11" /></svg>
                                     Go Now
                                 </button>
-                                <button className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-gray-200 dark:border-white/15 text-[#1B2A4A] dark:text-[#e8edf4] font-semibold text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); if (onShare) onShare(); }}
+                                    className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-gray-200 dark:border-white/15 text-[#1B2A4A] dark:text-[#e8edf4] font-semibold text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" x2="12" y1="2" y2="15" /></svg>
                                     Share
                                 </button>

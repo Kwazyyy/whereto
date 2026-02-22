@@ -18,8 +18,10 @@ model User {
   accounts               Account[]
   sessions               Session[]
   saves                  Save[]
-  sentFriendRequests     Friendship[] @relation("SentFriendships")
-  receivedFriendRequests Friendship[] @relation("ReceivedFriendships")
+  sentFriendRequests     Friendship[]     @relation("SentFriendships")
+  receivedFriendRequests Friendship[]     @relation("ReceivedFriendships")
+  sentRecommendations    Recommendation[] @relation("SentRecommendations")
+  receivedRecommendations Recommendation[] @relation("ReceivedRecommendations")
 }
 
 model Account {
@@ -68,8 +70,9 @@ model Place {
   rating        Float?
   photoUrl      String?
   vibeTags      Json?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime         @default(now())
   saves         Save[]
+  recommendations Recommendation[]
 }
 
 model Save {
@@ -95,6 +98,19 @@ model Friendship {
   receiver   User     @relation("ReceivedFriendships", fields: [receiverId], references: [id], onDelete: Cascade)
 
   @@unique([senderId, receiverId])
+}
+
+model Recommendation {
+  id         String   @id @default(uuid())
+  senderId   String
+  receiverId String
+  placeId    String
+  note       String?
+  seen       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  sender     User     @relation("SentRecommendations",    fields: [senderId],   references: [id], onDelete: Cascade)
+  receiver   User     @relation("ReceivedRecommendations",fields: [receiverId], references: [id], onDelete: Cascade)
+  place      Place    @relation(fields: [placeId], references: [id])
 }
 
 model Waitlist {
