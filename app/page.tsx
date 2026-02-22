@@ -153,6 +153,7 @@ function SwipeCard({
   place,
   fallbackGradient,
   onSwipe,
+  onSwipeUpSync,
   isTop,
   isSaved,
   onAction,
@@ -160,6 +161,7 @@ function SwipeCard({
   place: Place;
   fallbackGradient: string;
   onSwipe: (direction: "left" | "right" | "up") => void;
+  onSwipeUpSync?: () => void;
   isTop: boolean;
   isSaved: boolean;
   onAction: (action: "save" | "go_now") => void;
@@ -208,6 +210,7 @@ function SwipeCard({
   function handleDragEnd(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
     const { offset } = info;
     if (offset.y < -SWIPE_UP_THRESHOLD) {
+      if (onSwipeUpSync) onSwipeUpSync();
       animate(y, -800, { duration: 0.3 });
       setTimeout(() => onSwipe("up"), 300);
     } else if (offset.x > SWIPE_THRESHOLD) {
@@ -947,6 +950,15 @@ export default function Home() {
     });
   }
 
+  function handleSwipeUpSync(place: Place) {
+    if (sessionStatusRef.current === "authenticated") {
+      window.open(
+        `https://www.google.com/maps/dir/?api=1&destination=${place.location.lat},${place.location.lng}&destination_place_id=${place.placeId}`,
+        "_blank"
+      );
+    }
+  }
+
   function handleSwipe(direction: "left" | "right" | "up") {
     const place = visiblePlaces[0];
     if (!place) return;
@@ -961,12 +973,6 @@ export default function Home() {
       const action = direction === "up" ? "go_now" : "save";
       handleSave(place, intent, action);
       setSavedPlaceIds(prev => new Set([...prev, place.placeId]));
-      if (direction === "up") {
-        window.open(
-          `https://www.google.com/maps/dir/?api=1&destination=${place.location.lat},${place.location.lng}&destination_place_id=${place.placeId}`,
-          "_blank"
-        );
-      }
       // Session-only skip (don't persist saves)
       addToSkipped(place.placeId, false);
     } else {
@@ -1127,6 +1133,7 @@ export default function Home() {
                   place={place}
                   fallbackGradient={gradient}
                   onSwipe={handleSwipe}
+                  onSwipeUpSync={() => handleSwipeUpSync(place)}
                   isTop={isTop}
                   isSaved={isSaved}
                   onAction={(action) => handleCardFlipAction(place, action)}
