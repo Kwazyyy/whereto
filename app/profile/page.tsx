@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { getSavedPlaces } from "@/lib/saved-places";
+import { SavedPlace, getSavedPlaces } from "@/lib/saved-places";
+import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useTheme, type Theme } from "@/components/ThemeProvider";
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -21,6 +22,18 @@ const INTENT_OPTIONS = [
   { id: "outdoor", label: "Outdoor / Patio" },
 ];
 
+const INTENT_LABELS: Record<string, string> = {
+  study: "Study / Work",
+  date: "Date / Chill",
+  trending: "Trending Now",
+  quiet: "Quiet Cafes",
+  laptop: "Laptop-Friendly",
+  group: "Group Hangouts",
+  budget: "Budget Eats",
+  coffee: "Coffee & Catch-Up",
+  outdoor: "Outdoor / Patio",
+};
+
 const DISTANCE_OPTIONS = [
   { label: "1 km", value: 1000 },
   { label: "2 km", value: 2000 },
@@ -36,6 +49,7 @@ const THEME_OPTIONS: { label: string; value: Theme }[] = [
 ];
 
 export const PREFS_KEY = "whereto_prefs";
+export const BIO_KEY = "whereto_bio";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -68,6 +82,21 @@ export function loadPrefs(): Prefs {
 function savePrefsToStorage(prefs: Prefs) {
   if (typeof window !== "undefined") {
     localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  }
+}
+
+export function loadBio(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return localStorage.getItem(BIO_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+function saveBioToStorage(bio: string) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(BIO_KEY, bio);
   }
 }
 
@@ -258,22 +287,7 @@ function GridIcon({ size = 18 }: { size?: number }) {
   );
 }
 
-function CheckCircleIcon({ size = 18 }: { size?: number }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-      <path d="m9 11 3 3L22 4" />
-    </svg>
-  );
-}
 
-function BookmarkIcon({ size = 18 }: { size?: number }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
-    </svg>
-  );
-}
 
 function EditIcon({ size = 14 }: { size?: number }) {
   return (
@@ -281,6 +295,36 @@ function EditIcon({ size = 14 }: { size?: number }) {
       <path d="M12 20h9" />
       <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
     </svg>
+  );
+}
+
+function BoardCardMini({ intent, label, items }: { intent: string, label: string, items: SavedPlace[] }) {
+  const previewItem = items[0];
+  const photoUrl = usePhotoUrl(previewItem?.photoRef ?? null);
+
+  return (
+    <Link href={`/boards/${intent}`} className="block shrink-0 snap-start">
+      <div className="w-32 h-40 bg-white dark:bg-[#1a1a2e] rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-white/10 relative group cursor-pointer">
+        {photoUrl ? (
+          <Image
+            src={photoUrl}
+            alt={label}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            unoptimized
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-[#22223b] text-gray-400">
+            <GridIcon size={24} />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        <div className="absolute bottom-3 left-3 right-3">
+          <h3 className="font-bold text-sm text-white capitalize drop-shadow-md leading-tight">{label}</h3>
+          <p className="text-[10px] text-gray-300 drop-shadow-md mt-0.5">{items.length} place{items.length !== 1 ? 's' : ''}</p>
+        </div>
+      </div>
+    </Link>
   );
 }
 
@@ -293,10 +337,13 @@ export default function ProfilePage() {
   const [saveCount, setSaveCount] = useState<number | null>(null);
   const [boardCount, setBoardCount] = useState<number | null>(null);
   const [joinedDate, setJoinedDate] = useState<string | null>(null);
+  const [bio, setBio] = useState("");
+  const [saves, setSaves] = useState<SavedPlace[]>([]);
 
   // Load prefs from localStorage on mount
   useEffect(() => {
     setPrefs(loadPrefs());
+    setBio(loadBio());
   }, []);
 
   // Keep local prefs theme in sync with ThemeProvider
@@ -310,8 +357,9 @@ export default function ProfilePage() {
 
     fetch("/api/saves")
       .then((r) => r.json())
-      .then((data: Array<{ intent?: string }>) => {
+      .then((data: SavedPlace[]) => {
         if (Array.isArray(data)) {
+          setSaves(data);
           setSaveCount(data.length);
           const uniqueIntents = new Set(data.map((s) => s.intent).filter(Boolean));
           setBoardCount(uniqueIntents.size);
@@ -337,6 +385,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (status === "unauthenticated") {
       const places = getSavedPlaces();
+      setSaves(places);
       setSaveCount(places.length);
       const uniqueIntents = new Set(places.map((p) => p.intent).filter(Boolean));
       setBoardCount(uniqueIntents.size);
@@ -355,6 +404,18 @@ export default function ProfilePage() {
     setTheme(t);
   }
 
+  // Compute board groupings for the Recent Boards carousel
+  const boardGroups = saves.reduce((acc, save) => {
+    if (!save.intent) return acc;
+    if (!acc[save.intent]) acc[save.intent] = [];
+    acc[save.intent].push(save);
+    return acc;
+  }, {} as Record<string, SavedPlace[]>);
+
+  const recentBoards = Object.entries(boardGroups)
+    .map(([intent, items]) => ({ intent, items }))
+    .sort((a, b) => b.items.length - a.items.length); // Sort by most items for display
+
   if (status === "loading") {
     return (
       <div className="h-dvh bg-white dark:bg-[#0f0f1a] flex items-center justify-center pb-16">
@@ -367,126 +428,99 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-24">
-      <header className="px-5 pt-5 pb-1 h-16" />
+    <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-24 md:pb-12">
+      <header className="px-5 pt-5 pb-1 h-16 md:hidden" />
 
-      <div className="px-5">
-        {/* ── Profile Section ── */}
-        {session?.user ? (
-          <div className="flex flex-col items-center text-center pt-2 pb-6 px-1 relative">
-            <div className="relative">
-              {session.user.image ? (
-                <Image
-                  src={session.user.image}
-                  alt={session.user.name ?? ""}
-                  width={96}
-                  height={96}
-                  className="rounded-full ring-4 ring-white dark:ring-[#0f0f1a] shadow-sm object-cover"
-                  unoptimized
-                />
-              ) : (
-                <div className="w-24 h-24 rounded-full bg-[#E85D2A] flex items-center justify-center text-white text-3xl font-bold shadow-sm ring-4 ring-white dark:ring-[#0f0f1a]">
-                  {session.user.name?.[0]?.toUpperCase() ?? "?"}
-                </div>
-              )}
-              <button className="absolute bottom-0 right-0 bg-[#1B2A4A] dark:bg-white text-white dark:text-[#1B2A4A] p-2 rounded-full shadow-md hover:scale-105 transition-transform cursor-pointer">
-                <EditIcon size={14} />
-              </button>
-            </div>
+      {/* Main Responsive Grid Layout */}
+      <div className="px-5 md:px-8 md:pt-12 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 w-full">
 
-            <h2 className="text-2xl font-bold mt-4 text-[#1B2A4A] dark:text-[#e8edf4]">
-              {session.user.name}
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              @{session.user.email?.split('@')[0] || 'user'} • Toronto, ON
-            </p>
-
-            <div className="flex items-center justify-center gap-10 mt-6 w-full max-w-[280px]">
-              <Link href="/boards" className="flex flex-col items-center gap-1.5 group cursor-pointer w-16">
-                <div className="flex items-center gap-1.5 text-gray-400 group-hover:text-[#E85D2A] transition-colors">
-                  <HeartIcon size={18} />
-                  <span className="font-bold text-lg text-[#1B2A4A] dark:text-gray-200 leading-none">{saveCount || 0}</span>
-                </div>
-                <span className="text-xs text-gray-500 font-medium">Saved</span>
-              </Link>
-
-              <Link href="/places/visited" className="flex flex-col items-center gap-1.5 group cursor-pointer w-16">
-                <div className="flex items-center gap-1.5 text-gray-400 group-hover:text-amber-500 transition-colors">
-                  <MapPinIcon size={18} />
-                  <span className="font-bold text-lg text-[#1B2A4A] dark:text-gray-200 leading-none">0</span>
-                </div>
-                <span className="text-xs text-gray-500 font-medium">Visited</span>
-              </Link>
-
-              <Link href="/boards" className="flex flex-col items-center gap-1.5 group cursor-pointer w-16">
-                <div className="flex items-center gap-1.5 text-gray-400 group-hover:text-blue-500 transition-colors">
-                  <GridIcon size={18} />
-                  <span className="font-bold text-lg text-[#1B2A4A] dark:text-gray-200 leading-none">{boardCount || 0}</span>
-                </div>
-                <span className="text-xs text-gray-500 font-medium">Boards</span>
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center text-center pt-2 pb-6 px-1 relative">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-gray-100 dark:bg-[#1a1a2e] flex items-center justify-center shadow-sm ring-4 ring-white dark:ring-[#0f0f1a]">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="36"
-                  height="36"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#9CA3AF"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="8" r="5" />
-                  <path d="M20 21a8 8 0 0 0-16 0" />
-                </svg>
+        {/* ── LEFT COLUMN (User Profile) ── */}
+        <div className="md:col-span-5 flex flex-col items-center md:items-start text-center md:text-left pt-2 pb-6 px-1">
+          <div className="relative mb-4">
+            {session?.user?.image ? (
+              <Image
+                src={session.user.image}
+                alt={session.user.name ?? ""}
+                width={120}
+                height={120}
+                className="w-24 h-24 md:w-32 md:h-32 rounded-full ring-4 ring-white dark:ring-[#0f0f1a] shadow-sm object-cover"
+                unoptimized
+              />
+            ) : (
+              <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gray-100 dark:bg-[#1a1a2e] flex items-center justify-center shadow-sm ring-4 ring-white dark:ring-[#0f0f1a]">
+                {session?.user ? (
+                  <div className="w-full h-full rounded-full bg-[#E85D2A] flex items-center justify-center text-white text-3xl md:text-4xl font-bold">
+                    {session.user.name?.[0]?.toUpperCase() ?? "?"}
+                  </div>
+                ) : (
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="8" r="5" />
+                    <path d="M20 21a8 8 0 0 0-16 0" />
+                  </svg>
+                )}
               </div>
+            )}
+            <button className="absolute bottom-0 right-0 bg-[#1B2A4A] dark:bg-white text-white dark:text-[#1B2A4A] p-2.5 rounded-full shadow-md border-2 border-white dark:border-[#0f0f1a] hover:scale-105 transition-transform cursor-pointer">
+              <EditIcon size={16} />
+            </button>
+          </div>
+
+          <h2 className="text-2xl md:text-3xl font-bold text-[#1B2A4A] dark:text-[#e8edf4]">
+            {session?.user ? session.user.name : "Guest User"}
+          </h2>
+          <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 mt-1">
+            {session?.user ? `@${session.user.email?.split('@')[0] || 'user'} • Toronto, ON` : "Sign in to save your places"}
+          </p>
+
+          {/* User Bio */}
+          {session?.user && (
+            <div className="w-full max-w-sm mt-4">
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                onBlur={() => saveBioToStorage(bio)}
+                placeholder="Add a short bio..."
+                className="w-full text-center md:text-left text-sm text-[#1B2A4A] dark:text-[#e8edf4] bg-transparent border-none resize-none focus:ring-0 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none leading-relaxed"
+                rows={2}
+                maxLength={150}
+              />
             </div>
+          )}
 
-            <h2 className="text-2xl font-bold mt-4 text-[#1B2A4A] dark:text-[#e8edf4]">
-              Guest User
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Sign in to save your places
-            </p>
+          {/* Stats Row */}
+          <div className="flex items-center justify-center md:justify-start gap-8 md:gap-10 mt-6 w-full max-w-sm border-y border-gray-100 dark:border-white/5 py-4">
+            <Link href="/boards" className="flex flex-col items-center gap-1.5 group cursor-pointer">
+              <div className="flex items-center gap-1.5 text-gray-400 group-hover:text-[#E85D2A] transition-colors">
+                <HeartIcon size={20} />
+                <span className="font-bold text-xl text-[#1B2A4A] dark:text-gray-200 leading-none">{saveCount || 0}</span>
+              </div>
+              <span className="text-xs text-gray-500 font-medium">Saved</span>
+            </Link>
 
-            <div className="flex items-center justify-center gap-10 mt-6 w-full max-w-[280px]">
-              <Link href="/boards" className="flex flex-col items-center gap-1.5 group cursor-pointer w-16">
-                <div className="flex items-center gap-1.5 text-gray-300 dark:text-gray-600 transition-colors group-hover:text-[#E85D2A]">
-                  <HeartIcon size={18} />
-                  <span className="font-bold text-lg leading-none">{saveCount || 0}</span>
-                </div>
-                <span className="text-xs text-gray-400 font-medium">Saved</span>
-              </Link>
+            <Link href="/places/visited" className="flex flex-col items-center gap-1.5 group cursor-pointer">
+              <div className="flex items-center gap-1.5 text-gray-400 group-hover:text-amber-500 transition-colors">
+                <MapPinIcon size={20} />
+                <span className="font-bold text-xl text-[#1B2A4A] dark:text-gray-200 leading-none">0</span>
+              </div>
+              <span className="text-xs text-gray-500 font-medium">Visited</span>
+            </Link>
 
-              <Link href="/places/visited" className="flex flex-col items-center gap-1.5 group cursor-pointer w-16">
-                <div className="flex items-center gap-1.5 text-gray-300 dark:text-gray-600 transition-colors group-hover:text-amber-500">
-                  <MapPinIcon size={18} />
-                  <span className="font-bold text-lg leading-none">0</span>
-                </div>
-                <span className="text-xs text-gray-400 font-medium">Visited</span>
-              </Link>
+            <Link href="/boards" className="flex flex-col items-center gap-1.5 group cursor-pointer">
+              <div className="flex items-center gap-1.5 text-gray-400 group-hover:text-blue-500 transition-colors">
+                <GridIcon size={20} />
+                <span className="font-bold text-xl text-[#1B2A4A] dark:text-gray-200 leading-none">{boardCount || 0}</span>
+              </div>
+              <span className="text-xs text-gray-500 font-medium">Boards</span>
+            </Link>
+          </div>
 
-              <Link href="/boards" className="flex flex-col items-center gap-1.5 group cursor-pointer w-16">
-                <div className="flex items-center gap-1.5 text-gray-300 dark:text-gray-600 transition-colors group-hover:text-blue-500">
-                  <GridIcon size={18} />
-                  <span className="font-bold text-lg leading-none">{boardCount || 0}</span>
-                </div>
-                <span className="text-xs text-gray-400 font-medium">Boards</span>
-              </Link>
-            </div>
-
-            <div className="mt-6 w-full max-w-xs">
+          {!session?.user && (
+            <div className="mt-8 w-full max-w-sm mx-auto md:mx-0">
               <button
                 onClick={() => signIn("google")}
-                className="flex items-center justify-center gap-3 w-full py-3 rounded-2xl bg-white dark:bg-[#1a1a2e] border border-gray-200 dark:border-white/10 font-semibold text-sm text-[#1B2A4A] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#22223b] transition-colors cursor-pointer shadow-sm"
+                className="flex items-center justify-center gap-3 w-full py-3.5 rounded-2xl bg-white dark:bg-[#1a1a2e] border border-gray-200 dark:border-white/10 font-semibold text-sm text-[#1B2A4A] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#22223b] transition-colors cursor-pointer shadow-sm"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24">
+                <svg width="20" height="20" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
                   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
@@ -495,142 +529,120 @@ export default function ProfilePage() {
                 Sign in with Google
               </button>
             </div>
-          </div>
-        )}
-
-        {/* ── Discovery Preferences ── */}
-        <SectionHeader title="Discovery Preferences" />
-        <SettingsCard>
-          <SelectRow
-            label="Default Intent"
-            options={INTENT_OPTIONS.map((o) => ({ label: o.label, value: o.id }))}
-            value={prefs.defaultIntent}
-            onChange={(v) => updatePref("defaultIntent", v)}
-          />
-          <SelectRow
-            label="Default Distance"
-            options={DISTANCE_OPTIONS}
-            value={prefs.defaultDistance}
-            onChange={(v) => updatePref("defaultDistance", Number(v))}
-          />
-          <Row label="Auto-detect location">
-            <Toggle
-              checked={prefs.autoDetectLocation}
-              onChange={(v) => updatePref("autoDetectLocation", v)}
-            />
-          </Row>
-          <SegmentedRow
-            label="Theme"
-            options={THEME_OPTIONS}
-            value={prefs.theme}
-            onChange={handleThemeChange}
-          />
-        </SettingsCard>
-
-        {/* ── Your Places ── */}
-        <SectionHeader title="Your Places" />
-        <SettingsCard>
-          <Link
-            href="/places/visited"
-            className="flex items-center justify-between px-4 py-3.5 min-h-[52px] group"
-          >
-            <div className="flex items-center gap-3">
-              <div className="text-gray-400 group-hover:text-green-500 transition-colors">
-                <CheckCircleIcon size={20} />
-              </div>
-              <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
-                Been
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-[#1B2A4A] dark:text-gray-200">
-                0
-              </span>
-              <ChevronRight />
-            </div>
-          </Link>
-          <hr className="border-gray-100 dark:border-white/8 ml-12" />
-          <Link
-            href="/boards"
-            className="flex items-center justify-between px-4 py-3.5 min-h-[52px] group"
-          >
-            <div className="flex items-center gap-3">
-              <div className="text-gray-400 group-hover:text-[#E85D2A] transition-colors">
-                <BookmarkIcon size={20} />
-              </div>
-              <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
-                Want to Try
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-[#1B2A4A] dark:text-gray-200">
-                {saveCount !== null ? saveCount : "—"}
-              </span>
-              <ChevronRight />
-            </div>
-          </Link>
-        </SettingsCard>
-
-        {/* ── Account ── */}
-        <SectionHeader title="Account" />
-        <SettingsCard>
-          {session?.user && (
-            <Row label="Joined">
-              <span className="text-sm text-gray-400 dark:text-gray-500">{joinedDate ?? "—"}</span>
-            </Row>
           )}
-        </SettingsCard>
+        </div>
 
-        {
-          session?.user && (
-            <button
-              onClick={() => signOut()}
-              className="mt-3 w-full py-3.5 rounded-2xl bg-gray-50 dark:bg-[#1a1a2e] text-red-500 font-semibold text-sm cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+        {/* ── RIGHT COLUMN (Settings & Content) ── */}
+        <div className="md:col-span-7 flex flex-col pb-8">
+
+          {/* Recent Boards (Visible prominently here) */}
+          {recentBoards.length > 0 && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between px-1 mb-3">
+                <h3 className="text-sm font-bold text-[#1B2A4A] dark:text-gray-200">Recent Boards</h3>
+                <Link href="/boards" className="text-xs font-semibold text-[#E85D2A] hover:underline">See all</Link>
+              </div>
+              <div className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                {recentBoards.map((board) => (
+                  <BoardCardMini
+                    key={board.intent}
+                    intent={board.intent}
+                    label={INTENT_LABELS[board.intent] || board.intent}
+                    items={board.items}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Discovery Preferences */}
+          <SectionHeader title="Discovery Preferences" />
+          <SettingsCard>
+            <SelectRow
+              label="Default Intent"
+              options={INTENT_OPTIONS.map((o) => ({ label: o.label, value: o.id }))}
+              value={prefs.defaultIntent}
+              onChange={(v) => updatePref("defaultIntent", v)}
+            />
+            <SelectRow
+              label="Default Distance"
+              options={DISTANCE_OPTIONS}
+              value={prefs.defaultDistance}
+              onChange={(v) => updatePref("defaultDistance", Number(v))}
+            />
+            <Row label="Auto-detect location">
+              <Toggle
+                checked={prefs.autoDetectLocation}
+                onChange={(v) => updatePref("autoDetectLocation", v)}
+              />
+            </Row>
+            <SegmentedRow
+              label="Theme"
+              options={THEME_OPTIONS}
+              value={prefs.theme}
+              onChange={handleThemeChange}
+            />
+          </SettingsCard>
+
+          {/* Account */}
+          <SectionHeader title="Account" />
+          <SettingsCard>
+            {session?.user && (
+              <Row label="Joined">
+                <span className="text-sm text-gray-400 dark:text-gray-500">{joinedDate ?? "—"}</span>
+              </Row>
+            )}
+            {session?.user && (
+              <button
+                onClick={() => signOut()}
+                className="flex items-center px-4 py-3.5 min-h-[52px] w-full text-left text-red-500 font-semibold text-sm cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+              >
+                Sign Out
+              </button>
+            )}
+          </SettingsCard>
+
+          {/* About */}
+          <SectionHeader title="About" />
+          <SettingsCard>
+            <Row label="App Version">
+              <span className="text-sm text-gray-400 dark:text-gray-500">1.0.0 (Beta)</span>
+            </Row>
+            <a
+              href="mailto:hello@whereto.app?subject=WhereTo%20Feedback"
+              className="flex items-center justify-between px-4 py-3.5 min-h-[52px]"
             >
-              Sign Out
+              <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
+                Send Feedback
+              </span>
+              <ChevronRight />
+            </a>
+            <button className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+              <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
+                Rate WhereTo
+              </span>
+              <ChevronRight />
             </button>
-          )
-        }
+            <button className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+              <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
+                Privacy Policy
+              </span>
+              <ChevronRight />
+            </button>
+            <button className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-full cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+              <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
+                Terms of Service
+              </span>
+              <ChevronRight />
+            </button>
+          </SettingsCard>
 
-        {/* ── About ── */}
-        <SectionHeader title="About" />
-        <SettingsCard>
-          <Row label="App Version">
-            <span className="text-sm text-gray-400 dark:text-gray-500">1.0.0 (Beta)</span>
-          </Row>
-          <a
-            href="mailto:hello@whereto.app?subject=WhereTo%20Feedback"
-            className="flex items-center justify-between px-4 py-3.5 min-h-[52px]"
-          >
-            <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
-              Send Feedback
-            </span>
-            <ChevronRight />
-          </a>
-          <button className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer">
-            <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
-              Rate WhereTo
-            </span>
-            <ChevronRight />
-          </button>
-          <button className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer">
-            <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
-              Privacy Policy
-            </span>
-            <ChevronRight />
-          </button>
-          <button className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-full cursor-pointer">
-            <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
-              Terms of Service
-            </span>
-            <ChevronRight />
-          </button>
-        </SettingsCard>
+          <p className="text-center md:text-left text-xs text-gray-300 dark:text-gray-600 mt-8 pb-2 px-1">
+            Made with love in Toronto
+          </p>
+        </div>
 
-        <p className="text-center text-xs text-gray-300 dark:text-gray-600 mt-8 pb-2">
-          Made with love in Toronto
-        </p>
-      </div >
-    </div >
+      </div>
+    </div>
   );
 }

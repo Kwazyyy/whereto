@@ -140,10 +140,16 @@ function mapAndFilter(
       let photoRefs: string[] = [];
 
       if (place.photos && place.photos.length > 0) {
-        const validPhotos = place.photos.slice(0, 10).filter((p: any) => (p.widthPx || 0) >= 400);
+        interface GooglePhoto {
+          widthPx?: number;
+          heightPx?: number;
+          name: string;
+          authorAttributions?: Array<{ displayName: string }>;
+        }
+        const validPhotos = place.photos.slice(0, 10).filter((p: GooglePhoto) => (p.widthPx || 0) >= 400);
 
         if (validPhotos.length > 0) {
-          const scoredPhotos = validPhotos.map((p: any, index: number) => {
+          const scoredPhotos = validPhotos.map((p: GooglePhoto, index: number) => {
             let score = p.widthPx || 0;
 
             // If multiple photos are available, Google's 1st photo is often a bad exterior shot
@@ -163,7 +169,7 @@ function mapAndFilter(
 
             // Prefer owner uploads (often professional shots without attributions or with business name)
             const isOwner = !p.authorAttributions || p.authorAttributions.length === 0 ||
-              p.authorAttributions.some((attr: any) => attr.displayName === place.displayName?.text);
+              p.authorAttributions.some((attr: { displayName: string }) => attr.displayName === place.displayName?.text);
             if (isOwner) {
               score += 30000;
             }
@@ -172,12 +178,12 @@ function mapAndFilter(
           });
 
           // Sort descending by score
-          scoredPhotos.sort((a: any, b: any) => b.score - a.score);
+          scoredPhotos.sort((a: { name: string; score: number }, b: { name: string; score: number }) => b.score - a.score);
           bestPhotoRef = scoredPhotos[0].name;
           // Put the better ones first in the carousel order
-          photoRefs = scoredPhotos.map((p: any) => p.name);
+          photoRefs = scoredPhotos.map((p: { name: string; score: number }) => p.name);
         } else {
-          photoRefs = place.photos.slice(0, 10).map((p: any) => p.name);
+          photoRefs = place.photos.slice(0, 10).map((p: GooglePhoto) => p.name);
           bestPhotoRef = photoRefs[0] ?? null;
         }
       }
