@@ -63,6 +63,10 @@ const NAV_ITEMS = [
 export default function BottomNav() {
   const pathname = usePathname();
 
+  if (pathname === "/landing") {
+    return null;
+  }
+
   return (
     <nav className="fixed bottom-0 inset-x-0 z-50 bg-white dark:bg-[#1a1a2e] border-t border-gray-100 dark:border-white/10 shadow-[0_-2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_-2px_8px_rgba(0,0,0,0.3)]" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
       <div className="flex items-end justify-around h-[68px] max-w-lg mx-auto px-2 pb-2">

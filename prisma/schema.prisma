@@ -96,3 +96,10 @@ model Friendship {
 
   @@unique([senderId, receiverId])
 }
+
+model Waitlist {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+

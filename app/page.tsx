@@ -11,6 +11,7 @@ import {
 } from "framer-motion";
 import Image from "next/image";
 import { useSession, signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Place, FriendSignal } from "@/lib/types";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useSavePlace } from "@/lib/use-save-place";
@@ -797,6 +798,7 @@ function SignInModal({ onClose }: { onClose: () => void }) {
 // --- Main Page ---
 
 export default function Home() {
+  const router = useRouter();
   const [intent, setIntent] = useState("trending");
   const [radius, setRadius] = useState(5000);
   const [priceFilter, setPriceFilter] = useState("All");
@@ -814,7 +816,13 @@ export default function Home() {
   const { handleSave } = useSavePlace();
   const { status } = useSession();
   const sessionStatusRef = useRef(status);
-  useEffect(() => { sessionStatusRef.current = status; }, [status]);
+
+  useEffect(() => {
+    sessionStatusRef.current = status;
+    if (status === "unauthenticated") {
+      router.replace("/landing");
+    }
+  }, [status, router]);
 
   // Apply saved preferences on first mount
   useEffect(() => {
