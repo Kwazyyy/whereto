@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Missing photo reference" }, { status: 400 });
   }
 
-  const url = `https://places.googleapis.com/v1/${ref}/media?maxWidthPx=800&skipHttpRedirect=true&key=${apiKey}`;
+  const url = `https://places.googleapis.com/v1/${ref}/media?maxWidthPx=1200&skipHttpRedirect=true&key=${apiKey}`;
 
   try {
     const res = await fetch(url);

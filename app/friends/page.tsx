@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Image from "next/image";
-import { usePhotoUrl } from "@/lib/use-photo-url";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -24,32 +23,6 @@ interface FriendRequest {
   image: string | null;
   sentAt: string;
 }
-
-interface FriendSave {
-  saveId: string;
-  placeId: string;
-  name: string;
-  address: string;
-  photoRef: string | null;
-  price: string;
-  rating: number;
-  tags: string[];
-  intent: string;
-}
-
-// ── Helpers ────────────────────────────────────────────────────────────────
-
-const INTENT_LABELS: Record<string, string> = {
-  study: "Study / Work",
-  date: "Date / Chill",
-  trending: "Trending Now",
-  quiet: "Quiet Cafés",
-  laptop: "Laptop-Friendly",
-  group: "Group Hangouts",
-  budget: "Budget Eats",
-  coffee: "Coffee & Catch-Up",
-  outdoor: "Outdoor / Patio",
-};
 
 // ── Sub-components ─────────────────────────────────────────────────────────
 
@@ -82,14 +55,6 @@ function Avatar({
       {name?.[0]?.toUpperCase() ?? "?"}
     </div>
   );
-}
-
-function PlacePhoto({ photoRef }: { photoRef: string | null }) {
-  const url = usePhotoUrl(photoRef);
-  if (!url) {
-    return <div className="w-full h-full bg-gradient-to-br from-gray-200 dark:from-[#22223b] to-gray-300 dark:to-[#2d2d44]" />;
-  }
-  return <Image src={url} alt="" fill className="object-cover" unoptimized />;
 }
 
 // ── Add Friend Modal ───────────────────────────────────────────────────────
@@ -184,122 +149,6 @@ function AddFriendModal({
   );
 }
 
-// ── Friend's Saves View ────────────────────────────────────────────────────
-
-function FriendSavesView({
-  friend,
-  onBack,
-}: {
-  friend: Friend;
-  onBack: () => void;
-}) {
-  const [saves, setSaves] = useState<FriendSave[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(`/api/friends/${friend.userId}/saves`)
-      .then((r) => r.json())
-      .then((data) => setSaves(Array.isArray(data) ? data : []))
-      .catch(() => setSaves([]))
-      .finally(() => setLoading(false));
-  }, [friend.userId]);
-
-  return (
-    <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] flex flex-col pb-20">
-      {/* Header */}
-      <header className="shrink-0 px-5 pt-5 pb-3 flex items-center gap-3">
-        <button
-          onClick={onBack}
-          className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 cursor-pointer hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="stroke-[#1B2A4A] dark:stroke-[#e8edf4]"
-          >
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </button>
-        <div className="flex items-center gap-3 min-w-0">
-          <Avatar image={friend.image} name={friend.name} size={36} />
-          <div className="min-w-0">
-            <h1 className="text-base font-bold truncate text-[#1B2A4A] dark:text-[#e8edf4]">
-              {friend.name ?? friend.email}
-            </h1>
-            <p className="text-xs text-gray-400 dark:text-gray-500">
-              {saves.length} saved {saves.length === 1 ? "place" : "places"}
-            </p>
-          </div>
-        </div>
-      </header>
-
-      {/* Content */}
-      {loading ? (
-        <div className="flex-1 px-5 mt-2">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-center gap-3 py-3 border-b border-gray-100 dark:border-white/8 last:border-b-0 animate-pulse">
-              <div className="w-16 h-16 rounded-xl bg-gray-200 dark:bg-[#22223b] shrink-0" />
-              <div className="flex-1">
-                <div className="w-2/3 h-4 bg-gray-200 dark:bg-[#22223b] rounded mb-2" />
-                <div className="w-1/2 h-3 bg-gray-200 dark:bg-[#22223b] rounded mb-2" />
-                <div className="w-1/3 h-3 bg-gray-200 dark:bg-[#22223b] rounded" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : saves.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-3">
-          <div className="text-4xl">🔖</div>
-          <p className="text-gray-400 dark:text-gray-500 text-sm">
-            {friend.name ?? "This friend"} hasn&apos;t saved any places yet.
-          </p>
-        </div>
-      ) : (
-        <div className="flex-1 px-5">
-          {saves.map((place) => (
-            <SaveRow key={place.saveId} place={place} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SaveRow({ place }: { place: FriendSave }) {
-  return (
-    <div className="flex items-center gap-3 py-3 border-b border-gray-100 dark:border-white/8 last:border-b-0">
-      <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative bg-gray-200 dark:bg-[#22223b]">
-        <PlacePhoto photoRef={place.photoRef} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <h3 className="text-sm font-bold truncate text-[#1B2A4A] dark:text-[#e8edf4]">
-          {place.name}
-        </h3>
-        <p className="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5">{place.address}</p>
-        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-          {place.intent && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-50 dark:bg-[#E85D2A]/15 text-[#E85D2A]">
-              {INTENT_LABELS[place.intent] ?? place.intent}
-            </span>
-          )}
-          {place.rating > 0 && (
-            <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">
-              ★ {place.rating.toFixed(1)}
-            </span>
-          )}
-          <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">{place.price}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Main Page ──────────────────────────────────────────────────────────────
 
 export default function FriendsPage() {
@@ -308,7 +157,6 @@ export default function FriendsPage() {
   const [incoming, setIncoming] = useState<FriendRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [addFriendOpen, setAddFriendOpen] = useState(false);
-  const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
 
   const fetchFriends = useCallback(async () => {
@@ -402,7 +250,7 @@ export default function FriendsPage() {
           </div>
           <button
             onClick={() => signIn("google")}
-            className="flex items-center justify-center gap-3 w-full max-w-xs py-3.5 rounded-2xl bg-white dark:bg-[#1a1a2e] border-2 border-gray-200 dark:border-white/10 font-semibold text-sm text-[#1B2A4A] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#22223b] transition-colors cursor-pointer"
+            className="flex items-center justify-center gap-3 w-full py-3.5 rounded-2xl bg-white dark:bg-[#1a1a2e] border-2 border-gray-200 dark:border-white/10 font-semibold text-sm text-[#1B2A4A] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#22223b] transition-colors cursor-pointer"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -414,16 +262,6 @@ export default function FriendsPage() {
           </button>
         </div>
       </div>
-    );
-  }
-
-  // ── Friend's saves view ──
-  if (selectedFriend) {
-    return (
-      <FriendSavesView
-        friend={selectedFriend}
-        onBack={() => setSelectedFriend(null)}
-      />
     );
   }
 
@@ -520,35 +358,15 @@ export default function FriendsPage() {
               <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a2e] overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
                 {friends.map((friend) => (
                   <div key={friend.friendshipId} className="flex items-center gap-3 px-4 py-3.5">
-                    {/* Tappable main area */}
-                    <button
-                      onClick={() => setSelectedFriend(friend)}
-                      className="flex items-center gap-3 flex-1 min-w-0 text-left cursor-pointer"
-                    >
-                      <Avatar image={friend.image} name={friend.name} size={44} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold truncate text-[#1B2A4A] dark:text-[#e8edf4]">
-                          {friend.name ?? friend.email}
-                        </p>
-                        {friend.name && (
-                          <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{friend.email}</p>
-                        )}
-                      </div>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="#D1D5DB"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="shrink-0"
-                      >
-                        <path d="m9 18 6-6-6-6" />
-                      </svg>
-                    </button>
+                    <Avatar image={friend.image} name={friend.name} size={44} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold truncate text-[#1B2A4A] dark:text-[#e8edf4]">
+                        {friend.name ?? friend.email}
+                      </p>
+                      {friend.name && (
+                        <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{friend.email}</p>
+                      )}
+                    </div>
 
                     {/* Remove with inline confirmation */}
                     {removingId === friend.friendshipId ? (

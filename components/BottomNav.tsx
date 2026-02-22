@@ -3,56 +3,50 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-function BoardsIcon({ active }: { active: boolean }) {
-  const color = active ? "#E85D2A" : "#9CA3AF";
+function BoardsIcon({ color }: { color: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1" fill={active ? color : "none"} />
-      <rect x="14" y="3" width="7" height="7" rx="1" fill={active ? color : "none"} />
-      <rect x="3" y="14" width="7" height="7" rx="1" fill={active ? color : "none"} />
-      <rect x="14" y="14" width="7" height="7" rx="1" fill={active ? color : "none"} />
+      <rect x="3" y="3" width="7" height="7" rx="1" fill={color} />
+      <rect x="14" y="3" width="7" height="7" rx="1" fill={color} />
+      <rect x="3" y="14" width="7" height="7" rx="1" fill={color} />
+      <rect x="14" y="14" width="7" height="7" rx="1" fill={color} />
     </svg>
   );
 }
 
-function MapIcon({ active }: { active: boolean }) {
-  const color = active ? "#E85D2A" : "#9CA3AF";
+function MapIcon({ color }: { color: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-      <circle cx="12" cy="10" r="3" fill={active ? color : "none"} />
+      <circle cx="12" cy="10" r="3" fill={color} />
     </svg>
   );
 }
 
-function DiscoverIcon({ active }: { active: boolean }) {
+function DiscoverIcon({ color }: { color: string }) {
   return (
-    <div className={`flex items-center justify-center w-11 h-11 rounded-full ${active ? "bg-[#E85D2A]" : "bg-[#E85D2A]"} shadow-md shadow-[#E85D2A]/30`}>
-      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="white" />
-      </svg>
-    </div>
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill={color} />
+    </svg>
   );
 }
 
-function FriendsIcon({ active }: { active: boolean }) {
-  const color = active ? "#E85D2A" : "#9CA3AF";
+function FriendsIcon({ color }: { color: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" fill={active ? color : "none"} />
+      <circle cx="9" cy="7" r="4" fill={color} />
       <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
       <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
   );
 }
 
-function ProfileIcon({ active }: { active: boolean }) {
-  const color = active ? "#E85D2A" : "#9CA3AF";
+function ProfileIcon({ color }: { color: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="8" r="5" fill={active ? color : "none"} />
+      <circle cx="12" cy="8" r="5" fill={color} />
       <path d="M20 21a8 8 0 0 0-16 0" />
     </svg>
   );
@@ -74,18 +68,22 @@ export default function BottomNav() {
       <div className="flex items-end justify-around h-[68px] max-w-lg mx-auto px-2 pb-2">
         {NAV_ITEMS.map((item) => {
           const active = pathname === item.href;
-          const isDiscover = item.href === "/";
+          const IconComponent = item.Icon;
+
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-end flex-1 min-h-[48px] ${isDiscover ? "-mt-3" : ""}`}
+              className="flex flex-col items-center justify-end flex-1 min-h-[48px]"
             >
-              <item.Icon active={active} />
-              <span
-                className={`text-[10px] font-medium mt-0.5 ${active ? "text-[#E85D2A]" : "text-gray-400"
-                  }`}
-              >
+              {active ? (
+                <div className="flex items-center justify-center w-11 h-11 rounded-full bg-[#E85D2A] shadow-md shadow-[#E85D2A]/30">
+                  <IconComponent color="white" />
+                </div>
+              ) : (
+                <IconComponent color="#9CA3AF" />
+              )}
+              <span className={`text-[10px] font-medium mt-0.5 ${active ? "text-[#E85D2A]" : "text-gray-400"}`}>
                 {item.label}
               </span>
             </Link>

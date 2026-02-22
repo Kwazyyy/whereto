@@ -12,6 +12,7 @@ export interface Place {
   price: string;
   rating: number;
   photoRef: string | null;
+  photoRefs?: string[];
   type: string;
   openNow: boolean;
   hours: string[];

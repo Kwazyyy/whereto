@@ -2,7 +2,6 @@
 
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/Toast";
-import { savePlace } from "@/lib/saved-places";
 import { Place } from "@/lib/types";
 
 const INTENT_LABELS: Record<string, string> = {
@@ -26,22 +25,20 @@ export function useSavePlace() {
     intent: string,
     action: "save" | "go_now"
   ): Promise<void> {
-    if (status === "authenticated") {
-      const res = await fetch("/api/saves", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ place, intent, action }),
-      });
-      if (!res.ok) {
-        showToast("Failed to save");
-        return;
-      }
-    } else {
-      savePlace({ ...place, intent });
+    if (status !== "authenticated") return;
+
+    const res = await fetch("/api/saves", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ place, intent, action }),
+    });
+    if (!res.ok) {
+      showToast("Failed to save");
+      return;
     }
 
     const label = INTENT_LABELS[intent] ?? intent;
-    showToast(action === "go_now" ? `Saved to ${label}` : `Saved to ${label}`);
+    showToast(`Saved to ${label}`);
   }
 
   return { handleSave };

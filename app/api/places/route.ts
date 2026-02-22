@@ -136,6 +136,52 @@ function mapAndFilter(
       const placeLng = place.location?.longitude ?? lng;
       const distKm = haversineKm(lat, lng, placeLat, placeLng);
 
+      let bestPhotoRef: string | null = null;
+      let photoRefs: string[] = [];
+
+      if (place.photos && place.photos.length > 0) {
+        const validPhotos = place.photos.slice(0, 10).filter((p: any) => (p.widthPx || 0) >= 400);
+
+        if (validPhotos.length > 0) {
+          const scoredPhotos = validPhotos.map((p: any, index: number) => {
+            let score = p.widthPx || 0;
+
+            // If multiple photos are available, Google's 1st photo is often a bad exterior shot
+            if (index === 0) {
+              score += validPhotos.length >= 3 ? -10000 : 10000;
+            }
+
+            // Indices 1-3 are usually the best interior/food shots
+            if (index >= 1 && index <= 3) {
+              score += 20000;
+            }
+
+            // Prefer landscape
+            if ((p.widthPx || 0) > (p.heightPx || 0)) {
+              score += 5000;
+            }
+
+            // Prefer owner uploads (often professional shots without attributions or with business name)
+            const isOwner = !p.authorAttributions || p.authorAttributions.length === 0 ||
+              p.authorAttributions.some((attr: any) => attr.displayName === place.displayName?.text);
+            if (isOwner) {
+              score += 30000;
+            }
+
+            return { name: p.name, score };
+          });
+
+          // Sort descending by score
+          scoredPhotos.sort((a: any, b: any) => b.score - a.score);
+          bestPhotoRef = scoredPhotos[0].name;
+          // Put the better ones first in the carousel order
+          photoRefs = scoredPhotos.map((p: any) => p.name);
+        } else {
+          photoRefs = place.photos.slice(0, 10).map((p: any) => p.name);
+          bestPhotoRef = photoRefs[0] ?? null;
+        }
+      }
+
       return {
         placeId: place.id,
         name: place.displayName?.text ?? "Unknown",
@@ -143,7 +189,8 @@ function mapAndFilter(
         location: { lat: placeLat, lng: placeLng },
         price: PRICE_MAP[place.priceLevel ?? ""] ?? "$$",
         rating: place.rating ?? 0,
-        photoRef: place.photos?.[0]?.name ?? null,
+        photoRef: bestPhotoRef,
+        photoRefs: photoRefs,
         type: place.primaryTypeDisplayName?.text ?? "Café",
         openNow: place.currentOpeningHours?.openNow ?? false,
         hours: place.currentOpeningHours?.weekdayDescriptions ?? [],
