@@ -715,40 +715,148 @@ export default function FriendsPage() {
 
 // ── Activity Feed ──────────────────────────────────────────────────────────
 
-interface ActivityItem {
-  id: string;
-  type: "save" | "recommendation";
-  actorName: string | null;
-  actorImage: string | null;
-  actorId: string;
-  place: Place & { photoRef?: string | null };
-  intent?: string;
-  note?: string | null;
-  createdAt: string;
-}
+type PlaceShape = {
+  placeId: string;
+  name: string;
+  address: string;
+  location: { lat: number; lng: number };
+  price: string;
+  rating: number;
+  photoRef: string | null;
+  type: string;
+  tags: string[];
+  openNow: boolean;
+  hours: string[];
+  distance: string;
+};
+
+type ActivityItem =
+  | {
+    id: string;
+    type: "save_group";
+    actorName: string | null;
+    actorImage: string | null;
+    actorId: string;
+    createdAt: string;
+    day: string;
+    places: PlaceShape[];
+  }
+  | {
+    id: string;
+    type: "recommendation";
+    actorName: string | null;
+    actorImage: string | null;
+    actorId: string;
+    place: PlaceShape;
+    note: string | null;
+    createdAt: string;
+  };
 
 function ActivityPlaceThumbnail({ photoRef }: { photoRef?: string | null }) {
   const url = usePhotoUrl(photoRef ?? null);
   return (
-    <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-[#22223b] relative">
+    <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-[#22223b] relative">
       {url ? (
         <Image src={url} alt="" fill className="object-cover" unoptimized />
       ) : (
-        <div className="w-full h-full flex items-center justify-center text-lg">📍</div>
+        <div className="w-full h-full flex items-center justify-center text-base">📍</div>
       )}
     </div>
   );
 }
 
-const INTENT_EMOJI: Record<string, string> = {
-  study: "📚", date: "❤️", trending: "🔥", quiet: "🤫",
-  laptop: "💻", group: "👯", budget: "💰", coffee: "☕", outdoor: "🌅",
-};
+function SaveGroupRow({ item, onTap }: {
+  item: ActivityItem & { type: "save_group" };
+  onTap: (place: PlaceShape) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const firstName = item.actorName?.split(" ")[0] ?? "A friend";
+  const count = item.places.length;
+  const actionText = count === 1
+    ? `${firstName} saved ${item.places[0].name} 📍`
+    : `${firstName} saved ${count} places`;
+
+  return (
+    <div className="border-b border-gray-100 dark:border-white/8 last:border-0">
+      {/* Group header row */}
+      <button
+        onClick={() => count === 1 ? onTap(item.places[0]) : setExpanded(e => !e)}
+        className="flex items-center gap-3 px-4 py-3.5 w-full text-left hover:bg-gray-100 dark:hover:bg-white/5 transition-colors active:bg-gray-100 cursor-pointer"
+      >
+        <div className="shrink-0">
+          <Avatar image={item.actorImage} name={item.actorName} size={36} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-[#1B2A4A] dark:text-[#e8edf4] leading-snug font-medium">
+            {actionText}
+          </p>
+          <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">
+            {relativeTime(item.createdAt)}
+          </p>
+        </div>
+        {count === 1 ? (
+          <ActivityPlaceThumbnail photoRef={item.places[0].photoRef} />
+        ) : (
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Stacked thumbnails preview */}
+            <div className="flex -space-x-2">
+              {item.places.slice(0, 3).map((p) => (
+                <MiniThumb key={p.placeId} photoRef={p.photoRef} />
+              ))}
+            </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+              viewBox="0 0 24 24" fill="none" stroke="#9CA3AF"
+              strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              className={`transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </div>
+        )}
+      </button>
+
+      {/* Expanded place list */}
+      {expanded && count > 1 && (
+        <div className="bg-white dark:bg-[#0f0f1a]/60 mx-3 mb-2 rounded-xl overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
+          {item.places.map((place) => (
+            <button
+              key={place.placeId}
+              onClick={() => onTap(place)}
+              className="flex items-center gap-3 px-3 py-2.5 w-full text-left hover:bg-gray-50 dark:hover:bg-white/5 transition-colors active:bg-gray-100 cursor-pointer"
+            >
+              <ActivityPlaceThumbnail photoRef={place.photoRef} />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-[#1B2A4A] dark:text-[#e8edf4] truncate">{place.name}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{place.address}</p>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MiniThumb({ photoRef }: { photoRef?: string | null }) {
+  const url = usePhotoUrl(photoRef ?? null);
+  return (
+    <div className="w-7 h-7 rounded-lg overflow-hidden border-2 border-white dark:border-[#1a1a2e] bg-gray-100 dark:bg-[#22223b] relative shrink-0">
+      {url
+        ? <Image src={url} alt="" fill className="object-cover" unoptimized />
+        : <div className="w-full h-full flex items-center justify-center text-[10px]">📍</div>
+      }
+    </div>
+  );
+}
 
 function ActivityFeed() {
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [detailPlace, setDetailPlace] = useState<Place | null>(null);
+  const [detailPlace, setDetailPlace] = useState<PlaceShape | null>(null);
   const { handleSave } = useSavePlace();
   const fetchedRef = useRef(false);
 
@@ -757,19 +865,12 @@ function ActivityFeed() {
     fetchedRef.current = true;
     fetch("/api/activity")
       .then(r => r.ok ? r.json() : [])
-      .then((data: ActivityItem[]) => {
-        setItems(Array.isArray(data) ? data : []);
-      })
+      .then((data: ActivityItem[]) => setItems(Array.isArray(data) ? data : []))
       .catch(() => setItems([]))
       .finally(() => setLoading(false));
   }, []);
 
-  const FALLBACK_GRADIENTS = [
-    "from-amber-800 via-orange-700 to-yellow-600",
-    "from-slate-800 via-slate-600 to-cyan-700",
-    "from-purple-900 via-violet-700 to-fuchsia-600",
-    "from-green-800 via-emerald-700 to-teal-600",
-  ];
+  const FALLBACK_GRADIENT = "from-amber-800 via-orange-700 to-yellow-600";
 
   if (loading) {
     return (
@@ -781,7 +882,9 @@ function ActivityFeed() {
               <div className="h-3.5 w-3/4 bg-gray-200 dark:bg-white/10 rounded mb-1.5" />
               <div className="h-3 w-1/3 bg-gray-100 dark:bg-white/8 rounded" />
             </div>
-            <div className="w-11 h-11 rounded-xl bg-gray-200 dark:bg-white/10" />
+            <div className="flex -space-x-2">
+              {[1, 2].map(j => <div key={j} className="w-7 h-7 rounded-lg bg-gray-200 dark:bg-white/10" />)}
+            </div>
           </div>
         ))}
       </div>
@@ -800,33 +903,48 @@ function ActivityFeed() {
     );
   }
 
+  const detailAsPlace: Place | null = detailPlace ? {
+    placeId: detailPlace.placeId,
+    name: detailPlace.name,
+    address: detailPlace.address,
+    location: detailPlace.location,
+    price: detailPlace.price,
+    rating: detailPlace.rating,
+    photoRef: detailPlace.photoRef,
+    type: detailPlace.type,
+    tags: detailPlace.tags,
+    openNow: detailPlace.openNow,
+    hours: detailPlace.hours,
+    distance: detailPlace.distance,
+  } : null;
+
   return (
     <div className="px-5 pt-4">
-      <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a2e] overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
-        {items.map((item, idx) => {
+      <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a2e] overflow-hidden">
+        {items.map((item) => {
+          if (item.type === "save_group") {
+            return (
+              <SaveGroupRow
+                key={item.id}
+                item={item}
+                onTap={(place) => setDetailPlace(place)}
+              />
+            );
+          }
+          // Recommendation row
           const firstName = item.actorName?.split(" ")[0] ?? "A friend";
-          const emoji = item.intent ? (INTENT_EMOJI[item.intent] ?? "📍") : "💌";
-          const actionText = item.type === "save"
-            ? `${firstName} saved ${item.place.name} ${emoji}`
-            : `${firstName} recommended ${item.place.name} to you 💌`;
-
-          const gradient = FALLBACK_GRADIENTS[idx % FALLBACK_GRADIENTS.length];
-
           return (
             <button
               key={item.id}
               onClick={() => setDetailPlace(item.place)}
-              className="flex items-center gap-3 px-4 py-3.5 w-full text-left hover:bg-gray-100 dark:hover:bg-white/5 transition-colors active:bg-gray-100 dark:active:bg-white/5 cursor-pointer"
+              className="flex items-center gap-3 px-4 py-3.5 w-full text-left border-b border-gray-100 dark:border-white/8 last:border-0 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors active:bg-gray-100 cursor-pointer"
             >
-              {/* Actor avatar */}
               <div className="shrink-0">
                 <Avatar image={item.actorImage} name={item.actorName} size={36} />
               </div>
-
-              {/* Text */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-[#1B2A4A] dark:text-[#e8edf4] leading-snug line-clamp-2">
-                  {actionText}
+                <p className="text-sm text-[#1B2A4A] dark:text-[#e8edf4] leading-snug font-medium">
+                  {firstName} recommended {item.place.name} to you 💌
                 </p>
                 {item.note && (
                   <p className="text-xs text-gray-400 dark:text-gray-500 italic line-clamp-1 mt-0.5">
@@ -837,23 +955,20 @@ function ActivityFeed() {
                   {relativeTime(item.createdAt)}
                 </p>
               </div>
-
-              {/* Place thumbnail */}
               <ActivityPlaceThumbnail photoRef={item.place.photoRef} />
             </button>
           );
         })}
       </div>
 
-      {/* Place detail sheet */}
       <AnimatePresence>
-        {detailPlace && (
+        {detailAsPlace && (
           <PlaceDetailSheet
-            place={detailPlace}
-            fallbackGradient={FALLBACK_GRADIENTS[0]}
+            place={detailAsPlace}
+            fallbackGradient={FALLBACK_GRADIENT}
             isSaved={false}
             onClose={() => setDetailPlace(null)}
-            onSave={(action) => { handleSave(detailPlace, "trending", action); }}
+            onSave={(action) => { handleSave(detailAsPlace, "trending", action); }}
           />
         )}
       </AnimatePresence>
@@ -862,7 +977,6 @@ function ActivityFeed() {
 }
 
 // ── Missed Recs Section ───────────────────────────────────────────────────
-
 
 function MissedRecCard({ rec, onSave }: { rec: MissedRec; onSave: (rec: MissedRec) => void }) {
   const photoUrl = usePhotoUrl(rec.place.photoRef);
