@@ -538,6 +538,7 @@ export default function MapPage() {
                 userLocation={userLocation}
                 markerLocations={markerLocations}
                 enabled={fogEnabled && status === "authenticated"}
+                isDark={isDarkMode}
               />
               <RecenterButton userLocation={userLocation} />
             </Map>

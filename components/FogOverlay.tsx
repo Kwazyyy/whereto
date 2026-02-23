@@ -14,6 +14,7 @@ interface FogOverlayProps {
     userLocation?: { lat: number; lng: number } | null;
     markerLocations?: { lat: number; lng: number }[];
     enabled: boolean;
+    isDark?: boolean;
 }
 
 /** Deterministic hash for a grid cell — stable across renders */
@@ -48,6 +49,7 @@ export default function FogOverlay({
     userLocation,
     markerLocations,
     enabled,
+    isDark = false,
 }: FogOverlayProps) {
     const map = useMap();
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -109,8 +111,10 @@ export default function FogOverlay({
 
         ctx.clearRect(0, 0, width, height);
 
-        // ── 1. Base fog — lighter so markers remain readable ─────────────
-        ctx.fillStyle = "rgba(185, 190, 210, 0.78)";
+        // ── 1. Base fog — theme-aware colour ─────────────────────────────
+        ctx.fillStyle = isDark
+            ? "rgba(14, 17, 22, 0.82)"
+            : "rgba(155, 160, 172, 0.85)";
         ctx.fillRect(0, 0, width, height);
 
         // ── 2. World-space cloud texture ─────────────────────────────────
@@ -141,18 +145,22 @@ export default function FogOverlay({
                     if (pixel.x + radiusPx < 0 || pixel.x - radiusPx > width) continue;
                     if (pixel.y + radiusPx < 0 || pixel.y - radiusPx > height) continue;
 
-                    const isDark = (h % 5) === 0;
-                    const opacity = isDark
+                    const isPuffDark = (h % 5) === 0;
+                    const opacity = isPuffDark
                         ? 0.12 + (h % 20) / 100
                         : 0.04 + (h % 18) / 220;
 
                     const grad = ctx.createRadialGradient(pixel.x, pixel.y, 0, pixel.x, pixel.y, radiusPx);
-                    if (isDark) {
-                        grad.addColorStop(0, `rgba(110, 115, 145, ${opacity})`);
-                        grad.addColorStop(1, "rgba(110, 115, 145, 0)");
+                    if (isPuffDark) {
+                        // Shadow puff: darker than base fog
+                        const c = isDark ? "5, 8, 14" : "90, 95, 110";
+                        grad.addColorStop(0, `rgba(${c}, ${opacity})`);
+                        grad.addColorStop(1, `rgba(${c}, 0)`);
                     } else {
-                        grad.addColorStop(0, `rgba(240, 243, 255, ${opacity})`);
-                        grad.addColorStop(1, "rgba(240, 243, 255, 0)");
+                        // Highlight puff: lighter than base fog
+                        const c = isDark ? "22, 28, 40" : "215, 220, 232";
+                        grad.addColorStop(0, `rgba(${c}, ${opacity})`);
+                        grad.addColorStop(1, `rgba(${c}, 0)`);
                     }
                     ctx.fillStyle = grad;
                     ctx.beginPath();
@@ -240,19 +248,19 @@ export default function FogOverlay({
             ctx.globalCompositeOperation = "source-over";
         }
 
-        // ── 5. Marker pin holes — small clear spot so pins show through ───
+        // ── 5. Marker pin holes — fully clear so pins show vibrant colors ─
         if (markerLocations && markerLocations.length > 0) {
             ctx.globalCompositeOperation = "destination-out";
             for (const loc of markerLocations) {
                 const pixel = latLngToPixel(loc.lat, loc.lng);
                 if (!pixel) continue;
-                const radius = metersToPixels(110, loc.lat);
+                const radius = metersToPixels(160, loc.lat);
                 if (radius < 1) continue;
 
                 const grad = ctx.createRadialGradient(pixel.x, pixel.y, 0, pixel.x, pixel.y, radius);
-                grad.addColorStop(0,   "rgba(0,0,0,0.85)");
-                grad.addColorStop(0.5, "rgba(0,0,0,0.6)");
-                grad.addColorStop(1,   "rgba(0,0,0,0)");
+                grad.addColorStop(0,    "rgba(0,0,0,1)");
+                grad.addColorStop(0.65, "rgba(0,0,0,1)");
+                grad.addColorStop(1,    "rgba(0,0,0,0)");
                 ctx.fillStyle = grad;
                 ctx.beginPath();
                 ctx.arc(pixel.x, pixel.y, radius, 0, Math.PI * 2);
@@ -260,7 +268,7 @@ export default function FogOverlay({
             }
             ctx.globalCompositeOperation = "source-over";
         }
-    }, [map, visitedLocations, userLocation, markerLocations, enabled, latLngToPixel, metersToPixels]);
+    }, [map, visitedLocations, userLocation, markerLocations, enabled, isDark, latLngToPixel, metersToPixels]);
 
     // Animation loop for new reveals
     useEffect(() => {
