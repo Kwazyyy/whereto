@@ -25,7 +25,7 @@ export function SignInModal({ onClose }: { onClose: () => void }) {
                         </svg>
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-[#1B2A4A] dark:text-[#e8edf4]">
+                        <h2 className="text-xl font-bold text-[#2D2D2D] dark:text-[#e8edf4]">
                             Sign in to save your favorite places
                         </h2>
                         <p className="text-sm text-gray-400 dark:text-gray-500 mt-1.5 max-w-xs mx-auto">
@@ -34,7 +34,7 @@ export function SignInModal({ onClose }: { onClose: () => void }) {
                     </div>
                     <button
                         onClick={() => signIn("google")}
-                        className="flex items-center justify-center gap-3 w-full max-w-xs py-3.5 rounded-2xl bg-white dark:bg-[#22223b] border-2 border-gray-200 dark:border-white/10 font-semibold text-sm text-[#1B2A4A] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#2d2d44] transition-colors cursor-pointer shadow-sm"
+                        className="flex items-center justify-center gap-3 w-full max-w-xs py-3.5 rounded-2xl bg-white dark:bg-[#22223b] border-2 border-gray-200 dark:border-white/10 font-semibold text-sm text-[#2D2D2D] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#2d2d44] transition-colors cursor-pointer shadow-sm"
                     >
                         <svg width="18" height="18" viewBox="0 0 24 24">
                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />

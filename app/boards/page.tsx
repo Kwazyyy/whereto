@@ -126,21 +126,21 @@ export default function BoardsPage() {
     return (
       <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-24">
         <header className="flex items-center px-5 pt-5 pb-4 sticky top-0 bg-white/80 dark:bg-[#0f0f1a]/80 backdrop-blur-md z-10 border-b border-gray-100 dark:border-white/10">
-          <h1 className="text-xl font-bold text-[#1B2A4A] dark:text-[#e8edf4]">Your Boards</h1>
+          <h1 className="text-xl font-bold text-[#2D2D2D] dark:text-[#e8edf4]">Your Boards</h1>
         </header>
         <div className="flex flex-col items-center justify-center px-8 pt-24 text-center gap-5">
           <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-[#1a1a2e] flex items-center justify-center">
             <GridIcon size={28} />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-[#1B2A4A] dark:text-[#e8edf4]">Sign in to view your boards</h2>
+            <h2 className="text-xl font-bold text-[#2D2D2D] dark:text-[#e8edf4]">Sign in to view your boards</h2>
             <p className="text-sm text-gray-400 dark:text-gray-500 mt-1.5 max-w-xs">
               Save places while discovering to create boards grouped by your vibe.
             </p>
           </div>
           <button
             onClick={() => signIn("google")}
-            className="flex items-center justify-center gap-3 w-full max-w-xs py-3.5 rounded-2xl bg-white dark:bg-[#1a1a2e] border-2 border-gray-200 dark:border-white/10 font-semibold text-sm text-[#1B2A4A] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#22223b] transition-colors cursor-pointer"
+            className="flex items-center justify-center gap-3 w-full max-w-xs py-3.5 rounded-2xl bg-white dark:bg-[#1a1a2e] border-2 border-gray-200 dark:border-white/10 font-semibold text-sm text-[#2D2D2D] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#22223b] transition-colors cursor-pointer"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -178,11 +178,11 @@ export default function BoardsPage() {
     <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-24">
       <header className="flex items-center px-5 pt-5 pb-4 sticky top-0 bg-white/80 dark:bg-[#0f0f1a]/80 backdrop-blur-md z-10 border-b border-gray-100 dark:border-white/10">
         <Link href="/profile" className="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#1a1a2e] transition-colors cursor-pointer">
-          <div className="text-[#1B2A4A] dark:text-[#e8edf4]">
+          <div className="text-[#2D2D2D] dark:text-[#e8edf4]">
             <ChevronLeftIcon size={24} />
           </div>
         </Link>
-        <h1 className="text-xl font-bold text-[#1B2A4A] dark:text-[#e8edf4] ml-2 flex-1">Your Boards</h1>
+        <h1 className="text-xl font-bold text-[#2D2D2D] dark:text-[#e8edf4] ml-2 flex-1">Your Boards</h1>
       </header>
 
       <div className="px-5 pt-6">
@@ -191,7 +191,7 @@ export default function BoardsPage() {
             <div className="w-16 h-16 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center mb-4">
               <GridIcon size={32} />
             </div>
-            <h2 className="text-xl font-bold text-[#1B2A4A] dark:text-[#e8edf4] mb-2">No boards yet</h2>
+            <h2 className="text-xl font-bold text-[#2D2D2D] dark:text-[#e8edf4] mb-2">No boards yet</h2>
             <p className="text-gray-500 dark:text-gray-400 max-w-sm">
               Save places while discovering to automatically create boards based on your intentions!
             </p>

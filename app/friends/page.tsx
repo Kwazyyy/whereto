@@ -113,7 +113,7 @@ function SharedPlaceCard({ place }: { place: SharedPlace }) {
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-[#1B2A4A] dark:text-[#e8edf4] truncate">{place.name}</p>
+        <p className="text-sm font-semibold text-[#2D2D2D] dark:text-[#e8edf4] truncate">{place.name}</p>
         <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{place.intent}</p>
       </div>
     </div>
@@ -147,7 +147,7 @@ function CompatibilityDrawer({
         <div className="flex items-center gap-3 mb-6">
           <Avatar image={friend.image} name={friend.name} size={48} />
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-[#1B2A4A] dark:text-[#e8edf4] truncate">{friend.name ?? friend.email}</p>
+            <p className="font-bold text-[#2D2D2D] dark:text-[#e8edf4] truncate">{friend.name ?? friend.email}</p>
             <p className="text-xs text-gray-400 dark:text-gray-500">Taste Compatibility</p>
           </div>
         </div>
@@ -159,7 +159,7 @@ function CompatibilityDrawer({
         ) : compat.noData || compat.sharedCount === 0 ? (
           <div className="text-center py-10 flex flex-col items-center gap-3">
             <div className="text-4xl">🗺️</div>
-            <p className="text-base font-semibold text-[#1B2A4A] dark:text-[#e8edf4]">Keep exploring!</p>
+            <p className="text-base font-semibold text-[#2D2D2D] dark:text-[#e8edf4]">Keep exploring!</p>
             <p className="text-sm text-gray-400 dark:text-gray-500 max-w-xs">
               Save more places and discover your taste match with {friend.name?.split(" ")[0] ?? "your friend"}.
             </p>
@@ -182,7 +182,7 @@ function CompatibilityDrawer({
                   />
                 </svg>
                 <div className="text-center z-10">
-                  <p className="text-2xl font-black text-[#1B2A4A] dark:text-[#e8edf4] leading-none">{compat.score}%</p>
+                  <p className="text-2xl font-black text-[#2D2D2D] dark:text-[#e8edf4] leading-none">{compat.score}%</p>
                   <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium mt-0.5">match</p>
                 </div>
               </div>
@@ -192,7 +192,7 @@ function CompatibilityDrawer({
             <div className="flex flex-col gap-3 mb-6">
               <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-gray-50 dark:bg-[#22223b]">
                 <span className="text-xl">🏠</span>
-                <p className="text-sm text-[#1B2A4A] dark:text-[#e8edf4] font-medium">
+                <p className="text-sm text-[#2D2D2D] dark:text-[#e8edf4] font-medium">
                   You both saved <span className="font-bold">{compat.sharedCount} place{compat.sharedCount !== 1 ? "s" : ""}</span>
                 </p>
               </div>
@@ -201,7 +201,7 @@ function CompatibilityDrawer({
                 <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-gray-50 dark:bg-[#22223b]">
                   <span className="text-xl">✨</span>
                   <div>
-                    <p className="text-sm text-[#1B2A4A] dark:text-[#e8edf4] font-medium">Top shared vibes</p>
+                    <p className="text-sm text-[#2D2D2D] dark:text-[#e8edf4] font-medium">Top shared vibes</p>
                     <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{compat.sharedIntents.join(", ")}</p>
                   </div>
                 </div>
@@ -210,7 +210,7 @@ function CompatibilityDrawer({
               {compat.sharedPrice && (
                 <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-gray-50 dark:bg-[#22223b]">
                   <span className="text-xl">💰</span>
-                  <p className="text-sm text-[#1B2A4A] dark:text-[#e8edf4] font-medium">
+                  <p className="text-sm text-[#2D2D2D] dark:text-[#e8edf4] font-medium">
                     You both love <span className="font-bold">{compat.sharedPrice}</span> restaurants
                   </p>
                 </div>
@@ -288,7 +288,7 @@ function AddFriendModal({
       >
         <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-6" />
 
-        <h2 className="text-lg font-bold mb-1 text-[#1B2A4A] dark:text-[#e8edf4]">
+        <h2 className="text-lg font-bold mb-1 text-[#2D2D2D] dark:text-[#e8edf4]">
           Add a Friend
         </h2>
         <p className="text-sm text-gray-400 dark:text-gray-500 mb-5">
@@ -302,7 +302,7 @@ function AddFriendModal({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoFocus
-            className="w-full px-4 py-3.5 rounded-2xl bg-gray-50 dark:bg-[#22223b] text-sm font-medium outline-none border-2 border-transparent focus:border-[#E85D2A] transition-colors text-[#1B2A4A] dark:text-[#e8edf4] placeholder:text-gray-400 dark:placeholder:text-gray-500"
+            className="w-full px-4 py-3.5 rounded-2xl bg-gray-50 dark:bg-[#22223b] text-sm font-medium outline-none border-2 border-transparent focus:border-[#E85D2A] transition-colors text-[#2D2D2D] dark:text-[#e8edf4] placeholder:text-gray-400 dark:placeholder:text-gray-500"
           />
 
           {error && (
@@ -467,14 +467,14 @@ export default function FriendsPage() {
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-bold text-[#1B2A4A] dark:text-[#e8edf4]">Sign in to see friends</h2>
+            <h2 className="text-xl font-bold text-[#2D2D2D] dark:text-[#e8edf4]">Sign in to see friends</h2>
             <p className="text-sm text-gray-400 dark:text-gray-500 mt-1.5 max-w-xs">
               Add friends and see what places they&apos;re saving.
             </p>
           </div>
           <button
             onClick={() => signIn("google")}
-            className="flex items-center justify-center gap-3 w-full py-3.5 rounded-2xl bg-white dark:bg-[#1a1a2e] border-2 border-gray-200 dark:border-white/10 font-semibold text-sm text-[#1B2A4A] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#22223b] transition-colors cursor-pointer"
+            className="flex items-center justify-center gap-3 w-full py-3.5 rounded-2xl bg-white dark:bg-[#1a1a2e] border-2 border-gray-200 dark:border-white/10 font-semibold text-sm text-[#2D2D2D] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#22223b] transition-colors cursor-pointer"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -552,7 +552,7 @@ export default function FriendsPage() {
         <div className="flex flex-col items-center justify-center px-8 pt-28 text-center gap-5">
           <div className="text-5xl">👫</div>
           <div>
-            <h2 className="text-xl font-bold text-[#1B2A4A] dark:text-[#e8edf4]">No friends yet</h2>
+            <h2 className="text-xl font-bold text-[#2D2D2D] dark:text-[#e8edf4]">No friends yet</h2>
             <p className="text-sm text-gray-400 dark:text-gray-500 mt-2 max-w-xs">
               Add friends by email to see what places they love!
             </p>
@@ -578,7 +578,7 @@ export default function FriendsPage() {
                   <div key={req.friendshipId} className="flex items-center gap-3 px-4 py-3.5">
                     <Avatar image={req.image} name={req.name} size={44} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold truncate text-[#1B2A4A] dark:text-[#e8edf4]">
+                      <p className="text-sm font-bold truncate text-[#2D2D2D] dark:text-[#e8edf4]">
                         {req.name ?? req.email}
                       </p>
                       {req.name && (
@@ -626,7 +626,7 @@ export default function FriendsPage() {
                       <Avatar image={friend.image} name={friend.name} size={44} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-bold text-[#1B2A4A] dark:text-[#e8edf4] truncate">
+                          <p className="text-sm font-bold text-[#2D2D2D] dark:text-[#e8edf4] truncate">
                             {friend.name ?? friend.email}
                           </p>
                           {/* Score badge */}
@@ -787,7 +787,7 @@ function SaveGroupRow({ item, onTap }: {
           <Avatar image={item.actorImage} name={item.actorName} size={36} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-[#1B2A4A] dark:text-[#e8edf4] leading-snug font-medium">
+          <p className="text-sm text-[#2D2D2D] dark:text-[#e8edf4] leading-snug font-medium">
             {actionText}
           </p>
           <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">
@@ -827,7 +827,7 @@ function SaveGroupRow({ item, onTap }: {
             >
               <ActivityPlaceThumbnail photoRef={place.photoRef} />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[#1B2A4A] dark:text-[#e8edf4] truncate">{place.name}</p>
+                <p className="text-sm font-semibold text-[#2D2D2D] dark:text-[#e8edf4] truncate">{place.name}</p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{place.address}</p>
               </div>
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -895,7 +895,7 @@ function ActivityFeed() {
     return (
       <div className="flex flex-col items-center justify-center px-8 pt-24 text-center gap-4">
         <div className="text-5xl">🌍</div>
-        <h2 className="text-lg font-bold text-[#1B2A4A] dark:text-[#e8edf4]">No activity yet</h2>
+        <h2 className="text-lg font-bold text-[#2D2D2D] dark:text-[#e8edf4]">No activity yet</h2>
         <p className="text-sm text-gray-400 dark:text-gray-500 max-w-xs">
           Your friends haven&apos;t been exploring yet. Check back later!
         </p>
@@ -943,7 +943,7 @@ function ActivityFeed() {
                 <Avatar image={item.actorImage} name={item.actorName} size={36} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-[#1B2A4A] dark:text-[#e8edf4] leading-snug font-medium">
+                <p className="text-sm text-[#2D2D2D] dark:text-[#e8edf4] leading-snug font-medium">
                   {firstName} recommended {item.place.name} to you 💌
                 </p>
                 {item.note && (
@@ -990,7 +990,7 @@ function MissedRecCard({ rec, onSave }: { rec: MissedRec; onSave: (rec: MissedRe
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-[#1B2A4A] dark:text-[#e8edf4] truncate">{rec.place.name}</p>
+        <p className="text-sm font-bold text-[#2D2D2D] dark:text-[#e8edf4] truncate">{rec.place.name}</p>
         <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
           From {rec.sender.name?.split(" ")[0] ?? "a friend"}
           {rec.note ? ` · "${rec.note}"` : ""}

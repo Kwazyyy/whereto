@@ -128,7 +128,7 @@ function SettingsCard({ children }: { children: React.ReactNode }) {
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between px-4 py-3.5 min-h-[52px]">
-      <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
+      <span className="text-sm font-medium text-[#2D2D2D] dark:text-[#e8edf4]">
         {label}
       </span>
       {children}
@@ -150,7 +150,7 @@ function SelectRow({
   const currentLabel = options.find((o) => String(o.value) === String(value))?.label ?? "";
   return (
     <div className="flex items-center justify-between px-4 py-3.5 min-h-[52px]">
-      <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
+      <span className="text-sm font-medium text-[#2D2D2D] dark:text-[#e8edf4]">
         {label}
       </span>
       <div className="relative flex items-center gap-1.5">
@@ -197,7 +197,7 @@ function SegmentedRow({
 }) {
   return (
     <div className="flex items-center justify-between px-4 py-3.5 min-h-[52px]">
-      <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
+      <span className="text-sm font-medium text-[#2D2D2D] dark:text-[#e8edf4]">
         {label}
       </span>
       <div className="flex gap-0.5 p-0.5 rounded-xl bg-gray-100 dark:bg-[#22223b]">
@@ -206,7 +206,7 @@ function SegmentedRow({
             key={o.value}
             onClick={() => onChange(o.value)}
             className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${value === o.value
-              ? "bg-white dark:bg-[#1a1a2e] text-[#1B2A4A] dark:text-[#e8edf4] shadow-sm"
+              ? "bg-white dark:bg-[#1a1a2e] text-[#2D2D2D] dark:text-[#e8edf4] shadow-sm"
               : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
               }`}
           >
@@ -460,12 +460,12 @@ export default function ProfilePage() {
                 )}
               </div>
             )}
-            <button className="absolute bottom-0 right-0 bg-[#1B2A4A] dark:bg-white text-white dark:text-[#1B2A4A] p-2.5 rounded-full shadow-md border-2 border-white dark:border-[#0f0f1a] hover:scale-105 transition-transform cursor-pointer">
+            <button className="absolute bottom-0 right-0 bg-[#2D2D2D] dark:bg-white text-white dark:text-[#2D2D2D] p-2.5 rounded-full shadow-md border-2 border-white dark:border-[#0f0f1a] hover:scale-105 transition-transform cursor-pointer">
               <EditIcon size={16} />
             </button>
           </div>
 
-          <h2 className="text-2xl md:text-3xl font-bold text-[#1B2A4A] dark:text-[#e8edf4]">
+          <h2 className="text-2xl md:text-3xl font-bold text-[#2D2D2D] dark:text-[#e8edf4]">
             {session?.user ? session.user.name : "Guest User"}
           </h2>
           <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 mt-1">
@@ -480,7 +480,7 @@ export default function ProfilePage() {
                 onChange={(e) => setBio(e.target.value)}
                 onBlur={() => saveBioToStorage(bio)}
                 placeholder="Add a short bio..."
-                className="w-full text-center md:text-left text-sm text-[#1B2A4A] dark:text-[#e8edf4] bg-transparent border-none resize-none focus:ring-0 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none leading-relaxed"
+                className="w-full text-center md:text-left text-sm text-[#2D2D2D] dark:text-[#e8edf4] bg-transparent border-none resize-none focus:ring-0 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none leading-relaxed"
                 rows={2}
                 maxLength={150}
               />
@@ -492,7 +492,7 @@ export default function ProfilePage() {
             <Link href="/boards" className="flex flex-col items-center gap-1.5 group cursor-pointer">
               <div className="flex items-center gap-1.5 text-gray-400 group-hover:text-[#E85D2A] transition-colors">
                 <HeartIcon size={20} />
-                <span className="font-bold text-xl text-[#1B2A4A] dark:text-gray-200 leading-none">{saveCount || 0}</span>
+                <span className="font-bold text-xl text-[#2D2D2D] dark:text-gray-200 leading-none">{saveCount || 0}</span>
               </div>
               <span className="text-xs text-gray-500 font-medium">Saved</span>
             </Link>
@@ -500,7 +500,7 @@ export default function ProfilePage() {
             <Link href="/places/visited" className="flex flex-col items-center gap-1.5 group cursor-pointer">
               <div className="flex items-center gap-1.5 text-gray-400 group-hover:text-amber-500 transition-colors">
                 <MapPinIcon size={20} />
-                <span className="font-bold text-xl text-[#1B2A4A] dark:text-gray-200 leading-none">0</span>
+                <span className="font-bold text-xl text-[#2D2D2D] dark:text-gray-200 leading-none">0</span>
               </div>
               <span className="text-xs text-gray-500 font-medium">Visited</span>
             </Link>
@@ -508,7 +508,7 @@ export default function ProfilePage() {
             <Link href="/boards" className="flex flex-col items-center gap-1.5 group cursor-pointer">
               <div className="flex items-center gap-1.5 text-gray-400 group-hover:text-blue-500 transition-colors">
                 <GridIcon size={20} />
-                <span className="font-bold text-xl text-[#1B2A4A] dark:text-gray-200 leading-none">{boardCount || 0}</span>
+                <span className="font-bold text-xl text-[#2D2D2D] dark:text-gray-200 leading-none">{boardCount || 0}</span>
               </div>
               <span className="text-xs text-gray-500 font-medium">Boards</span>
             </Link>
@@ -518,7 +518,7 @@ export default function ProfilePage() {
             <div className="mt-8 w-full max-w-sm mx-auto md:mx-0">
               <button
                 onClick={() => signIn("google")}
-                className="flex items-center justify-center gap-3 w-full py-3.5 rounded-2xl bg-white dark:bg-[#1a1a2e] border border-gray-200 dark:border-white/10 font-semibold text-sm text-[#1B2A4A] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#22223b] transition-colors cursor-pointer shadow-sm"
+                className="flex items-center justify-center gap-3 w-full py-3.5 rounded-2xl bg-white dark:bg-[#1a1a2e] border border-gray-200 dark:border-white/10 font-semibold text-sm text-[#2D2D2D] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#22223b] transition-colors cursor-pointer shadow-sm"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -539,7 +539,7 @@ export default function ProfilePage() {
           {recentBoards.length > 0 && (
             <div className="mb-8">
               <div className="flex items-center justify-between px-1 mb-3">
-                <h3 className="text-sm font-bold text-[#1B2A4A] dark:text-gray-200">Recent Boards</h3>
+                <h3 className="text-sm font-bold text-[#2D2D2D] dark:text-gray-200">Recent Boards</h3>
                 <Link href="/boards" className="text-xs font-semibold text-[#E85D2A] hover:underline">See all</Link>
               </div>
               <div className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
@@ -612,13 +612,13 @@ export default function ProfilePage() {
               href="mailto:hello@whereto.app?subject=WhereTo%20Feedback"
               className="flex items-center justify-between px-4 py-3.5 min-h-[52px]"
             >
-              <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
+              <span className="text-sm font-medium text-[#2D2D2D] dark:text-[#e8edf4]">
                 Send Feedback
               </span>
               <ChevronRight />
             </a>
             <button className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
-              <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
+              <span className="text-sm font-medium text-[#2D2D2D] dark:text-[#e8edf4]">
                 Rate WhereTo
               </span>
               <ChevronRight />
@@ -627,7 +627,7 @@ export default function ProfilePage() {
               href="/privacy"
               className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
             >
-              <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
+              <span className="text-sm font-medium text-[#2D2D2D] dark:text-[#e8edf4]">
                 Privacy Policy
               </span>
               <ChevronRight />
@@ -636,7 +636,7 @@ export default function ProfilePage() {
               href="/terms"
               className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
             >
-              <span className="text-sm font-medium text-[#1B2A4A] dark:text-[#e8edf4]">
+              <span className="text-sm font-medium text-[#2D2D2D] dark:text-[#e8edf4]">
                 Terms of Service
               </span>
               <ChevronRight />
