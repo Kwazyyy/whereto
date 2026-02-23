@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
-import { useMap } from "@vis.gl/react-google-maps";
 
 interface VisitedLocation {
     lat: number;
@@ -9,200 +8,240 @@ interface VisitedLocation {
 }
 
 interface FogOverlayProps {
+    /** The raw google.maps.Map instance — passed from parent, NOT from useMap() */
+    mapInstance: google.maps.Map | null;
     visitedLocations: VisitedLocation[];
     userLocation?: { lat: number; lng: number } | null;
     enabled: boolean;
     isDark?: boolean;
+    /** Ref to the container div that this canvas should overlay */
+    containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
+/**
+ * Fog-of-War canvas overlay.
+ * Renders as a SIBLING of the Google Map (not inside it).
+ * The canvas is absolutely positioned over the map container.
+ */
 export default function FogOverlay({
+    mapInstance,
     visitedLocations,
     userLocation,
     enabled,
     isDark = false,
+    containerRef,
 }: FogOverlayProps) {
-    const map = useMap();
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-    const metersToPixels = useCallback(
-        (meters: number, lat: number) => {
-            if (!map) return 0;
-            const zoom = map.getZoom();
-            if (zoom == null) return 0;
-            const metersPerPixel =
-                (156543.03 * Math.cos((lat * Math.PI) / 180)) / Math.pow(2, zoom);
-            return meters / metersPerPixel;
-        },
-        [map]
-    );
-
+    // ── lat/lng → screen pixel (bounds-based, per user spec) ──────────
     const latLngToPixel = useCallback(
-        (lat: number, lng: number) => {
-            if (!map) return null;
-            const projection = map.getProjection();
+        (lat: number, lng: number): { x: number; y: number } | null => {
+            if (!mapInstance) return null;
+            const bounds = mapInstance.getBounds();
+            if (!bounds) return null;
+            const projection = mapInstance.getProjection();
             if (!projection) return null;
 
-            const point = projection.fromLatLngToPoint(new google.maps.LatLng(lat, lng));
-            if (!point) return null;
+            const ne = bounds.getNorthEast();
+            const sw = bounds.getSouthWest();
+            const topRight = projection.fromLatLngToPoint(ne);
+            const bottomLeft = projection.fromLatLngToPoint(sw);
+            const worldPoint = projection.fromLatLngToPoint(
+                new google.maps.LatLng(lat, lng)
+            );
+            if (!topRight || !bottomLeft || !worldPoint) return null;
 
-            const center = map.getCenter();
-            if (!center) return null;
-            const centerPoint = projection.fromLatLngToPoint(center);
-            if (!centerPoint) return null;
+            const scale = Math.pow(2, mapInstance.getZoom() ?? 0);
+            const pixelX = (worldPoint.x - bottomLeft.x) * scale;
+            const pixelY = (worldPoint.y - topRight.y) * scale;
 
-            const scale = Math.pow(2, map.getZoom() ?? 0);
-            const worldWidth = 256;
-
-            const canvas = canvasRef.current;
-            if (!canvas) return null;
-
-            let dx = point.x - centerPoint.x;
-            // Handle wrap-around
-            if (dx > worldWidth / 2) dx -= worldWidth;
-            if (dx < -worldWidth / 2) dx += worldWidth;
-
-            const dy = point.y - centerPoint.y;
-
-            // The canvas is technically matching client width/height
-            // So its center is exactly width/2 and height/2
-            const screenX = canvas.clientWidth / 2 + dx * scale;
-            const screenY = canvas.clientHeight / 2 + dy * scale;
-
-            return { x: screenX, y: screenY };
+            return { x: pixelX, y: pixelY };
         },
-        [map]
+        [mapInstance]
     );
 
+    // ── meters → pixels ───────────────────────────────────────────────
+    const metersToPixels = useCallback(
+        (meters: number, lat: number): number => {
+            if (!mapInstance) return 0;
+            const zoom = mapInstance.getZoom();
+            if (zoom == null) return 0;
+            const metersPerPixel =
+                (156543.03392 * Math.cos((lat * Math.PI) / 180)) /
+                Math.pow(2, zoom);
+            return meters / metersPerPixel;
+        },
+        [mapInstance]
+    );
+
+    // ── Seeded cloud texture (stable per map center) ──────────────────
+    const drawCloudTexture = useCallback(
+        (ctx: CanvasRenderingContext2D, w: number, h: number) => {
+            if (!mapInstance) return;
+            const center = mapInstance.getCenter();
+            // Simple seed from center coordinates
+            const seed = center
+                ? Math.abs(Math.floor(center.lat() * 1000) + Math.floor(center.lng() * 1000))
+                : 42;
+
+            ctx.globalCompositeOperation = "source-over";
+            const COUNT = 40;
+            for (let i = 0; i < COUNT; i++) {
+                // Deterministic pseudo-random based on seed + index
+                const hash = ((seed + i * 2654435761) >>> 0) % 10000;
+                const px = (hash % 100) / 100;
+                const py = ((hash * 7) % 100) / 100;
+                const r = w * (0.08 + ((hash * 3) % 100) / 500);
+                const opDelta = ((hash * 13) % 100) / 1000 - 0.05; // ±0.05
+
+                const g = ctx.createRadialGradient(
+                    w * px, h * py, 0,
+                    w * px, h * py, r
+                );
+                if (isDark) {
+                    g.addColorStop(0, `rgba(20, 25, 35, ${0.12 + opDelta})`);
+                } else {
+                    g.addColorStop(0, `rgba(200, 205, 215, ${0.10 + opDelta})`);
+                }
+                g.addColorStop(1, "rgba(0, 0, 0, 0)");
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.arc(w * px, h * py, r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        },
+        [mapInstance, isDark]
+    );
+
+    // ── Main draw function ────────────────────────────────────────────
     const drawFog = useCallback(() => {
         const canvas = canvasRef.current;
-        if (!canvas) return;
+        if (!canvas || !mapInstance) return;
 
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        const dpr = window.devicePixelRatio || 1;
-        if (canvas.width === 0 || canvas.height === 0) return;
+        const w = canvas.width;
+        const h = canvas.height;
+        if (w === 0 || h === 0) return;
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // console.log("[FogOverlay] drawFog called", { w, h, enabled, visits: visitedLocations.length });
 
-        if (!map || !enabled) return;
+        ctx.clearRect(0, 0, w, h);
 
-        // 1. Base fog color
+        if (!enabled) return;
+
+        // 1. Base fog colour
         ctx.fillStyle = isDark
             ? "rgba(14, 17, 22, 0.80)"
             : "rgba(180, 185, 195, 0.75)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, w, h);
 
         // 2. Cloud texture
-        ctx.globalCompositeOperation = "source-over";
-        const w = canvas.width;
-        const h = canvas.height;
+        drawCloudTexture(ctx, w, h);
 
-        const g1 = ctx.createRadialGradient(w * 0.2, h * 0.3, 0, w * 0.2, h * 0.3, w * 0.8);
-        g1.addColorStop(0, isDark ? "rgba(30,35,45,0.15)" : "rgba(255,255,255,0.15)");
-        g1.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = g1;
-        ctx.fillRect(0, 0, w, h);
-
-        const g2 = ctx.createRadialGradient(w * 0.8, h * 0.7, 0, w * 0.8, h * 0.7, w * 0.6);
-        g2.addColorStop(0, isDark ? "rgba(10,12,18,0.2)" : "rgba(150,155,165,0.15)");
-        g2.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = g2;
-        ctx.fillRect(0, 0, w, h);
-
-        // 3. Clear cutouts
+        // 3. Cut clear circles via destination-out
         ctx.globalCompositeOperation = "destination-out";
 
         const punchHole = (lat: number, lng: number, radiusMeters: number) => {
             const pixel = latLngToPixel(lat, lng);
             if (!pixel) return;
-            const rPx = metersToPixels(radiusMeters, lat) * dpr;
+            const rPx = metersToPixels(radiusMeters, lat);
             if (rPx < 1) return;
 
-            // Cull if completely off screen
-            if (pixel.x * dpr < -rPx || pixel.x * dpr > w + rPx ||
-                pixel.y * dpr < -rPx || pixel.y * dpr > h + rPx) {
+            // Off-screen culling
+            if (pixel.x < -rPx || pixel.x > w + rPx ||
+                pixel.y < -rPx || pixel.y > h + rPx) {
                 return;
             }
 
-            const cx = pixel.x * dpr;
-            const cy = pixel.y * dpr;
-
-            const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rPx);
+            const grad = ctx.createRadialGradient(
+                pixel.x, pixel.y, 0,
+                pixel.x, pixel.y, rPx
+            );
             grad.addColorStop(0, "rgba(0, 0, 0, 1)");
-            grad.addColorStop(0.5, "rgba(0, 0, 0, 0.9)");
+            grad.addColorStop(0.55, "rgba(0, 0, 0, 0.85)");
             grad.addColorStop(1, "rgba(0, 0, 0, 0)");
 
             ctx.fillStyle = grad;
             ctx.beginPath();
-            ctx.arc(cx, cy, rPx, 0, Math.PI * 2);
+            ctx.arc(pixel.x, pixel.y, rPx, 0, Math.PI * 2);
             ctx.fill();
         };
 
+        // User GPS clear
         if (userLocation) {
             punchHole(userLocation.lat, userLocation.lng, 300);
         }
 
+        // Visited places clear
         for (const loc of visitedLocations) {
             punchHole(loc.lat, loc.lng, 250);
         }
 
         ctx.globalCompositeOperation = "source-over";
+    }, [mapInstance, visitedLocations, userLocation, enabled, isDark, latLngToPixel, metersToPixels, drawCloudTexture]);
 
-    }, [map, visitedLocations, userLocation, enabled, isDark, latLngToPixel, metersToPixels]);
-
+    // Keep a stable ref so listeners don't go stale
     const drawFogRef = useRef(drawFog);
     useEffect(() => { drawFogRef.current = drawFog; }, [drawFog]);
 
-    // Redraw on map events
+    // ── Canvas sizing — observe the container div ─────────────────────
     useEffect(() => {
-        if (!map) return;
-        const listeners = [
-            map.addListener("idle", () => drawFogRef.current()),
-            map.addListener("drag", () => drawFogRef.current()),
-            map.addListener("zoom_changed", () => drawFogRef.current()),
-            map.addListener("bounds_changed", () => drawFogRef.current()),
-        ];
-        return () => {
-            listeners.forEach((l) => google.maps.event.removeListener(l));
-        };
-    }, [map]);
-
-    // Redraw on data changes
-    useEffect(() => {
-        drawFog();
-    }, [drawFog]);
-
-    // Canvas sizing observer (matches pixel density)
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
+        const container = containerRef.current;
+        if (!container) return;
 
         function syncSize() {
             const c = canvasRef.current;
-            if (!c) return;
-            const dpr = window.devicePixelRatio || 1;
-            const w = c.clientWidth;
-            const h = c.clientHeight;
+            const cont = containerRef.current;
+            if (!c || !cont) return;
 
-            // Only update attributes if the element isn't zero-sized
+            const w = cont.clientWidth;
+            const h = cont.clientHeight;
             if (w === 0 || h === 0) return;
 
-            const targetW = Math.floor(w * dpr);
-            const targetH = Math.floor(h * dpr);
-
-            if (c.width !== targetW || c.height !== targetH) {
-                c.width = targetW;
-                c.height = targetH;
+            // Set canvas buffer to match container pixel size (1:1, no DPR scaling
+            // so that latLngToPixel screen coords match canvas coords directly)
+            if (c.width !== w || c.height !== h) {
+                c.width = w;
+                c.height = h;
+                // console.log("[FogOverlay] canvas resized", { w, h });
             }
             drawFogRef.current();
         }
 
         const ro = new ResizeObserver(syncSize);
-        ro.observe(canvas);
+        ro.observe(container);
         syncSize();
         return () => ro.disconnect();
-    }, []);
+    }, [containerRef]);
+
+    // ── Map event listeners ───────────────────────────────────────────
+    useEffect(() => {
+        if (!mapInstance) return;
+
+        const redraw = () => drawFogRef.current();
+
+        // Wait for tiles to fully load before first draw
+        const tilesListener = mapInstance.addListener("tilesloaded", redraw);
+        const idleListener = mapInstance.addListener("idle", redraw);
+        const zoomListener = mapInstance.addListener("zoom_changed", redraw);
+        const boundsListener = mapInstance.addListener("bounds_changed", redraw);
+        const dragListener = mapInstance.addListener("drag", redraw);
+
+        return () => {
+            google.maps.event.removeListener(tilesListener);
+            google.maps.event.removeListener(idleListener);
+            google.maps.event.removeListener(zoomListener);
+            google.maps.event.removeListener(boundsListener);
+            google.maps.event.removeListener(dragListener);
+        };
+    }, [mapInstance]);
+
+    // ── Redraw when data/theme changes ────────────────────────────────
+    useEffect(() => {
+        drawFog();
+    }, [drawFog]);
 
     return (
         <canvas
@@ -215,7 +254,7 @@ export default function FogOverlay({
                 height: "100%",
                 pointerEvents: "none",
                 zIndex: 10,
-                display: enabled ? "block" : "none"
+                display: enabled ? "block" : "none",
             }}
         />
     );

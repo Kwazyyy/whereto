@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   APIProvider,
   Map,
@@ -268,6 +268,15 @@ function RecenterButton({
   );
 }
 
+// --- Bridge to extract map instance from inside <Map> context ---
+function MapInstanceBridge({ onMapReady }: { onMapReady: (map: google.maps.Map) => void }) {
+  const map = useMap();
+  useEffect(() => {
+    if (map) onMapReady(map);
+  }, [map, onMapReady]);
+  return null;
+}
+
 // --- Markers + InfoWindow — rendered inside <Map> so they have map context ---
 function MapMarkers({
   savedPlaces,
@@ -360,9 +369,17 @@ export default function MapPage() {
   const [nearbyPlaces, setNearbyPlaces] = useState<Place[]>([]);
   const [detailPlace, setDetailPlace] = useState<Place | null>(null);
   const [loading, setLoading] = useState(false);
-  const [fogEnabled, setFogEnabled] = useState(true);
+  const [fogEnabled, setFogEnabled] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("whereto-fog-enabled");
+      return stored === null ? true : stored === "true";
+    }
+    return true;
+  });
   const [visitedLocations, setVisitedLocations] = useState<{ lat: number; lng: number; placeId: string }[]>([]);
   const [visitedIds, setVisitedIds] = useState<Set<string>>(new Set());
+  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
 
   const { theme } = useTheme();
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -492,7 +509,7 @@ export default function MapPage() {
       </div>
 
       {/* Map area */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative" ref={mapContainerRef}>
         {!userLocation ? (
           /* Location loading spinner */
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
@@ -505,30 +522,36 @@ export default function MapPage() {
             </p>
           </div>
         ) : (
-          <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
-            <Map
-              defaultCenter={userLocation}
-              defaultZoom={13}
-              gestureHandling="greedy"
-              disableDefaultUI
-              styles={isDarkMode ? DARK_MAP_STYLES : MAP_STYLES}
-              style={{ width: "100%", height: "100%" }}
-            >
-              <MapMarkers
-                savedPlaces={savedPlaces.filter(p => p.intent === intent)}
-                nearbyPlaces={nearbyPlaces}
-                visitedIds={visitedIds}
-                onSelectPlace={setDetailPlace}
-              />
-              <FogOverlay
-                visitedLocations={visitedLocations}
-                userLocation={userLocation}
-                enabled={fogEnabled && status === "authenticated"}
-                isDark={isDarkMode}
-              />
-              <RecenterButton userLocation={userLocation} />
-            </Map>
-          </APIProvider>
+          <>
+            <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+              <Map
+                defaultCenter={userLocation}
+                defaultZoom={13}
+                gestureHandling="greedy"
+                disableDefaultUI
+                styles={isDarkMode ? DARK_MAP_STYLES : MAP_STYLES}
+                style={{ width: "100%", height: "100%" }}
+              >
+                <MapInstanceBridge onMapReady={setMapInstance} />
+                <MapMarkers
+                  savedPlaces={savedPlaces.filter(p => p.intent === intent)}
+                  nearbyPlaces={nearbyPlaces}
+                  visitedIds={visitedIds}
+                  onSelectPlace={setDetailPlace}
+                />
+                <RecenterButton userLocation={userLocation} />
+              </Map>
+            </APIProvider>
+            {/* Fog canvas — SIBLING of the map, NOT inside it */}
+            <FogOverlay
+              mapInstance={mapInstance}
+              visitedLocations={visitedLocations}
+              userLocation={userLocation}
+              enabled={fogEnabled && status === "authenticated"}
+              isDark={isDarkMode}
+              containerRef={mapContainerRef}
+            />
+          </>
         )}
 
         {/* Searching overlay */}
@@ -567,7 +590,13 @@ export default function MapPage() {
         {/* Fog toggle button — small circle near recenter */}
         {userLocation && status === "authenticated" && (
           <button
-            onClick={() => setFogEnabled(f => !f)}
+            onClick={() => {
+              setFogEnabled(f => {
+                const next = !f;
+                localStorage.setItem("whereto-fog-enabled", String(next));
+                return next;
+              });
+            }}
             title={fogEnabled ? "Hide fog" : "Show fog"}
             style={{
               position: "absolute",
