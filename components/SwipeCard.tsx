@@ -223,7 +223,7 @@ export function SwipeCard({
                                 </span>
                             )}
                             <span className="text-white text-[11px] font-semibold leading-none">
-                                Rec'd by {place.recommendedBy.name?.split(" ")[0] ?? "a friend"}
+                                Rec&apos;d by {place.recommendedBy.name?.split(" ")[0] ?? "a friend"}
                             </span>
                         </div>
                     )}
