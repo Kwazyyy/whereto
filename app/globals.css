@@ -44,3 +44,27 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ── Fog-of-War: force Google Maps marker layers ABOVE the fog canvas (z-index:10) ── */
+/* The marker pane and overlay mouse-target pane hold all <Marker> DOM elements.      */
+/* We elevate them so pins sit on top of the fog overlay canvas.                      */
+.gm-style>div>div>div>div>div[style*="z-index"] {
+  z-index: 20 !important;
+}
+
+/* Specifically target the marker layer and overlay layers */
+.gm-style div[aria-label] img,
+.gm-style div[role="img"] {
+  position: relative;
+  z-index: 20 !important;
+}
+
+/* InfoWindow popups should always be above fog */
+.gm-style .gm-style-iw-a {
+  z-index: 30 !important;
+}
+
+/* User location blue dot */
+.gm-style div[title="My location"] {
+  z-index: 20 !important;
+}

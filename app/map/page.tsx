@@ -571,7 +571,7 @@ export default function MapPage() {
 
         {/* Legend */}
         {userLocation && (
-          <div className="absolute top-3 left-3 z-10 flex flex-col gap-2 bg-white/95 dark:bg-[#161B22]/95 backdrop-blur-sm rounded-xl px-3 py-2.5 shadow-md border border-gray-100 dark:border-white/10">
+          <div className="absolute top-3 left-3 z-30 flex flex-col gap-2 bg-white/95 dark:bg-[#161B22]/95 backdrop-blur-sm rounded-xl px-3 py-2.5 shadow-md border border-gray-100 dark:border-white/10">
             <div className="flex items-center gap-2">
               <div className="w-3.5 h-3.5 rounded-full bg-[#E85D2A] shadow-sm shrink-0" />
               <span className="text-[11px] font-semibold text-[#0E1116] dark:text-[#e8edf4]">Saved</span>
@@ -602,7 +602,7 @@ export default function MapPage() {
               position: "absolute",
               bottom: 80,
               right: 16,
-              zIndex: 10,
+              zIndex: 30,
               width: 48,
               height: 48,
               borderRadius: "50%",
@@ -622,7 +622,7 @@ export default function MapPage() {
 
         {/* Exploration stats pill */}
         {userLocation && status === "authenticated" && visitedLocations.length > 0 && fogEnabled && (
-          <div className="absolute top-3 right-3 z-10 bg-black/70 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-md">
+          <div className="absolute top-3 right-3 z-30 bg-black/70 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-md">
             <p className="text-[11px] font-semibold text-white whitespace-nowrap">
               {visitedLocations.length} {visitedLocations.length === 1 ? "place" : "places"} · {neighborhoods} {neighborhoods === 1 ? "area" : "areas"}
             </p>
