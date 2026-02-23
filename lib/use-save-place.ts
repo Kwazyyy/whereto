@@ -23,21 +23,22 @@ export function useSavePlace() {
   async function handleSave(
     place: Place,
     intent: string,
-    action: "save" | "go_now"
+    action: "save" | "go_now",
+    recommendationId?: string
   ): Promise<void> {
     if (status !== "authenticated") return;
 
     const res = await fetch("/api/saves", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ place, intent, action }),
+      body: JSON.stringify({ place, intent, action, recommendationId }),
     });
     if (!res.ok) {
       showToast("Failed to save");
       return;
     }
 
-    const label = INTENT_LABELS[intent] ?? intent;
+    const label = recommendationId ? "Recs from Friends" : (INTENT_LABELS[intent] ?? intent);
     showToast(`Saved to ${label}`);
   }
 

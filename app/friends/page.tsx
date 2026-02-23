@@ -4,7 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Image from "next/image";
 import { usePhotoUrl } from "@/lib/use-photo-url";
+import { useSavePlace } from "@/lib/use-save-place";
 import type { CompatibilityResult, SharedPlace } from "@/lib/tasteScore";
+import type { Place } from "@/lib/types";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -25,6 +27,15 @@ interface FriendRequest {
   email: string;
   image: string | null;
   sentAt: string;
+}
+
+interface MissedRec {
+  recommendationId: string;
+  note: string | null;
+  seen: boolean;
+  createdAt: string;
+  sender: { name: string | null; image: string | null };
+  place: Place;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -608,6 +619,9 @@ export default function FriendsPage() {
         </div>
       )}
 
+      {/* Missed Recs Section */}
+      {hasContent && <MissedRecsSection />}
+
       {/* Compatibility Drawer */}
       {selectedFriend && (
         <CompatibilityDrawer
@@ -623,6 +637,98 @@ export default function FriendsPage() {
           onClose={() => setAddFriendOpen(false)}
           onSent={fetchFriends}
         />
+      )}
+    </div>
+  );
+}
+
+// ── Missed Recs Section ───────────────────────────────────────────────────
+
+function MissedRecCard({ rec, onSave }: { rec: MissedRec; onSave: (rec: MissedRec) => void }) {
+  const photoUrl = usePhotoUrl(rec.place.photoRef);
+  return (
+    <div className="flex items-center gap-3 py-2.5">
+      <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-[#22223b] relative">
+        {photoUrl ? (
+          <Image src={photoUrl} alt={rec.place.name} fill className="object-cover" unoptimized />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-600 text-lg">📍</div>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-bold text-[#1B2A4A] dark:text-[#e8edf4] truncate">{rec.place.name}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
+          From {rec.sender.name?.split(" ")[0] ?? "a friend"}
+          {rec.note ? ` · "${rec.note}"` : ""}
+        </p>
+      </div>
+      <button
+        onClick={() => onSave(rec)}
+        className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full text-white cursor-pointer"
+        style={{ backgroundColor: "#E85D2A" }}
+      >
+        Save
+      </button>
+    </div>
+  );
+}
+
+function MissedRecsSection() {
+  const [open, setOpen] = useState(false);
+  const [recs, setRecs] = useState<MissedRec[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [fetched, setFetched] = useState(false);
+  const { handleSave } = useSavePlace();
+
+  function toggle() {
+    setOpen(prev => !prev);
+    if (!fetched) {
+      setLoading(true);
+      fetch("/api/recommendations?all=true")
+        .then(r => r.ok ? r.json() : [])
+        .then((data: MissedRec[]) => {
+          const seen = Array.isArray(data) ? data.filter(r => r.seen) : [];
+          setRecs(seen);
+          setFetched(true);
+        })
+        .catch(() => setRecs([]))
+        .finally(() => setLoading(false));
+    }
+  }
+
+  async function handleSaveRec(rec: MissedRec) {
+    await handleSave(rec.place, "trending", "save", rec.recommendationId);
+    setRecs(prev => prev.filter(r => r.recommendationId !== rec.recommendationId));
+  }
+
+  return (
+    <div className="px-5 mt-6">
+      <button
+        onClick={toggle}
+        className="flex items-center justify-between w-full text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider px-1 mb-2 cursor-pointer hover:text-gray-500 dark:hover:text-gray-400 transition-colors"
+      >
+        <span>Missed Recs</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${open ? "rotate-180" : ""}`}>
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a2e] px-4 py-1 divide-y divide-gray-100 dark:divide-white/8">
+          {loading ? (
+            <div className="py-6 flex justify-center">
+              <div className="w-5 h-5 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }} />
+            </div>
+          ) : recs.length === 0 ? (
+            <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-5">
+              No missed recommendations — you&apos;re all caught up!
+            </p>
+          ) : (
+            recs.map(rec => (
+              <MissedRecCard key={rec.recommendationId} rec={rec} onSave={handleSaveRec} />
+            ))
+          )}
+        </div>
       )}
     </div>
   );

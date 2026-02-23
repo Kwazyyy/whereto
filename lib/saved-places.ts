@@ -14,6 +14,11 @@ export interface SavedPlace {
   tags: string[];
   intent: string;
   savedAt: number;
+  // Recommendation metadata (present when intent === 'recs_from_friends')
+  recommenderNote?: string | null;
+  recommendedByName?: string | null;
+  recommendedByImage?: string | null;
+  recommendedAt?: string | null;
 }
 
 const STORAGE_KEY = "whereto_saved_places";

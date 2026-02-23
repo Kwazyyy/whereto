@@ -7,6 +7,8 @@ import Image from "next/image";
 import { SavedPlace } from "@/lib/saved-places";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 
+const RECS_INTENT = "recs_from_friends";
+
 const INTENT_LABELS: Record<string, string> = {
   study: "Study / Work",
   date: "Date / Chill",
@@ -38,14 +40,15 @@ function GridIcon({ size = 24 }: { size?: number }) {
   );
 }
 
-function BoardCard({ intent, label, items }: { intent: string, label: string, items: SavedPlace[] }) {
+function BoardCard({ intent, label, items }: { intent: string; label: string; items: SavedPlace[] }) {
   const previewItem = items[0];
   const photoUrl = usePhotoUrl(previewItem?.photoRef ?? null);
+  const isRecs = intent === RECS_INTENT;
 
   return (
     <Link href={`/boards/${intent}`} className="block">
-      <div className="bg-white dark:bg-[#1a1a2e] rounded-2xl overflow-hidden border border-gray-100 dark:border-white/10 shadow-sm cursor-pointer group">
-        <div className="h-32 w-full relative bg-gray-100 dark:bg-[#22223b]">
+      <div className={`bg-white dark:bg-[#1a1a2e] rounded-2xl overflow-hidden border shadow-sm cursor-pointer group ${isRecs ? "border-violet-300/50 dark:border-violet-700/40 ring-1 ring-violet-400/20" : "border-gray-100 dark:border-white/10"}`}>
+        <div className={`h-32 w-full relative ${isRecs ? "bg-violet-100 dark:bg-violet-950/40" : "bg-gray-100 dark:bg-[#22223b]"}`}>
           {photoUrl ? (
             <Image
               src={photoUrl}
@@ -54,15 +57,25 @@ function BoardCard({ intent, label, items }: { intent: string, label: string, it
               className="object-cover group-hover:scale-105 transition-transform duration-500"
               unoptimized
             />
+          ) : isRecs ? (
+            <div className="w-full h-full flex items-center justify-center text-5xl">🎁</div>
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600">
               <GridIcon size={32} />
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+          {/* Recs badge */}
+          {isRecs && (
+            <div className="absolute top-3 right-3 bg-violet-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow">
+              ✨ Special
+            </div>
+          )}
+
           <div className="absolute bottom-4 left-4 right-4">
             <h3 className="font-bold text-lg text-white capitalize drop-shadow-md">{label}</h3>
-            <p className="text-sm text-gray-200 drop-shadow-md">{items.length} place{items.length !== 1 ? 's' : ''}</p>
+            <p className="text-sm text-gray-200 drop-shadow-md">{items.length} place{items.length !== 1 ? "s" : ""}</p>
           </div>
         </div>
       </div>
@@ -85,7 +98,6 @@ export default function BoardsPage() {
           if (Array.isArray(data)) {
             setSaves(data);
           } else {
-            console.error("Saves data is not an array:", data);
             setSaves([]);
           }
           setLoading(false);
@@ -143,7 +155,7 @@ export default function BoardsPage() {
     );
   }
 
-  // Group by intent
+  // Group by intent, putting recs_from_friends first
   const groupedSaves: Record<string, SavedPlace[]> = {};
   saves.forEach((save) => {
     const intent = save.intent || "uncategorized";
@@ -151,7 +163,16 @@ export default function BoardsPage() {
     groupedSaves[intent].push(save);
   });
 
-  const intents = Object.keys(groupedSaves).sort();
+  const intents = Object.keys(groupedSaves).sort((a, b) => {
+    if (a === RECS_INTENT) return -1;
+    if (b === RECS_INTENT) return 1;
+    return a.localeCompare(b);
+  });
+
+  const BOARD_LABELS: Record<string, string> = {
+    recs_from_friends: "Recs from Friends",
+    ...INTENT_LABELS,
+  };
 
   return (
     <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-24">
@@ -179,8 +200,7 @@ export default function BoardsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {intents.map((intent) => {
               const items = groupedSaves[intent];
-              const label = INTENT_LABELS[intent] || intent;
-
+              const label = BOARD_LABELS[intent] || intent;
               return <BoardCard key={intent} intent={intent} label={label} items={items} />;
             })}
           </div>

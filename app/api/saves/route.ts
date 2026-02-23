@@ -3,9 +3,11 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Place } from "@/lib/types";
 
+const RECS_INTENT = "recs_from_friends";
+
 function priceToPriceLevel(price: string): number | null {
   if (!price) return null;
-  return price.length; // "$" → 1, "$$" → 2, etc.
+  return price.length;
 }
 
 function priceLevelToPrice(level: number | null): string {
@@ -24,9 +26,10 @@ export async function POST(req: NextRequest) {
       place: Place;
       intent: string;
       action: "save" | "go_now";
+      recommendationId?: string;
     };
 
-    const { place, intent, action } = body;
+    const { place, intent, action, recommendationId } = body;
 
     // Upsert the Place record
     const dbPlace = await prisma.place.upsert({
@@ -56,22 +59,45 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Upsert the Save record
+    // Save to the original intent board
     const save = await prisma.save.upsert({
       where: {
-        userId_placeId: {
+        userId_placeId_intent: {
           userId: session.user.id,
           placeId: dbPlace.id,
+          intent,
         },
       },
-      update: { intent, action },
+      update: { action, recommendationId: recommendationId ?? null },
       create: {
         userId: session.user.id,
         placeId: dbPlace.id,
         intent,
         action,
+        recommendationId: recommendationId ?? null,
       },
     });
+
+    // If this came from a recommendation, also save to the special "Recs from Friends" board
+    if (recommendationId) {
+      await prisma.save.upsert({
+        where: {
+          userId_placeId_intent: {
+            userId: session.user.id,
+            placeId: dbPlace.id,
+            intent: RECS_INTENT,
+          },
+        },
+        update: { action, recommendationId },
+        create: {
+          userId: session.user.id,
+          placeId: dbPlace.id,
+          intent: RECS_INTENT,
+          action,
+          recommendationId,
+        },
+      });
+    }
 
     return NextResponse.json({ saveId: save.id });
   } catch (err) {
@@ -89,7 +115,14 @@ export async function GET() {
 
     const saves = await prisma.save.findMany({
       where: { userId: session.user.id },
-      include: { place: true },
+      include: {
+        place: true,
+        recommendation: {
+          include: {
+            sender: { select: { name: true, image: true } },
+          },
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
 
@@ -104,11 +137,16 @@ export async function GET() {
       photoRef: s.place.photoUrl,
       type: s.place.placeType,
       openNow: false,
-      hours: [],
+      hours: [] as string[],
       distance: "",
       tags: (s.place.vibeTags as string[]) ?? [],
       intent: s.intent,
       savedAt: s.createdAt.getTime(),
+      // Recommendation metadata (only present for recs_from_friends saves)
+      recommenderNote: s.recommendation?.note ?? null,
+      recommendedByName: s.recommendation?.sender?.name ?? null,
+      recommendedByImage: s.recommendation?.sender?.image ?? null,
+      recommendedAt: s.recommendation?.createdAt.toISOString() ?? null,
     }));
 
     return NextResponse.json(result);

@@ -308,7 +308,7 @@ export default function Home() {
       setRecommendations(prev => prev.filter(r => r.recommendationId !== place.recommendationId));
       if (direction === "right" || direction === "up") {
         if (sessionStatusRef.current === "authenticated") {
-          handleSave(place, intent, direction === "up" ? "go_now" : "save");
+          handleSave(place, intent, direction === "up" ? "go_now" : "save", place.recommendationId);
           setSavedPlaceIds(prev => new Set([...prev, place.placeId]));
         }
       }

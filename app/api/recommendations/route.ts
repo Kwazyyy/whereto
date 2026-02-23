@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Not friends" }, { status: 403 });
     }
 
-    // Find or resolve the place
+    // Find the place
     const place = await prisma.place.findUnique({
         where: { googlePlaceId },
     });
@@ -67,15 +67,22 @@ export async function POST(req: NextRequest) {
 }
 
 // GET /api/recommendations
-// Returns all unseen recommendations received by the current user
-export async function GET() {
+// ?all=true returns all received recs (seen + unseen) — used for Missed Recs
+// default returns only unseen
+export async function GET(req: NextRequest) {
     const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { searchParams } = new URL(req.url);
+    const showAll = searchParams.get("all") === "true";
+
     const recs = await prisma.recommendation.findMany({
-        where: { receiverId: session.user.id, seen: false },
+        where: {
+            receiverId: session.user.id,
+            ...(showAll ? {} : { seen: false }),
+        },
         include: {
             sender: { select: { id: true, name: true, image: true } },
             place: true,

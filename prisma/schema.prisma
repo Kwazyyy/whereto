@@ -76,16 +76,18 @@ model Place {
 }
 
 model Save {
-  id        String   @id @default(uuid())
-  userId    String
-  placeId   String
-  intent    String
-  action    String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
-  place     Place    @relation(fields: [placeId], references: [id])
+  id               String          @id @default(uuid())
+  userId           String
+  placeId          String
+  intent           String
+  action           String
+  recommendationId String?
+  createdAt        DateTime        @default(now())
+  user             User            @relation(fields: [userId], references: [id])
+  place            Place           @relation(fields: [placeId], references: [id])
+  recommendation   Recommendation? @relation(fields: [recommendationId], references: [id])
 
-  @@unique([userId, placeId])
+  @@unique([userId, placeId, intent])
 }
 
 model Friendship {
@@ -111,6 +113,7 @@ model Recommendation {
   sender     User     @relation("SentRecommendations",    fields: [senderId],   references: [id], onDelete: Cascade)
   receiver   User     @relation("ReceivedRecommendations",fields: [receiverId], references: [id], onDelete: Cascade)
   place      Place    @relation(fields: [placeId], references: [id])
+  saves      Save[]
 }
 
 model Waitlist {
