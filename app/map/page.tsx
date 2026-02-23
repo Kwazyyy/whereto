@@ -297,7 +297,7 @@ function MapMarkers({
             key={`nearby-${place.placeId}`}
             position={place.location}
             icon={BLUE_PIN}
-            zIndex={1}
+            zIndex={9999}
             onClick={() => setSelected({ place, isSaved: false })}
           />
         ))}
@@ -310,7 +310,7 @@ function MapMarkers({
             key={`visited-${place.placeId}`}
             position={place.location}
             icon={GREEN_PIN}
-            zIndex={5}
+            zIndex={9999}
             onClick={() => setSelected({ place, isSaved: false })}
           />
         ))}
@@ -321,7 +321,7 @@ function MapMarkers({
           key={`saved-${place.placeId}`}
           position={place.location}
           icon={ORANGE_PIN}
-          zIndex={10}
+          zIndex={9999}
           onClick={() => setSelected({ place, isSaved: true })}
         />
       ))}
@@ -461,19 +461,6 @@ export default function MapPage() {
       : 0
     ] ?? FALLBACK_GRADIENTS[0];
 
-  const markerLocations = useMemo(() => {
-    const seen = new Set<string>();
-    return [
-      ...savedPlaces.filter(p => p.intent === intent).map(p => p.location),
-      ...nearbyPlaces.map(p => p.location),
-    ].filter(loc => {
-      const k = `${loc.lat}_${loc.lng}`;
-      if (seen.has(k)) return false;
-      seen.add(k);
-      return true;
-    });
-  }, [savedPlaces, nearbyPlaces, intent]);
-
   const neighborhoods = useMemo(
     () => new Set(visitedLocations.map(v => `${Math.floor(v.lat * 100)}_${Math.floor(v.lng * 100)}`)).size,
     [visitedLocations]
@@ -536,7 +523,6 @@ export default function MapPage() {
               <FogOverlay
                 visitedLocations={visitedLocations}
                 userLocation={userLocation}
-                markerLocations={markerLocations}
                 enabled={fogEnabled && status === "authenticated"}
                 isDark={isDarkMode}
               />

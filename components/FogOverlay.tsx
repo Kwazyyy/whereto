@@ -1,59 +1,28 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useMap } from "@vis.gl/react-google-maps";
 
 interface VisitedLocation {
     lat: number;
     lng: number;
-    isNew?: boolean;
 }
 
 interface FogOverlayProps {
     visitedLocations: VisitedLocation[];
     userLocation?: { lat: number; lng: number } | null;
-    markerLocations?: { lat: number; lng: number }[];
     enabled: boolean;
     isDark?: boolean;
-}
-
-/** Deterministic hash for a grid cell — stable across renders */
-function cellHash(gx: number, gy: number): number {
-    return Math.abs((gx * 1973 + gy * 9277 + 13337) * 48271) % 10000;
-}
-
-/**
- * Returns reveal radius for a visited location based on nearest-neighbour density.
- * Dense areas (closest neighbour < 1 km) → 200 m; spread-out → 400 m.
- */
-function computeRevealRadius(loc: VisitedLocation, all: VisitedLocation[]): number {
-    if (all.length <= 1) return 400;
-    const coslat = Math.cos(loc.lat * (Math.PI / 180));
-    let minDist = Infinity;
-    for (const other of all) {
-        if (other.lat === loc.lat && other.lng === loc.lng) continue;
-        const dlat = (loc.lat - other.lat) * 111000;
-        const dlng = (loc.lng - other.lng) * 111000 * coslat;
-        const d = Math.sqrt(dlat * dlat + dlng * dlng);
-        if (d < minDist) minDist = d;
-    }
-    return minDist < 1000 ? 200 : 400;
 }
 
 export default function FogOverlay({
     visitedLocations,
     userLocation,
-    markerLocations,
     enabled,
     isDark = false,
 }: FogOverlayProps) {
     const map = useMap();
-    // Canvas is created imperatively and injected into Google Maps' mapPane
-    // so it sits below the markerLayer in the Maps internal z-index stack.
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const animatingRef = useRef<Map<string, number>>(new Map());
-    const [, forceUpdate] = useState(0);
-    const rafRef = useRef<number | null>(null);
 
     const metersToPixels = useCallback(
         (meters: number, lat: number) => {
@@ -72,300 +41,182 @@ export default function FogOverlay({
             if (!map) return null;
             const projection = map.getProjection();
             if (!projection) return null;
-            const bounds = map.getBounds();
-            if (!bounds) return null;
 
-            const topRight = projection.fromLatLngToPoint(bounds.getNorthEast());
-            const bottomLeft = projection.fromLatLngToPoint(bounds.getSouthWest());
             const point = projection.fromLatLngToPoint(new google.maps.LatLng(lat, lng));
-            if (!topRight || !bottomLeft || !point) return null;
+            if (!point) return null;
+
+            const center = map.getCenter();
+            if (!center) return null;
+            const centerPoint = projection.fromLatLngToPoint(center);
+            if (!centerPoint) return null;
 
             const scale = Math.pow(2, map.getZoom() ?? 0);
             const worldWidth = 256;
-            let x = (point.x - bottomLeft.x) * scale;
-            if (bottomLeft.x > topRight.x) {
-                x = (point.x + worldWidth - bottomLeft.x) * scale;
-            }
-            const y = (point.y - topRight.y) * scale;
-            const containerWidth =
-                (topRight.x - bottomLeft.x + (bottomLeft.x > topRight.x ? worldWidth : 0)) * scale;
-            const containerHeight = (bottomLeft.y - topRight.y) * scale;
+
             const canvas = canvasRef.current;
             if (!canvas) return null;
-            return {
-                x: (x / containerWidth) * canvas.width,
-                y: (y / containerHeight) * canvas.height,
-            };
+
+            let dx = point.x - centerPoint.x;
+            // Handle wrap-around
+            if (dx > worldWidth / 2) dx -= worldWidth;
+            if (dx < -worldWidth / 2) dx += worldWidth;
+
+            const dy = point.y - centerPoint.y;
+
+            // The canvas is technically matching client width/height
+            // So its center is exactly width/2 and height/2
+            const screenX = canvas.clientWidth / 2 + dx * scale;
+            const screenY = canvas.clientHeight / 2 + dy * scale;
+
+            return { x: screenX, y: screenY };
         },
         [map]
     );
 
     const drawFog = useCallback(() => {
         const canvas = canvasRef.current;
-        if (!canvas || !map || !enabled) return;
+        if (!canvas) return;
+
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
-        const { width, height } = canvas;
-        if (width === 0 || height === 0) return;
 
-        ctx.clearRect(0, 0, width, height);
+        const dpr = window.devicePixelRatio || 1;
+        if (canvas.width === 0 || canvas.height === 0) return;
 
-        // ── 1. Base fog — theme-aware colour ─────────────────────────────
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (!map || !enabled) return;
+
+        // 1. Base fog color
         ctx.fillStyle = isDark
-            ? "rgba(14, 17, 22, 0.82)"
-            : "rgba(155, 160, 172, 0.85)";
-        ctx.fillRect(0, 0, width, height);
+            ? "rgba(14, 17, 22, 0.80)"
+            : "rgba(180, 185, 195, 0.75)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // ── 2. World-space cloud texture ─────────────────────────────────
-        const bounds = map.getBounds();
-        if (bounds) {
-            const ne = bounds.getNorthEast();
-            const sw = bounds.getSouthWest();
-            const midLat = (ne.lat() + sw.lat()) / 2;
+        // 2. Cloud texture
+        ctx.globalCompositeOperation = "source-over";
+        const w = canvas.width;
+        const h = canvas.height;
 
-            const GRID = 0.027;
-            const minGx = Math.floor(sw.lng() / GRID) - 1;
-            const maxGx = Math.ceil(ne.lng() / GRID) + 1;
-            const minGy = Math.floor(sw.lat() / GRID) - 1;
-            const maxGy = Math.ceil(ne.lat() / GRID) + 1;
+        const g1 = ctx.createRadialGradient(w * 0.2, h * 0.3, 0, w * 0.2, h * 0.3, w * 0.8);
+        g1.addColorStop(0, isDark ? "rgba(30,35,45,0.15)" : "rgba(255,255,255,0.15)");
+        g1.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = g1;
+        ctx.fillRect(0, 0, w, h);
 
-            for (let gx = minGx; gx <= maxGx; gx++) {
-                for (let gy = minGy; gy <= maxGy; gy++) {
-                    const h = cellHash(gx, gy);
-                    const lat = gy * GRID + GRID * 0.5 + ((h % 60) - 30) * GRID / 60;
-                    const lng = gx * GRID + GRID * 0.5 + ((h * 7 % 60) - 30) * GRID / 60;
-                    const radiusMeters = GRID * 111000 * (1.3 + (h % 60) / 100);
-                    const radiusPx = metersToPixels(radiusMeters, midLat);
-                    if (radiusPx <= 2) continue;
-                    const pixel = latLngToPixel(lat, lng);
-                    if (!pixel) continue;
-                    if (pixel.x + radiusPx < 0 || pixel.x - radiusPx > width) continue;
-                    if (pixel.y + radiusPx < 0 || pixel.y - radiusPx > height) continue;
+        const g2 = ctx.createRadialGradient(w * 0.8, h * 0.7, 0, w * 0.8, h * 0.7, w * 0.6);
+        g2.addColorStop(0, isDark ? "rgba(10,12,18,0.2)" : "rgba(150,155,165,0.15)");
+        g2.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = g2;
+        ctx.fillRect(0, 0, w, h);
 
-                    const isPuffDark = (h % 5) === 0;
-                    const opacity = isPuffDark
-                        ? 0.12 + (h % 20) / 100
-                        : 0.04 + (h % 18) / 220;
-                    const grad = ctx.createRadialGradient(pixel.x, pixel.y, 0, pixel.x, pixel.y, radiusPx);
-                    if (isPuffDark) {
-                        const c = isDark ? "5, 8, 14" : "90, 95, 110";
-                        grad.addColorStop(0, `rgba(${c}, ${opacity})`);
-                        grad.addColorStop(1, `rgba(${c}, 0)`);
-                    } else {
-                        const c = isDark ? "22, 28, 40" : "215, 220, 232";
-                        grad.addColorStop(0, `rgba(${c}, ${opacity})`);
-                        grad.addColorStop(1, `rgba(${c}, 0)`);
-                    }
-                    ctx.fillStyle = grad;
-                    ctx.beginPath();
-                    ctx.arc(pixel.x, pixel.y, radiusPx, 0, Math.PI * 2);
-                    ctx.fill();
-                }
+        // 3. Clear cutouts
+        ctx.globalCompositeOperation = "destination-out";
+
+        const punchHole = (lat: number, lng: number, radiusMeters: number) => {
+            const pixel = latLngToPixel(lat, lng);
+            if (!pixel) return;
+            const rPx = metersToPixels(radiusMeters, lat) * dpr;
+            if (rPx < 1) return;
+
+            // Cull if completely off screen
+            if (pixel.x * dpr < -rPx || pixel.x * dpr > w + rPx ||
+                pixel.y * dpr < -rPx || pixel.y * dpr > h + rPx) {
+                return;
             }
-        }
 
-        // ── 3. User location — always-visible 300 m clear circle ─────────
+            const cx = pixel.x * dpr;
+            const cy = pixel.y * dpr;
+
+            const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rPx);
+            grad.addColorStop(0, "rgba(0, 0, 0, 1)");
+            grad.addColorStop(0.5, "rgba(0, 0, 0, 0.9)");
+            grad.addColorStop(1, "rgba(0, 0, 0, 0)");
+
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(cx, cy, rPx, 0, Math.PI * 2);
+            ctx.fill();
+        };
+
         if (userLocation) {
-            const pixel = latLngToPixel(userLocation.lat, userLocation.lng);
-            if (pixel) {
-                const radius = metersToPixels(300, userLocation.lat);
-                if (radius >= 1) {
-                    const glowGrad = ctx.createRadialGradient(
-                        pixel.x, pixel.y, radius * 0.6,
-                        pixel.x, pixel.y, radius * 1.5
-                    );
-                    glowGrad.addColorStop(0, "rgba(100, 160, 255, 0)");
-                    glowGrad.addColorStop(0.3, "rgba(100, 160, 255, 0.45)");
-                    glowGrad.addColorStop(0.7, "rgba(100, 160, 255, 0.18)");
-                    glowGrad.addColorStop(1, "rgba(100, 160, 255, 0)");
-                    ctx.fillStyle = glowGrad;
-                    ctx.beginPath();
-                    ctx.arc(pixel.x, pixel.y, radius * 1.5, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    ctx.globalCompositeOperation = "destination-out";
-                    const holeGrad = ctx.createRadialGradient(pixel.x, pixel.y, 0, pixel.x, pixel.y, radius);
-                    holeGrad.addColorStop(0, "rgba(0,0,0,1)");
-                    holeGrad.addColorStop(0.72, "rgba(0,0,0,1)");
-                    holeGrad.addColorStop(1, "rgba(0,0,0,0)");
-                    ctx.fillStyle = holeGrad;
-                    ctx.beginPath();
-                    ctx.arc(pixel.x, pixel.y, radius, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.globalCompositeOperation = "source-over";
-                }
-            }
+            punchHole(userLocation.lat, userLocation.lng, 300);
         }
 
-        // ── 4. Visited reveals: smart radius + orange glow ───────────────
         for (const loc of visitedLocations) {
-            const pixel = latLngToPixel(loc.lat, loc.lng);
-            if (!pixel) continue;
-
-            const revealMeters = computeRevealRadius(loc, visitedLocations);
-            let radius = metersToPixels(revealMeters, loc.lat);
-
-            const key = `${loc.lat}_${loc.lng}`;
-            if (loc.isNew && !animatingRef.current.has(key)) {
-                animatingRef.current.set(key, 0);
-            }
-            const progress = animatingRef.current.get(key);
-            if (progress !== undefined && progress < 1) {
-                radius = radius * (1 - Math.pow(1 - progress, 3));
-            }
-            if (radius < 1) continue;
-
-            const glowGrad = ctx.createRadialGradient(
-                pixel.x, pixel.y, radius * 0.6,
-                pixel.x, pixel.y, radius * 1.55
-            );
-            glowGrad.addColorStop(0, "rgba(232, 93, 42, 0)");
-            glowGrad.addColorStop(0.3, "rgba(232, 93, 42, 0.55)");
-            glowGrad.addColorStop(0.6, "rgba(232, 93, 42, 0.28)");
-            glowGrad.addColorStop(1, "rgba(232, 93, 42, 0)");
-            ctx.fillStyle = glowGrad;
-            ctx.beginPath();
-            ctx.arc(pixel.x, pixel.y, radius * 1.55, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.globalCompositeOperation = "destination-out";
-            const holeGrad = ctx.createRadialGradient(pixel.x, pixel.y, 0, pixel.x, pixel.y, radius);
-            holeGrad.addColorStop(0, "rgba(0,0,0,1)");
-            holeGrad.addColorStop(0.75, "rgba(0,0,0,1)");
-            holeGrad.addColorStop(1, "rgba(0,0,0,0)");
-            ctx.fillStyle = holeGrad;
-            ctx.beginPath();
-            ctx.arc(pixel.x, pixel.y, radius, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.globalCompositeOperation = "source-over";
+            punchHole(loc.lat, loc.lng, 250);
         }
 
-        // ── 5. Marker pin holes — screen-space radius so pins are always fully clear
-        // The teardrop pin SVG is 36×46 px, anchored at its bottom tip.
-        // We use a pixel-space hole (not meter-based) so it stays the right size
-        // at all zoom levels.  Center is shifted up by ~pinOffsetY to cover the body.
-        if (markerLocations && markerLocations.length > 0) {
-            const dpr = window.devicePixelRatio || 1;
-            const pinHoleR = 30 * dpr;   // 30 CSS-px radius covers the full teardrop
-            const pinOffsetY = 18 * dpr; // shift centre above anchor (tip of teardrop)
-            ctx.globalCompositeOperation = "destination-out";
-            for (const loc of markerLocations) {
-                const pixel = latLngToPixel(loc.lat, loc.lng);
-                if (!pixel) continue;
-                const cx = pixel.x;
-                const cy = pixel.y - pinOffsetY;
-                const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, pinHoleR);
-                grad.addColorStop(0, "rgba(0,0,0,1)");
-                grad.addColorStop(0.7, "rgba(0,0,0,1)");
-                grad.addColorStop(1, "rgba(0,0,0,0)");
-                ctx.fillStyle = grad;
-                ctx.beginPath();
-                ctx.arc(cx, cy, pinHoleR, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            ctx.globalCompositeOperation = "source-over";
-        }
-    }, [map, visitedLocations, userLocation, markerLocations, enabled, isDark, latLngToPixel, metersToPixels]);
+        ctx.globalCompositeOperation = "source-over";
 
-    // Always keep a ref to the latest drawFog so the OverlayView closure never goes stale
+    }, [map, visitedLocations, userLocation, enabled, isDark, latLngToPixel, metersToPixels]);
+
     const drawFogRef = useRef(drawFog);
     useEffect(() => { drawFogRef.current = drawFog; }, [drawFog]);
 
-    // ── Mount canvas inside Google Maps' mapPane via OverlayView ─────────
-    // mapPane sits below markerLayer in the Maps internal z-index stack,
-    // so markers always render on top of the fog canvas automatically.
+    // Redraw on map events
     useEffect(() => {
-        if (!map || !enabled) return;
-
-        const canvas = document.createElement("canvas");
-        canvas.style.position = "absolute";
-        canvas.style.inset = "0";
-        canvas.style.pointerEvents = "none";
-        canvasRef.current = canvas;
-
-        const overlay = new google.maps.OverlayView();
-
-        overlay.onAdd = function () {
-            const pane = this.getPanes()?.mapPane;
-            if (pane) pane.appendChild(canvas);
-        };
-
-        // Called by Google Maps after pan/zoom (but NOT during drag)
-        overlay.draw = function () {
-            const pane = this.getPanes()?.mapPane;
-            if (pane) {
-                const dpr = window.devicePixelRatio || 1;
-                const w = pane.clientWidth;
-                const h = pane.clientHeight;
-                if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
-                    canvas.width = w * dpr;
-                    canvas.height = h * dpr;
-                    canvas.style.width = `${w}px`;
-                    canvas.style.height = `${h}px`;
-                }
-            }
-            drawFogRef.current();
-        };
-
-        overlay.onRemove = function () {
-            canvas.remove();
-            canvasRef.current = null;
-        };
-
-        overlay.setMap(map);
-
-        // overlay.draw() is not called during drag; add a drag listener for smoothness
-        const dragListener = map.addListener("drag", () => drawFogRef.current());
-
+        if (!map) return;
+        const listeners = [
+            map.addListener("idle", () => drawFogRef.current()),
+            map.addListener("drag", () => drawFogRef.current()),
+            map.addListener("zoom_changed", () => drawFogRef.current()),
+            map.addListener("bounds_changed", () => drawFogRef.current()),
+        ];
         return () => {
-            google.maps.event.removeListener(dragListener);
-            overlay.setMap(null);
+            listeners.forEach((l) => google.maps.event.removeListener(l));
         };
-    }, [map, enabled]);
+    }, [map]);
 
-    // Redraw whenever fog data (locations, theme) changes
+    // Redraw on data changes
     useEffect(() => {
         drawFog();
     }, [drawFog]);
 
-    // Animation loop for new reveals
+    // Canvas sizing observer (matches pixel density)
     useEffect(() => {
-        if (!enabled) return;
-        let animating = false;
-        for (const loc of visitedLocations) {
-            const key = `${loc.lat}_${loc.lng}`;
-            if (loc.isNew && (animatingRef.current.get(key) ?? 0) < 1) {
-                animating = true;
-                break;
-            }
-        }
-        if (!animating) return;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
 
-        const startTime = performance.now();
-        const duration = 1500;
+        function syncSize() {
+            const c = canvasRef.current;
+            if (!c) return;
+            const dpr = window.devicePixelRatio || 1;
+            const w = c.clientWidth;
+            const h = c.clientHeight;
 
-        function tick() {
-            const elapsed = performance.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            for (const loc of visitedLocations) {
-                if (!loc.isNew) continue;
-                const key = `${loc.lat}_${loc.lng}`;
-                animatingRef.current.set(key, progress);
+            // Only update attributes if the element isn't zero-sized
+            if (w === 0 || h === 0) return;
+
+            const targetW = Math.floor(w * dpr);
+            const targetH = Math.floor(h * dpr);
+
+            if (c.width !== targetW || c.height !== targetH) {
+                c.width = targetW;
+                c.height = targetH;
             }
-            drawFog();
-            if (progress < 1) {
-                rafRef.current = requestAnimationFrame(tick);
-            } else {
-                forceUpdate((n) => n + 1);
-            }
+            drawFogRef.current();
         }
 
-        rafRef.current = requestAnimationFrame(tick);
-        return () => {
-            if (rafRef.current) cancelAnimationFrame(rafRef.current);
-        };
-    }, [visitedLocations, enabled, drawFog]);
+        const ro = new ResizeObserver(syncSize);
+        ro.observe(canvas);
+        syncSize();
+        return () => ro.disconnect();
+    }, []);
 
-    // Canvas is managed imperatively — nothing to render in the React tree
-    return null;
+    return (
+        <canvas
+            ref={canvasRef}
+            style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                pointerEvents: "none",
+                zIndex: 10,
+                display: enabled ? "block" : "none"
+            }}
+        />
+    );
 }
