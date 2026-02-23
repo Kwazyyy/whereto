@@ -17,6 +17,7 @@ import PlaceDetailSheet from "@/components/PlaceDetailSheet";
 import { useSavePlace } from "@/lib/use-save-place";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useTheme } from "@/components/ThemeProvider";
+import FogOverlay from "@/components/FogOverlay";
 
 const DEFAULT_LAT = 43.6532;
 const DEFAULT_LNG = -79.3832;
@@ -106,6 +107,7 @@ function pinUrl(color: string): string {
 
 const ORANGE_PIN = pinUrl("#E85D2A");
 const BLUE_PIN = pinUrl("#3B82F6");
+const GREEN_PIN = pinUrl("#22C55E");
 
 // --- Thumbnail photo inside the info card ---
 function InfoPhoto({ photoRef }: { photoRef: string | null }) {
@@ -270,10 +272,12 @@ function RecenterButton({
 function MapMarkers({
   savedPlaces,
   nearbyPlaces,
+  visitedIds,
   onSelectPlace,
 }: {
   savedPlaces: SavedPlace[];
   nearbyPlaces: Place[];
+  visitedIds: Set<string>;
   onSelectPlace: (place: Place) => void;
 }) {
   const [selected, setSelected] = useState<{
@@ -285,15 +289,28 @@ function MapMarkers({
 
   return (
     <>
-      {/* Blue markers — nearby places (skip if already saved), rendered first so orange sits on top */}
+      {/* Blue markers — nearby places (skip if already saved/visited), rendered first */}
       {nearbyPlaces
-        .filter((p) => !savedIds.has(p.placeId))
+        .filter((p) => !savedIds.has(p.placeId) && !visitedIds.has(p.placeId))
         .map((place) => (
           <Marker
             key={`nearby-${place.placeId}`}
             position={place.location}
             icon={BLUE_PIN}
             zIndex={1}
+            onClick={() => setSelected({ place, isSaved: false })}
+          />
+        ))}
+
+      {/* Green markers — visited places */}
+      {nearbyPlaces
+        .filter((p) => visitedIds.has(p.placeId) && !savedIds.has(p.placeId))
+        .map((place) => (
+          <Marker
+            key={`visited-${place.placeId}`}
+            position={place.location}
+            icon={GREEN_PIN}
+            zIndex={5}
             onClick={() => setSelected({ place, isSaved: false })}
           />
         ))}
@@ -342,7 +359,10 @@ export default function MapPage() {
   const [savedPlaces, setSavedPlaces] = useState<SavedPlace[]>([]);
   const [nearbyPlaces, setNearbyPlaces] = useState<Place[]>([]);
   const [detailPlace, setDetailPlace] = useState<Place | null>(null);
-  const [loading, setLoading] = useState(false); // Added loading state
+  const [loading, setLoading] = useState(false);
+  const [fogEnabled, setFogEnabled] = useState(true);
+  const [visitedLocations, setVisitedLocations] = useState<{ lat: number; lng: number; placeId: string }[]>([]);
+  const [visitedIds, setVisitedIds] = useState<Set<string>>(new Set());
 
   const { theme } = useTheme();
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -394,6 +414,20 @@ export default function MapPage() {
       }
     }
     load();
+  }, [status]);
+
+  // Fetch visited places for fog-of-war
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    fetch("/api/visits")
+      .then((r) => r.ok ? r.json() : [])
+      .then((data: { placeId: string; lat: number; lng: number }[]) => {
+        if (Array.isArray(data)) {
+          setVisitedLocations(data.map(v => ({ lat: v.lat, lng: v.lng, placeId: v.placeId })));
+          setVisitedIds(new Set(data.map(v => v.placeId)));
+        }
+      })
+      .catch(() => { });
   }, [status]);
 
   // Fetch nearby places when intent or location changes
@@ -478,7 +512,12 @@ export default function MapPage() {
               <MapMarkers
                 savedPlaces={savedPlaces.filter(p => p.intent === intent)}
                 nearbyPlaces={nearbyPlaces}
+                visitedIds={visitedIds}
                 onSelectPlace={setDetailPlace}
+              />
+              <FogOverlay
+                visitedLocations={visitedLocations}
+                enabled={fogEnabled && status === "authenticated"}
               />
               <RecenterButton userLocation={userLocation} />
             </Map>
@@ -508,8 +547,47 @@ export default function MapPage() {
               <span className="text-[11px] font-semibold text-[#0E1116] dark:text-[#e8edf4]">Saved</span>
             </div>
             <div className="flex items-center gap-2">
+              <div className="w-3.5 h-3.5 rounded-full bg-[#22C55E] shadow-sm shrink-0" />
+              <span className="text-[11px] font-semibold text-[#0E1116] dark:text-[#e8edf4]">Visited</span>
+            </div>
+            <div className="flex items-center gap-2">
               <div className="w-3.5 h-3.5 rounded-full bg-[#3B82F6] shadow-sm shrink-0" />
               <span className="text-[11px] font-semibold text-[#0E1116] dark:text-[#e8edf4]">Nearby</span>
+            </div>
+          </div>
+        )}
+
+        {/* Fog toggle button */}
+        {userLocation && status === "authenticated" && (
+          <button
+            onClick={() => setFogEnabled(f => !f)}
+            className={`absolute bottom-24 right-4 z-10 flex items-center gap-2 px-3.5 py-2.5 rounded-full shadow-md border transition-all cursor-pointer ${fogEnabled
+              ? "bg-[#0E1116] text-white border-[#0E1116] dark:bg-white dark:text-[#0E1116] dark:border-white"
+              : "bg-white/95 dark:bg-[#161B22]/95 text-[#0E1116] dark:text-[#e8edf4] border-gray-200 dark:border-white/10"
+              }`}
+            title={fogEnabled ? "Hide fog" : "Show fog"}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2v1M12 21v1M4.2 4.2l.7.7M18.4 18.4l.7.7M1 12h1M21 12h1M4.2 19.8l.7-.7M18.4 5.6l.7-.7" />
+              <circle cx="12" cy="12" r="5" />
+            </svg>
+            <span className="text-xs font-semibold">{fogEnabled ? "Fog On" : "Fog Off"}</span>
+          </button>
+        )}
+
+        {/* Exploration stats panel */}
+        {userLocation && status === "authenticated" && visitedLocations.length > 0 && (
+          <div className="absolute bottom-24 left-4 z-10 bg-white/95 dark:bg-[#161B22]/95 backdrop-blur-sm rounded-xl px-3.5 py-3 shadow-md border border-gray-100 dark:border-white/10">
+            <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Explored</p>
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="text-lg font-bold text-[#0E1116] dark:text-[#e8edf4] leading-none">{visitedLocations.length}</span>
+              <span className="text-[11px] text-gray-500 dark:text-gray-400">places</span>
+            </div>
+            <div className="w-full h-1.5 rounded-full bg-gray-200 dark:bg-white/10 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-[#22C55E] transition-all duration-500"
+                style={{ width: `${Math.min((visitedLocations.length / Math.max(nearbyPlaces.length, 1)) * 100, 100)}%` }}
+              />
             </div>
           </div>
         )}

@@ -28,6 +28,8 @@ export async function GET() {
         placeId: v.place.googlePlaceId,
         name: v.place.name,
         address: v.place.address,
+        lat: v.place.lat,
+        lng: v.place.lng,
         photoRef: v.place.photoUrl,
         rating: v.place.rating ?? 0,
         price: priceLevelToPrice(v.place.priceLevel),
