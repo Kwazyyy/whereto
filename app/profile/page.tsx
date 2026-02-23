@@ -339,6 +339,7 @@ export default function ProfilePage() {
   const [joinedDate, setJoinedDate] = useState<string | null>(null);
   const [bio, setBio] = useState("");
   const [saves, setSaves] = useState<SavedPlace[]>([]);
+  const [visitCount, setVisitCount] = useState<number>(0);
 
   // Load prefs from localStorage on mount
   useEffect(() => {
@@ -377,6 +378,13 @@ export default function ProfilePage() {
       .then((r) => r.json())
       .then((data: { createdAt?: string }) => {
         if (data.createdAt) setJoinedDate(formatJoinDate(data.createdAt));
+      })
+      .catch(() => { });
+
+    fetch("/api/visits")
+      .then((r) => r.json())
+      .then((data: unknown[]) => {
+        if (Array.isArray(data)) setVisitCount(data.length);
       })
       .catch(() => { });
   }, [status]);
@@ -500,7 +508,7 @@ export default function ProfilePage() {
             <Link href="/places/visited" className="flex flex-col items-center gap-1.5 group cursor-pointer">
               <div className="flex items-center gap-1.5 text-gray-400 group-hover:text-amber-500 transition-colors">
                 <MapPinIcon size={20} />
-                <span className="font-bold text-xl text-[#0E1116] dark:text-gray-200 leading-none">0</span>
+                <span className="font-bold text-xl text-[#0E1116] dark:text-gray-200 leading-none">{visitCount}</span>
               </div>
               <span className="text-xs text-gray-500 font-medium">Visited</span>
             </Link>

@@ -84,6 +84,7 @@ export function SwipeCard({
     onSwipeUpSync,
     isTop,
     isSaved,
+    isVisited,
     onAction,
     onShare,
 }: {
@@ -93,6 +94,7 @@ export function SwipeCard({
     onSwipeUpSync?: () => void;
     isTop: boolean;
     isSaved: boolean;
+    isVisited?: boolean;
     onAction: (action: "save" | "go_now") => void;
     onShare?: () => void;
 }) {
@@ -234,6 +236,13 @@ export function SwipeCard({
                                 <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
                             </svg>
                             <span className="text-white text-[11px] font-semibold leading-none">Saved</span>
+                        </div>
+                    )}
+
+                    {isVisited && (
+                        <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-green-600/90 backdrop-blur-sm pointer-events-none shadow-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                            <span className="text-white text-[11px] font-semibold leading-none">Visited</span>
                         </div>
                     )}
 

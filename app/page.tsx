@@ -21,6 +21,8 @@ import { SignInModal } from "@/components/SignInModal";
 import { ShareModal } from "@/components/ShareModal";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { loadSkippedForIntent, persistSkippedForIntent, clearSkippedForIntent } from "@/lib/storage";
+import { setPendingVisit, checkPendingVisitProximity, verifyVisitOnServer, clearPendingVisit } from "@/lib/use-visit-tracker";
+import VisitCelebration from "@/components/VisitCelebration";
 
 const categories = [
   { id: "study", emoji: "\u{1F4DA}", label: "Study / Work" },
@@ -75,6 +77,8 @@ export default function Home() {
   const [skippedPerIntent, setSkippedPerIntent] = useState<Record<string, Set<string>>>({});
   const [recommendations, setRecommendations] = useState<Place[]>([]);
   const [shareModalPlace, setShareModalPlace] = useState<{ placeId: string; name: string } | null>(null);
+  const [visitedPlaceIds, setVisitedPlaceIds] = useState<Set<string>>(new Set());
+  const [celebrationPlace, setCelebrationPlace] = useState<string | null>(null);
 
   const chipScrollRef = useRef<HTMLDivElement>(null);
   const locationResolved = useRef(false);
@@ -106,6 +110,33 @@ export default function Home() {
     }
     setPrefsApplied(true);
   }, []);
+
+  // Fetch visited place IDs
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    fetch("/api/visits")
+      .then(r => r.ok ? r.json() : [])
+      .then((data: { placeId: string }[]) => {
+        setVisitedPlaceIds(new Set(data.map(v => v.placeId)));
+      })
+      .catch(() => { });
+  }, [status]);
+
+  // Check pending visit proximity on mount (Go Now flow)
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    checkPendingVisitProximity().then(async (pending) => {
+      if (!pending) return;
+      const result = await verifyVisitOnServer(
+        pending.placeId, pending.lat, pending.lng, "go_now"
+      );
+      if (result) {
+        clearPendingVisit();
+        setVisitedPlaceIds(prev => new Set([...prev, pending.placeId]));
+        setCelebrationPlace(result.name);
+      }
+    });
+  }, [status]);
 
   // Load persisted skipped IDs when intent changes
   useEffect(() => {
@@ -347,6 +378,7 @@ export default function Home() {
     handleSave(place, intent, action);
     setSavedPlaceIds((prev) => new Set([...prev, place.placeId]));
     if (action === "go_now") {
+      setPendingVisit(place);
       window.open(
         `https://www.google.com/maps/dir/?api=1&destination=${place.location.lat},${place.location.lng}&destination_place_id=${place.placeId}`,
         "_blank"
@@ -494,6 +526,7 @@ export default function Home() {
                   onSwipeUpSync={() => handleSwipeUpSync(place)}
                   isTop={isTop}
                   isSaved={isSaved}
+                  isVisited={visitedPlaceIds.has(place.placeId)}
                   onAction={(action) => handleCardFlipAction(place, action)}
                   onShare={() => setShareModalPlace({ placeId: place.placeId, name: place.name })}
                 />
@@ -533,6 +566,14 @@ export default function Home() {
             localStorage.setItem("hasSeenTutorial", "true");
             setShowTutorial(false);
           }}
+        />
+      )}
+
+      {/* Visit Celebration */}
+      {celebrationPlace && (
+        <VisitCelebration
+          placeName={celebrationPlace}
+          onClose={() => setCelebrationPlace(null)}
         />
       )}
     </div>

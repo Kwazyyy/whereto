@@ -22,6 +22,7 @@ model User {
   receivedFriendRequests Friendship[]     @relation("ReceivedFriendships")
   sentRecommendations    Recommendation[] @relation("SentRecommendations")
   receivedRecommendations Recommendation[] @relation("ReceivedRecommendations")
+  visits                  Visit[]
 }
 
 model Account {
@@ -73,6 +74,7 @@ model Place {
   createdAt     DateTime         @default(now())
   saves         Save[]
   recommendations Recommendation[]
+  visits          Visit[]
 }
 
 model Save {
@@ -120,5 +122,18 @@ model Waitlist {
   id        String   @id @default(uuid())
   email     String   @unique
   createdAt DateTime @default(now())
+}
+
+model Visit {
+  id         String   @id @default(uuid())
+  userId     String
+  placeId    String
+  verifiedAt DateTime @default(now())
+  method     String   // "go_now" or "manual"
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  place      Place    @relation(fields: [placeId], references: [id])
+
+  @@unique([userId, placeId])
 }
 

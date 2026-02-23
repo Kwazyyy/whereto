@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion, PanInfo } from "framer-motion";
 import Image from "next/image";
 import { Place, FriendSignal } from "@/lib/types";
 import { usePhotoUrl } from "@/lib/use-photo-url";
+import { haversineMeters } from "@/lib/haversine";
 
 export default function PlaceDetailSheet({
   place,
@@ -13,6 +14,8 @@ export default function PlaceDetailSheet({
   onSave,
   onSaveUnauthenticated,
   isSaved = false,
+  isVisited = false,
+  onCheckIn,
 }: {
   place: Place;
   fallbackGradient: string;
@@ -20,6 +23,8 @@ export default function PlaceDetailSheet({
   onSave?: (action: "save" | "go_now") => void;
   onSaveUnauthenticated?: () => void;
   isSaved?: boolean;
+  isVisited?: boolean;
+  onCheckIn?: () => void;
 }) {
   const matchScore = useMemo(() => Math.floor(Math.random() * 19) + 80, []);
   const photoUrl = usePhotoUrl(place.photoRef);
@@ -29,6 +34,20 @@ export default function PlaceDetailSheet({
     const today = days[new Date().getDay()];
     return place.hours.find((h) => h.startsWith(today)) ?? null;
   }, [place.hours]);
+
+  // Check proximity for "Check In" button
+  const [isNear, setIsNear] = useState(false);
+  useEffect(() => {
+    if (isVisited || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const d = haversineMeters(pos.coords.latitude, pos.coords.longitude, place.location.lat, place.location.lng);
+        setIsNear(d <= 200);
+      },
+      () => { },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 30000 }
+    );
+  }, [place, isVisited]);
 
   function handleSaveClick(action: "save" | "go_now") {
     if (onSaveUnauthenticated) {
@@ -87,6 +106,12 @@ export default function PlaceDetailSheet({
                 <h2 className="text-2xl font-bold text-[#0E1116] dark:text-[#e8edf4]">
                   {place.name}
                 </h2>
+                {isVisited && (
+                  <span className="inline-flex items-center gap-1 mt-1 px-2.5 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                    Visited
+                  </span>
+                )}
                 <div className="flex items-center gap-2 mt-1 text-sm text-gray-500 dark:text-gray-400 font-medium">
                   <span className="capitalize">{place.type}</span>
                   <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
@@ -191,11 +216,10 @@ export default function PlaceDetailSheet({
             <div className="flex gap-3 mt-8 pb-10">
               <button
                 onClick={() => handleSaveClick("save")}
-                className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 font-semibold text-sm transition-colors cursor-pointer ${
-                  isSaved
-                    ? "border-[#E85D2A] text-[#E85D2A] bg-orange-50 dark:bg-[#E85D2A]/10"
-                    : "border-gray-200 dark:border-white/15 text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-white/5"
-                }`}
+                className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 font-semibold text-sm transition-colors cursor-pointer ${isSaved
+                  ? "border-[#E85D2A] text-[#E85D2A] bg-orange-50 dark:bg-[#E85D2A]/10"
+                  : "border-gray-200 dark:border-white/15 text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-white/5"
+                  }`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -234,6 +258,17 @@ export default function PlaceDetailSheet({
                 Share
               </button>
             </div>
+
+            {/* Check In button — only within 200m and not already visited */}
+            {isNear && !isVisited && onCheckIn && (
+              <button
+                onClick={onCheckIn}
+                className="w-full mt-4 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-green-600 text-white font-bold text-sm shadow-lg shadow-green-600/30 hover:bg-green-700 active:scale-[0.98] transition-all cursor-pointer"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                Check In Here
+              </button>
+            )}
           </div>
         </div>
       </motion.div>
