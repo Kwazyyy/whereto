@@ -567,11 +567,8 @@ export default function MapPage() {
               }`}
             title={fogEnabled ? "Hide fog" : "Show fog"}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2v1M12 21v1M4.2 4.2l.7.7M18.4 18.4l.7.7M1 12h1M21 12h1M4.2 19.8l.7-.7M18.4 5.6l.7-.7" />
-              <circle cx="12" cy="12" r="5" />
-            </svg>
-            <span className="text-xs font-semibold">{fogEnabled ? "Fog On" : "Fog Off"}</span>
+            <span className="text-sm leading-none">{fogEnabled ? "🌫️" : "🗺️"}</span>
+            <span className="text-xs font-semibold">{fogEnabled ? "Fog" : "Clear"}</span>
           </button>
         )}
 
