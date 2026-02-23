@@ -97,8 +97,8 @@ export default function FogOverlay({
 
                 // 1. Base Dense Fog
                 ctx.fillStyle = isDark
-                    ? "rgba(14, 17, 22, 0.98)" // Almost totally opaque
-                    : "rgba(180, 185, 195, 0.96)";
+                    ? "rgba(14, 17, 22, 0.88)"
+                    : "rgba(180, 185, 195, 0.85)";
                 ctx.fillRect(0, 0, width, height);
 
                 // 2. Cloud Texture
