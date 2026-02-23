@@ -47,8 +47,8 @@ function BoardCard({ intent, label, items }: { intent: string; label: string; it
 
   return (
     <Link href={`/boards/${intent}`} className="block">
-      <div className={`bg-white dark:bg-[#1a1a2e] rounded-2xl overflow-hidden border shadow-sm cursor-pointer group ${isRecs ? "border-violet-300/50 dark:border-violet-700/40 ring-1 ring-violet-400/20" : "border-gray-100 dark:border-white/10"}`}>
-        <div className={`h-32 w-full relative ${isRecs ? "bg-violet-100 dark:bg-violet-950/40" : "bg-gray-100 dark:bg-[#22223b]"}`}>
+      <div className={`bg-white dark:bg-[#161B22] rounded-2xl overflow-hidden border shadow-sm cursor-pointer group ${isRecs ? "border-violet-300/50 dark:border-violet-700/40 ring-1 ring-violet-400/20" : "border-gray-100 dark:border-white/10"}`}>
+        <div className={`h-32 w-full relative ${isRecs ? "bg-violet-100 dark:bg-violet-950/40" : "bg-gray-100 dark:bg-[#1C2128]"}`}>
           {photoUrl ? (
             <Image
               src={photoUrl}
@@ -113,7 +113,7 @@ export default function BoardsPage() {
 
   if (loading || status === "loading") {
     return (
-      <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] flex flex-col items-center justify-center pb-16">
+      <div className="min-h-dvh bg-white dark:bg-[#0E1116] flex flex-col items-center justify-center pb-16">
         <div
           className="w-8 h-8 rounded-full border-3 border-t-transparent animate-spin"
           style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
@@ -124,12 +124,12 @@ export default function BoardsPage() {
 
   if (status === "unauthenticated") {
     return (
-      <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-24">
-        <header className="flex items-center px-5 pt-5 pb-4 sticky top-0 bg-white/80 dark:bg-[#0f0f1a]/80 backdrop-blur-md z-10 border-b border-gray-100 dark:border-white/10">
+      <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24">
+        <header className="flex items-center px-5 pt-5 pb-4 sticky top-0 bg-white/80 dark:bg-[#0E1116]/80 backdrop-blur-md z-10 border-b border-gray-100 dark:border-white/10">
           <h1 className="text-xl font-bold text-[#0E1116] dark:text-[#e8edf4]">Your Boards</h1>
         </header>
         <div className="flex flex-col items-center justify-center px-8 pt-24 text-center gap-5">
-          <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-[#1a1a2e] flex items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-[#161B22] flex items-center justify-center">
             <GridIcon size={28} />
           </div>
           <div>
@@ -140,7 +140,7 @@ export default function BoardsPage() {
           </div>
           <button
             onClick={() => signIn("google")}
-            className="flex items-center justify-center gap-3 w-full max-w-xs py-3.5 rounded-2xl bg-white dark:bg-[#1a1a2e] border-2 border-gray-200 dark:border-white/10 font-semibold text-sm text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#22223b] transition-colors cursor-pointer"
+            className="flex items-center justify-center gap-3 w-full max-w-xs py-3.5 rounded-2xl bg-white dark:bg-[#161B22] border-2 border-gray-200 dark:border-white/10 font-semibold text-sm text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#1C2128] transition-colors cursor-pointer"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -175,9 +175,9 @@ export default function BoardsPage() {
   };
 
   return (
-    <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-24">
-      <header className="flex items-center px-5 pt-5 pb-4 sticky top-0 bg-white/80 dark:bg-[#0f0f1a]/80 backdrop-blur-md z-10 border-b border-gray-100 dark:border-white/10">
-        <Link href="/profile" className="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#1a1a2e] transition-colors cursor-pointer">
+    <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24">
+      <header className="flex items-center px-5 pt-5 pb-4 sticky top-0 bg-white/80 dark:bg-[#0E1116]/80 backdrop-blur-md z-10 border-b border-gray-100 dark:border-white/10">
+        <Link href="/profile" className="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#161B22] transition-colors cursor-pointer">
           <div className="text-[#0E1116] dark:text-[#e8edf4]">
             <ChevronLeftIcon size={24} />
           </div>

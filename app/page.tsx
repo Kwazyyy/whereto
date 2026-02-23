@@ -360,7 +360,7 @@ export default function Home() {
   }
 
   return (
-    <div className="h-dvh bg-white dark:bg-[#0f0f1a] flex flex-col overflow-hidden pb-16">
+    <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-16">
       {/* Header */}
       <header className="shrink-0 px-5 pt-5 pb-2">
         <div className="flex items-center justify-between">
@@ -405,7 +405,7 @@ export default function Home() {
       {/* Loading State */}
       {(loading || !userLocation) ? (
         <div className="flex-1 relative px-4 pb-4">
-          <div className="w-full h-full rounded-3xl bg-gray-100 dark:bg-[#1a1a2e]/60 animate-pulse shadow-xl flex flex-col justify-end p-6 border border-gray-200/50 dark:border-white/5">
+          <div className="w-full h-full rounded-3xl bg-gray-100 dark:bg-[#161B22]/60 animate-pulse shadow-xl flex flex-col justify-end p-6 border border-gray-200/50 dark:border-white/5">
             <div className="w-2/3 h-8 bg-gray-200 dark:bg-white/10 rounded-xl mb-3"></div>
             <div className="w-1/2 h-4 bg-gray-200 dark:bg-white/10 rounded-lg mb-4"></div>
             <div className="flex gap-2 mt-2">
@@ -426,7 +426,7 @@ export default function Home() {
           animate={{ opacity: 1, scale: 1 }}
           className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-4 pb-12"
         >
-          <div className="w-24 h-24 rounded-full bg-gray-50 dark:bg-[#1a1a2e] flex items-center justify-center text-5xl mb-2 shadow-inner border border-gray-100 dark:border-white/5">
+          <div className="w-24 h-24 rounded-full bg-gray-50 dark:bg-[#161B22] flex items-center justify-center text-5xl mb-2 shadow-inner border border-gray-100 dark:border-white/5">
             💸
           </div>
           <h2 className="text-2xl font-bold text-[#0E1116] dark:text-[#e8edf4]">
@@ -448,7 +448,7 @@ export default function Home() {
           animate={{ opacity: 1, scale: 1 }}
           className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-4 pb-12"
         >
-          <div className="w-24 h-24 rounded-full bg-gray-50 dark:bg-[#1a1a2e] flex items-center justify-center text-5xl mb-2 shadow-inner border border-gray-100 dark:border-white/5">
+          <div className="w-24 h-24 rounded-full bg-gray-50 dark:bg-[#161B22] flex items-center justify-center text-5xl mb-2 shadow-inner border border-gray-100 dark:border-white/5">
             {places.length === 0 ? "🗺️" : "✨"}
           </div>
           <h2 className="text-2xl font-bold text-[#0E1116] dark:text-[#e8edf4]">

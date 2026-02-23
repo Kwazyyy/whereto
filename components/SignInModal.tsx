@@ -10,7 +10,7 @@ export function SignInModal({ onClose }: { onClose: () => void }) {
             onClick={onClose}
         >
             <motion.div
-                className="w-full max-w-lg bg-white dark:bg-[#1a1a2e] rounded-t-3xl px-6 pt-4 pb-12"
+                className="w-full max-w-lg bg-white dark:bg-[#161B22] rounded-t-3xl px-6 pt-4 pb-12"
                 initial={{ y: "100%" }}
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
@@ -34,7 +34,7 @@ export function SignInModal({ onClose }: { onClose: () => void }) {
                     </div>
                     <button
                         onClick={() => signIn("google")}
-                        className="flex items-center justify-center gap-3 w-full max-w-xs py-3.5 rounded-2xl bg-white dark:bg-[#22223b] border-2 border-gray-200 dark:border-white/10 font-semibold text-sm text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#2d2d44] transition-colors cursor-pointer shadow-sm"
+                        className="flex items-center justify-center gap-3 w-full max-w-xs py-3.5 rounded-2xl bg-white dark:bg-[#1C2128] border-2 border-gray-200 dark:border-white/10 font-semibold text-sm text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#2d2d44] transition-colors cursor-pointer shadow-sm"
                     >
                         <svg width="18" height="18" viewBox="0 0 24 24">
                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />

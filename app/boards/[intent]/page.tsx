@@ -70,8 +70,8 @@ function PlaceListItem({ place, onTap, isRecs }: { place: SavedPlace; onTap: () 
     const photoUrl = usePhotoUrl(place.photoRef);
 
     return (
-        <div onClick={onTap} className="flex bg-white dark:bg-[#1a1a2e] rounded-2xl overflow-hidden border border-gray-100 dark:border-white/10 shadow-sm mb-4 cursor-pointer active:scale-[0.98] transition-transform">
-            <div className="h-auto w-28 relative flex-shrink-0 bg-gray-100 dark:bg-[#22223b]" style={{ minHeight: 112 }}>
+        <div onClick={onTap} className="flex bg-white dark:bg-[#161B22] rounded-2xl overflow-hidden border border-gray-100 dark:border-white/10 shadow-sm mb-4 cursor-pointer active:scale-[0.98] transition-transform">
+            <div className="h-auto w-28 relative flex-shrink-0 bg-gray-100 dark:bg-[#1C2128]" style={{ minHeight: 112 }}>
                 {photoUrl ? (
                     <Image
                         src={photoUrl}
@@ -167,7 +167,7 @@ export default function BoardDetailPage() {
 
     if (loading || status === "loading") {
         return (
-            <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] flex flex-col items-center justify-center pb-16">
+            <div className="min-h-dvh bg-white dark:bg-[#0E1116] flex flex-col items-center justify-center pb-16">
                 <div
                     className="w-8 h-8 rounded-full border-3 border-t-transparent animate-spin"
                     style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
@@ -191,9 +191,9 @@ export default function BoardDetailPage() {
         : FALLBACK_GRADIENTS[3];
 
     return (
-        <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-24">
+        <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24">
             {/* Header */}
-            <header className={`flex items-center px-5 pt-5 pb-4 sticky top-0 backdrop-blur-md z-10 border-b ${isRecs ? "bg-violet-50/90 dark:bg-violet-950/50 border-violet-200/50 dark:border-violet-900/40" : "bg-white/80 dark:bg-[#0f0f1a]/80 border-gray-100 dark:border-white/10"}`}>
+            <header className={`flex items-center px-5 pt-5 pb-4 sticky top-0 backdrop-blur-md z-10 border-b ${isRecs ? "bg-violet-50/90 dark:bg-violet-950/50 border-violet-200/50 dark:border-violet-900/40" : "bg-white/80 dark:bg-[#0E1116]/80 border-gray-100 dark:border-white/10"}`}>
                 <button onClick={() => router.back()} className="p-2 -ml-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer">
                     <div className={isRecs ? "text-violet-700 dark:text-violet-400" : "text-[#0E1116] dark:text-[#e8edf4]"}>
                         <ChevronLeftIcon size={24} />

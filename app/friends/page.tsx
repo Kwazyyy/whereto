@@ -101,7 +101,7 @@ function SharedPlaceCard({ place }: { place: SharedPlace }) {
   const photoUrl = usePhotoUrl(place.photoRef);
   return (
     <div className="flex items-center gap-3 py-2.5">
-      <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-[#22223b] relative">
+      <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-[#1C2128] relative">
         {photoUrl ? (
           <Image src={photoUrl} alt={place.name} fill className="object-cover" unoptimized />
         ) : (
@@ -137,7 +137,7 @@ function CompatibilityDrawer({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-white dark:bg-[#1a1a2e] rounded-t-3xl px-6 pt-4 pb-10 max-h-[85dvh] overflow-y-auto"
+        className="w-full max-w-lg bg-white dark:bg-[#161B22] rounded-t-3xl px-6 pt-4 pb-10 max-h-[85dvh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Handle bar */}
@@ -190,7 +190,7 @@ function CompatibilityDrawer({
 
             {/* Stats */}
             <div className="flex flex-col gap-3 mb-6">
-              <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-gray-50 dark:bg-[#22223b]">
+              <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-gray-50 dark:bg-[#1C2128]">
                 <span className="text-xl">🏠</span>
                 <p className="text-sm text-[#0E1116] dark:text-[#e8edf4] font-medium">
                   You both saved <span className="font-bold">{compat.sharedCount} place{compat.sharedCount !== 1 ? "s" : ""}</span>
@@ -198,7 +198,7 @@ function CompatibilityDrawer({
               </div>
 
               {compat.sharedIntents.length > 0 && (
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-gray-50 dark:bg-[#22223b]">
+                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-gray-50 dark:bg-[#1C2128]">
                   <span className="text-xl">✨</span>
                   <div>
                     <p className="text-sm text-[#0E1116] dark:text-[#e8edf4] font-medium">Top shared vibes</p>
@@ -208,7 +208,7 @@ function CompatibilityDrawer({
               )}
 
               {compat.sharedPrice && (
-                <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-gray-50 dark:bg-[#22223b]">
+                <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-gray-50 dark:bg-[#1C2128]">
                   <span className="text-xl">💰</span>
                   <p className="text-sm text-[#0E1116] dark:text-[#e8edf4] font-medium">
                     You both love <span className="font-bold">{compat.sharedPrice}</span> restaurants
@@ -283,7 +283,7 @@ function AddFriendModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-white dark:bg-[#1a1a2e] rounded-t-3xl px-6 pt-4 pb-28"
+        className="w-full max-w-lg bg-white dark:bg-[#161B22] rounded-t-3xl px-6 pt-4 pb-28"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-6" />
@@ -302,7 +302,7 @@ function AddFriendModal({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoFocus
-            className="w-full px-4 py-3.5 rounded-2xl bg-gray-50 dark:bg-[#22223b] text-sm font-medium outline-none border-2 border-transparent focus:border-[#E85D2A] transition-colors text-[#0E1116] dark:text-[#e8edf4] placeholder:text-gray-400 dark:placeholder:text-gray-500"
+            className="w-full px-4 py-3.5 rounded-2xl bg-gray-50 dark:bg-[#1C2128] text-sm font-medium outline-none border-2 border-transparent focus:border-[#E85D2A] transition-colors text-[#0E1116] dark:text-[#e8edf4] placeholder:text-gray-400 dark:placeholder:text-gray-500"
           />
 
           {error && (
@@ -425,14 +425,14 @@ export default function FriendsPage() {
   // ── Loading ──
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-24">
+      <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24">
         <header className="px-5 pt-5 pb-3">
           <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: "#E85D2A" }}>
             Friends
           </h1>
         </header>
         <div className="px-5 mt-4">
-          <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a2e] overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
+          <div className="rounded-2xl bg-gray-50 dark:bg-[#161B22] overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex items-center gap-3 px-4 py-3.5 animate-pulse">
                 <div className="w-11 h-11 rounded-full bg-gray-200 dark:bg-white/10 shrink-0" />
@@ -451,14 +451,14 @@ export default function FriendsPage() {
   // ── Not signed in ──
   if (!session?.user) {
     return (
-      <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-20">
+      <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-20">
         <header className="px-5 pt-5 pb-3">
           <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: "#E85D2A" }}>
             Friends
           </h1>
         </header>
         <div className="flex flex-col items-center justify-center px-8 pt-24 text-center gap-5">
-          <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-[#1a1a2e] flex items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-[#161B22] flex items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
@@ -474,7 +474,7 @@ export default function FriendsPage() {
           </div>
           <button
             onClick={() => signIn("google")}
-            className="flex items-center justify-center gap-3 w-full py-3.5 rounded-2xl bg-white dark:bg-[#1a1a2e] border-2 border-gray-200 dark:border-white/10 font-semibold text-sm text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#22223b] transition-colors cursor-pointer"
+            className="flex items-center justify-center gap-3 w-full py-3.5 rounded-2xl bg-white dark:bg-[#161B22] border-2 border-gray-200 dark:border-white/10 font-semibold text-sm text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#1C2128] transition-colors cursor-pointer"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -493,7 +493,7 @@ export default function FriendsPage() {
 
   // ── Main friends list ──
   return (
-    <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-24">
+    <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24">
       {/* Header */}
       <header className="px-5 pt-5 pb-0 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: "#E85D2A" }}>
@@ -573,7 +573,7 @@ export default function FriendsPage() {
               <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider px-1 mt-5 mb-2">
                 Friend Requests ({incoming.length})
               </p>
-              <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a2e] overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
+              <div className="rounded-2xl bg-gray-50 dark:bg-[#161B22] overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
                 {incoming.map((req) => (
                   <div key={req.friendshipId} className="flex items-center gap-3 px-4 py-3.5">
                     <Avatar image={req.image} name={req.name} size={44} />
@@ -612,7 +612,7 @@ export default function FriendsPage() {
               <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider px-1 mt-7 mb-2">
                 Friends ({friends.length})
               </p>
-              <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a2e] overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
+              <div className="rounded-2xl bg-gray-50 dark:bg-[#161B22] overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
                 {friends.map((friend) => {
                   const compat = friend.compatibility;
                   const hasScore = compat && compat.sharedCount > 0;
@@ -755,7 +755,7 @@ type ActivityItem =
 function ActivityPlaceThumbnail({ photoRef }: { photoRef?: string | null }) {
   const url = usePhotoUrl(photoRef ?? null);
   return (
-    <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-[#22223b] relative">
+    <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-[#1C2128] relative">
       {url ? (
         <Image src={url} alt="" fill className="object-cover" unoptimized />
       ) : (
@@ -818,7 +818,7 @@ function SaveGroupRow({ item, onTap }: {
 
       {/* Expanded place list */}
       {expanded && count > 1 && (
-        <div className="bg-white dark:bg-[#0f0f1a]/60 mx-3 mb-2 rounded-xl overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
+        <div className="bg-white dark:bg-[#0E1116]/60 mx-3 mb-2 rounded-xl overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
           {item.places.map((place) => (
             <button
               key={place.placeId}
@@ -844,7 +844,7 @@ function SaveGroupRow({ item, onTap }: {
 function MiniThumb({ photoRef }: { photoRef?: string | null }) {
   const url = usePhotoUrl(photoRef ?? null);
   return (
-    <div className="w-7 h-7 rounded-lg overflow-hidden border-2 border-white dark:border-[#1a1a2e] bg-gray-100 dark:bg-[#22223b] relative shrink-0">
+    <div className="w-7 h-7 rounded-lg overflow-hidden border-2 border-white dark:border-[#161B22] bg-gray-100 dark:bg-[#1C2128] relative shrink-0">
       {url
         ? <Image src={url} alt="" fill className="object-cover" unoptimized />
         : <div className="w-full h-full flex items-center justify-center text-[10px]">📍</div>
@@ -920,7 +920,7 @@ function ActivityFeed() {
 
   return (
     <div className="px-5 pt-4">
-      <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a2e] overflow-hidden">
+      <div className="rounded-2xl bg-gray-50 dark:bg-[#161B22] overflow-hidden">
         {items.map((item) => {
           if (item.type === "save_group") {
             return (
@@ -982,7 +982,7 @@ function MissedRecCard({ rec, onSave }: { rec: MissedRec; onSave: (rec: MissedRe
   const photoUrl = usePhotoUrl(rec.place.photoRef);
   return (
     <div className="flex items-center gap-3 py-2.5">
-      <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-[#22223b] relative">
+      <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-[#1C2128] relative">
         {photoUrl ? (
           <Image src={photoUrl} alt={rec.place.name} fill className="object-cover" unoptimized />
         ) : (
@@ -1048,7 +1048,7 @@ function MissedRecsSection() {
       </button>
 
       {open && (
-        <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a2e] px-4 py-1 divide-y divide-gray-100 dark:divide-white/8">
+        <div className="rounded-2xl bg-gray-50 dark:bg-[#161B22] px-4 py-1 divide-y divide-gray-100 dark:divide-white/8">
           {loading ? (
             <div className="py-6 flex justify-center">
               <div className="w-5 h-5 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }} />

@@ -119,7 +119,7 @@ function SectionHeader({ title }: { title: string }) {
 
 function SettingsCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a2e] overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
+    <div className="rounded-2xl bg-gray-50 dark:bg-[#161B22] overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
       {children}
     </div>
   );
@@ -200,13 +200,13 @@ function SegmentedRow({
       <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">
         {label}
       </span>
-      <div className="flex gap-0.5 p-0.5 rounded-xl bg-gray-100 dark:bg-[#22223b]">
+      <div className="flex gap-0.5 p-0.5 rounded-xl bg-gray-100 dark:bg-[#1C2128]">
         {options.map((o) => (
           <button
             key={o.value}
             onClick={() => onChange(o.value)}
             className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${value === o.value
-              ? "bg-white dark:bg-[#1a1a2e] text-[#0E1116] dark:text-[#e8edf4] shadow-sm"
+              ? "bg-white dark:bg-[#161B22] text-[#0E1116] dark:text-[#e8edf4] shadow-sm"
               : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
               }`}
           >
@@ -230,7 +230,7 @@ function Toggle({
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer shrink-0 ${checked ? "bg-[#E85D2A]" : "bg-gray-200 dark:bg-[#22223b]"
+      className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer shrink-0 ${checked ? "bg-[#E85D2A]" : "bg-gray-200 dark:bg-[#1C2128]"
         }`}
     >
       <span
@@ -304,7 +304,7 @@ function BoardCardMini({ intent, label, items }: { intent: string, label: string
 
   return (
     <Link href={`/boards/${intent}`} className="block shrink-0 snap-start">
-      <div className="w-32 h-40 bg-white dark:bg-[#1a1a2e] rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-white/10 relative group cursor-pointer">
+      <div className="w-32 h-40 bg-white dark:bg-[#161B22] rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-white/10 relative group cursor-pointer">
         {photoUrl ? (
           <Image
             src={photoUrl}
@@ -314,7 +314,7 @@ function BoardCardMini({ intent, label, items }: { intent: string, label: string
             unoptimized
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-[#22223b] text-gray-400">
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-[#1C2128] text-gray-400">
             <GridIcon size={24} />
           </div>
         )}
@@ -418,7 +418,7 @@ export default function ProfilePage() {
 
   if (status === "loading") {
     return (
-      <div className="h-dvh bg-white dark:bg-[#0f0f1a] flex items-center justify-center pb-16">
+      <div className="h-dvh bg-white dark:bg-[#0E1116] flex items-center justify-center pb-16">
         <div
           className="w-8 h-8 rounded-full border-3 border-t-transparent animate-spin"
           style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
@@ -428,7 +428,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-24 md:pb-12">
+    <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24 md:pb-12">
       <header className="px-5 pt-5 pb-1 h-16 md:hidden" />
 
       {/* Main Responsive Grid Layout */}
@@ -443,11 +443,11 @@ export default function ProfilePage() {
                 alt={session.user.name ?? ""}
                 width={120}
                 height={120}
-                className="w-24 h-24 md:w-32 md:h-32 rounded-full ring-4 ring-white dark:ring-[#0f0f1a] shadow-sm object-cover"
+                className="w-24 h-24 md:w-32 md:h-32 rounded-full ring-4 ring-white dark:ring-[#0E1116] shadow-sm object-cover"
                 unoptimized
               />
             ) : (
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gray-100 dark:bg-[#1a1a2e] flex items-center justify-center shadow-sm ring-4 ring-white dark:ring-[#0f0f1a]">
+              <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gray-100 dark:bg-[#161B22] flex items-center justify-center shadow-sm ring-4 ring-white dark:ring-[#0E1116]">
                 {session?.user ? (
                   <div className="w-full h-full rounded-full bg-[#E85D2A] flex items-center justify-center text-white text-3xl md:text-4xl font-bold">
                     {session.user.name?.[0]?.toUpperCase() ?? "?"}
@@ -460,7 +460,7 @@ export default function ProfilePage() {
                 )}
               </div>
             )}
-            <button className="absolute bottom-0 right-0 bg-[#0E1116] dark:bg-white text-white dark:text-[#0E1116] p-2.5 rounded-full shadow-md border-2 border-white dark:border-[#0f0f1a] hover:scale-105 transition-transform cursor-pointer">
+            <button className="absolute bottom-0 right-0 bg-[#0E1116] dark:bg-white text-white dark:text-[#0E1116] p-2.5 rounded-full shadow-md border-2 border-white dark:border-[#0E1116] hover:scale-105 transition-transform cursor-pointer">
               <EditIcon size={16} />
             </button>
           </div>
@@ -518,7 +518,7 @@ export default function ProfilePage() {
             <div className="mt-8 w-full max-w-sm mx-auto md:mx-0">
               <button
                 onClick={() => signIn("google")}
-                className="flex items-center justify-center gap-3 w-full py-3.5 rounded-2xl bg-white dark:bg-[#1a1a2e] border border-gray-200 dark:border-white/10 font-semibold text-sm text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#22223b] transition-colors cursor-pointer shadow-sm"
+                className="flex items-center justify-center gap-3 w-full py-3.5 rounded-2xl bg-white dark:bg-[#161B22] border border-gray-200 dark:border-white/10 font-semibold text-sm text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#1C2128] transition-colors cursor-pointer shadow-sm"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />

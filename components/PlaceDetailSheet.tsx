@@ -49,7 +49,7 @@ export default function PlaceDetailSheet({
       />
 
       <motion.div
-        className="fixed inset-x-0 bottom-0 z-[60] bg-white dark:bg-[#1a1a2e] rounded-t-3xl overflow-hidden flex flex-col"
+        className="fixed inset-x-0 bottom-0 z-[60] bg-white dark:bg-[#161B22] rounded-t-3xl overflow-hidden flex flex-col"
         style={{ height: "85dvh" }}
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
@@ -68,7 +68,7 @@ export default function PlaceDetailSheet({
 
         <div className="flex-1 overflow-y-auto">
           {/* Photo */}
-          <div className={`h-48 relative ${!photoUrl ? `bg-gradient-to-br ${fallbackGradient}` : "bg-gray-200 dark:bg-[#22223b]"}`}>
+          <div className={`h-48 relative ${!photoUrl ? `bg-gradient-to-br ${fallbackGradient}` : "bg-gray-200 dark:bg-[#1C2128]"}`}>
             {photoUrl && (
               <Image
                 src={photoUrl}
@@ -78,7 +78,7 @@ export default function PlaceDetailSheet({
                 unoptimized
               />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#1a1a2e] via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#161B22] via-transparent to-transparent" />
           </div>
 
           <div className="px-5 -mt-6 relative">
@@ -155,19 +155,19 @@ export default function PlaceDetailSheet({
             <div className="mt-6">
               <h3 className="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Details</h3>
               <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#22223b]">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#1C2128]">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 10v3a1 1 0 0 0 1 1h3" /><path d="M8 14h0" /><path d="m6 6 1.5 1.5" /><path d="M2 2v2" /></svg>
                   <div><p className="text-xs text-gray-400 dark:text-gray-500 font-medium">Noise Level</p><p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">Quiet</p></div>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#22223b]">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#1C2128]">
                   <span className="w-2.5 h-2.5 rounded-full bg-green-500 shrink-0 ml-0.5" />
                   <div><p className="text-xs text-gray-400 dark:text-gray-500 font-medium">Busyness</p><p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">Not Busy</p></div>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#22223b]">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#1C2128]">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22v-5" /><path d="M9 8V2" /><path d="M15 8V2" /><path d="M18 8v5a6 6 0 0 1-6 6a6 6 0 0 1-6-6V8Z" /></svg>
                   <div><p className="text-xs text-gray-400 dark:text-gray-500 font-medium">Outlets</p><p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">Plenty</p></div>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#22223b]">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#1C2128]">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3" /><path d="M3 16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V11a2 2 0 0 0-4 0Z" /><path d="M5 18v2" /><path d="M19 18v2" /></svg>
                   <div><p className="text-xs text-gray-400 dark:text-gray-500 font-medium">Seating</p><p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">Long Stay</p></div>
                 </div>
@@ -175,7 +175,7 @@ export default function PlaceDetailSheet({
             </div>
 
             {/* Hours */}
-            <div className="mt-6 flex items-center gap-2.5 p-3.5 rounded-xl bg-gray-50 dark:bg-[#22223b]">
+            <div className="mt-6 flex items-center gap-2.5 p-3.5 rounded-xl bg-gray-50 dark:bg-[#1C2128]">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
               <div>
                 <p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">

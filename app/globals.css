@@ -13,12 +13,12 @@
 }
 
 .dark {
-  --background: #0f0f1a;
+  --background: #0E1116;
   --foreground: #e8edf4;
   --color-navy: #e8edf4;
-  --color-surface-card: #22223b;
+  --color-surface-card: #1C2128;
   --color-surface-raised: #2d2d44;
-  --color-btn-bg: #1a1a2e;
+  --color-btn-bg: #161B22;
   --color-btn-border: rgba(255, 255, 255, 0.12);
 }
 

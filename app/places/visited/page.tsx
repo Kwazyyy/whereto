@@ -1,6 +1,6 @@
 export default function VisitedPage() {
     return (
-        <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] flex flex-col items-center justify-center p-5 text-center">
+        <div className="min-h-dvh bg-white dark:bg-[#0E1116] flex flex-col items-center justify-center p-5 text-center">
             <div className="w-16 h-16 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
@@ -14,7 +14,7 @@ export default function VisitedPage() {
 
             <a
                 href="/profile"
-                className="px-6 py-3 rounded-full bg-gray-100 dark:bg-[#1a1a2e] text-[#0E1116] dark:text-[#e8edf4] font-medium hover:bg-gray-200 dark:hover:bg-[#22223b] transition-colors"
+                className="px-6 py-3 rounded-full bg-gray-100 dark:bg-[#161B22] text-[#0E1116] dark:text-[#e8edf4] font-medium hover:bg-gray-200 dark:hover:bg-[#1C2128] transition-colors"
             >
                 Back to Profile
             </a>

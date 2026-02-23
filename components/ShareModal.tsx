@@ -90,7 +90,7 @@ export function ShareModal({
             onClick={onClose}
         >
             <motion.div
-                className="w-full max-w-lg bg-white dark:bg-[#1a1a2e] rounded-t-3xl overflow-hidden"
+                className="w-full max-w-lg bg-white dark:bg-[#161B22] rounded-t-3xl overflow-hidden"
                 initial={{ y: "100%" }}
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
@@ -117,7 +117,7 @@ export function ShareModal({
                             <div className="flex flex-col gap-3">
                                 <button
                                     onClick={handleCopyLink}
-                                    className="flex items-center gap-4 w-full px-4 py-4 rounded-2xl bg-gray-50 dark:bg-[#22223b] hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-left"
+                                    className="flex items-center gap-4 w-full px-4 py-4 rounded-2xl bg-gray-50 dark:bg-[#1C2128] hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-left"
                                 >
                                     <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-white/15 flex items-center justify-center shrink-0">
                                         {copySuccess ? (
@@ -180,7 +180,7 @@ export function ShareModal({
                             {friendsLoading ? (
                                 <div className="flex flex-col gap-2.5">
                                     {[1, 2, 3].map((i) => (
-                                        <div key={i} className="flex items-center gap-3 px-3 py-3 rounded-2xl animate-pulse bg-gray-50 dark:bg-[#22223b]">
+                                        <div key={i} className="flex items-center gap-3 px-3 py-3 rounded-2xl animate-pulse bg-gray-50 dark:bg-[#1C2128]">
                                             <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-white/10 shrink-0" />
                                             <div className="w-32 h-4 bg-gray-200 dark:bg-white/10 rounded" />
                                         </div>
@@ -196,7 +196,7 @@ export function ShareModal({
                                         <button
                                             key={f.userId}
                                             onClick={() => pickFriend(f)}
-                                            className="flex items-center gap-3 px-3 py-3 rounded-2xl bg-gray-50 dark:bg-[#22223b] hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-left w-full"
+                                            className="flex items-center gap-3 px-3 py-3 rounded-2xl bg-gray-50 dark:bg-[#1C2128] hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-left w-full"
                                         >
                                             {f.image ? (
                                                 <Image src={f.image} alt={f.name ?? ""} width={40} height={40} className="rounded-full shrink-0 object-cover" unoptimized />
@@ -235,7 +235,7 @@ export function ShareModal({
                                 <h2 className="text-base font-bold text-[#0E1116] dark:text-[#e8edf4]">Adding a note</h2>
                             </div>
 
-                            <div className="flex items-center gap-2.5 mb-4 p-3 rounded-2xl bg-gray-50 dark:bg-[#22223b]">
+                            <div className="flex items-center gap-2.5 mb-4 p-3 rounded-2xl bg-gray-50 dark:bg-[#1C2128]">
                                 {selectedFriend.image ? (
                                     <Image src={selectedFriend.image} alt={selectedFriend.name ?? ""} width={36} height={36} className="rounded-full object-cover shrink-0" unoptimized />
                                 ) : (
@@ -253,7 +253,7 @@ export function ShareModal({
                                 onChange={(e) => setNote(e.target.value.slice(0, 120))}
                                 placeholder="You'd love this place! (optional)"
                                 rows={3}
-                                className="w-full px-4 py-3 rounded-2xl bg-gray-50 dark:bg-[#22223b] text-sm text-[#0E1116] dark:text-[#e8edf4] placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none border-2 border-transparent focus:border-[#E85D2A] transition-colors resize-none mb-1"
+                                className="w-full px-4 py-3 rounded-2xl bg-gray-50 dark:bg-[#1C2128] text-sm text-[#0E1116] dark:text-[#e8edf4] placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none border-2 border-transparent focus:border-[#E85D2A] transition-colors resize-none mb-1"
                             />
                             <p className="text-[10px] text-gray-400 dark:text-gray-500 text-right mb-4">{note.length}/120</p>
 

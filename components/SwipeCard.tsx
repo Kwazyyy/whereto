@@ -300,7 +300,7 @@ export function SwipeCard({
 
                 {/* ===================== BACK FACE ===================== */}
                 <div
-                    className={`absolute inset-0 rounded-3xl overflow-hidden shadow-2xl bg-white dark:bg-[#1a1a2e] flex flex-col transition-opacity duration-300 ${isFlipped ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+                    className={`absolute inset-0 rounded-3xl overflow-hidden shadow-2xl bg-white dark:bg-[#161B22] flex flex-col transition-opacity duration-300 ${isFlipped ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
                         }`}
                     style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
                 >
@@ -377,14 +377,14 @@ export function SwipeCard({
                             >
                                 {place.photoRefs && place.photoRefs.length > 0 ? (
                                     place.photoRefs.map((ref, idx) => (
-                                        <div key={idx} className="w-full shrink-0 snap-center h-full relative bg-gray-200 dark:bg-[#22223b]">
+                                        <div key={idx} className="w-full shrink-0 snap-center h-full relative bg-gray-200 dark:bg-[#1C2128]">
                                             <CardPhoto photoRef={ref} gradient={fallbackGradient} />
                                         </div>
                                     ))
                                 ) : (
                                     <div className={`absolute inset-0 bg-gradient-to-br ${fallbackGradient}`} />
                                 )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#1a1a2e] via-transparent to-transparent pointer-events-none" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#161B22] via-transparent to-transparent pointer-events-none" />
                             </div>
 
                             {/* Dot Indicators */}
@@ -477,19 +477,19 @@ export function SwipeCard({
                             <div className="mt-6">
                                 <h3 className="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Details</h3>
                                 <div className="grid grid-cols-2 gap-3">
-                                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#22223b]">
+                                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#1C2128]">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 10v3a1 1 0 0 0 1 1h3" /><path d="M8 14h0" /><path d="m6 6 1.5 1.5" /><path d="M2 2v2" /></svg>
                                         <div><p className="text-xs text-gray-400 dark:text-gray-500 font-medium">Noise Level</p><p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">Quiet</p></div>
                                     </div>
-                                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#22223b]">
+                                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#1C2128]">
                                         <span className="w-2.5 h-2.5 rounded-full bg-green-500 shrink-0 ml-0.5" />
                                         <div><p className="text-xs text-gray-400 dark:text-gray-500 font-medium">Busyness</p><p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">Not Busy</p></div>
                                     </div>
-                                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#22223b]">
+                                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#1C2128]">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22v-5" /><path d="M9 8V2" /><path d="M15 8V2" /><path d="M18 8v5a6 6 0 0 1-6 6a6 6 0 0 1-6-6V8Z" /></svg>
                                         <div><p className="text-xs text-gray-400 dark:text-gray-500 font-medium">Outlets</p><p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">Plenty</p></div>
                                     </div>
-                                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#22223b]">
+                                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#1C2128]">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3" /><path d="M3 16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V11a2 2 0 0 0-4 0Z" /><path d="M5 18v2" /><path d="M19 18v2" /></svg>
                                         <div><p className="text-xs text-gray-400 dark:text-gray-500 font-medium">Seating</p><p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">Long Stay</p></div>
                                     </div>
@@ -497,7 +497,7 @@ export function SwipeCard({
                             </div>
 
                             {/* Hours */}
-                            <div className="mt-6 flex items-center gap-2.5 p-3.5 rounded-xl bg-gray-50 dark:bg-[#22223b]">
+                            <div className="mt-6 flex items-center gap-2.5 p-3.5 rounded-xl bg-gray-50 dark:bg-[#1C2128]">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
                                 <div>
                                     <p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">
