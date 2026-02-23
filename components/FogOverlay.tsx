@@ -24,13 +24,9 @@ function cellHash(gx: number, gy: number): number {
 
 /**
  * Returns reveal radius for a visited location based on nearest-neighbour density.
- * Dense areas (closest neighbour < 1 km) → 200 m to avoid over-revealing downtown.
- * Spread-out areas → 400 m for a larger reveal.
+ * Dense areas (closest neighbour < 1 km) → 200 m; spread-out → 400 m.
  */
-function computeRevealRadius(
-    loc: VisitedLocation,
-    all: VisitedLocation[]
-): number {
+function computeRevealRadius(loc: VisitedLocation, all: VisitedLocation[]): number {
     if (all.length <= 1) return 400;
     const coslat = Math.cos(loc.lat * (Math.PI / 180));
     let minDist = Infinity;
@@ -52,7 +48,9 @@ export default function FogOverlay({
     isDark = false,
 }: FogOverlayProps) {
     const map = useMap();
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+    // Canvas is created imperatively and injected into Google Maps' mapPane
+    // so it sits below the markerLayer in the Maps internal z-index stack.
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const animatingRef = useRef<Map<string, number>>(new Map());
     const [, forceUpdate] = useState(0);
     const rafRef = useRef<number | null>(null);
@@ -108,6 +106,7 @@ export default function FogOverlay({
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
         const { width, height } = canvas;
+        if (width === 0 || height === 0) return;
 
         ctx.clearRect(0, 0, width, height);
 
@@ -124,7 +123,7 @@ export default function FogOverlay({
             const sw = bounds.getSouthWest();
             const midLat = (ne.lat() + sw.lat()) / 2;
 
-            const GRID = 0.027; // ≈ 2.7 km grid
+            const GRID = 0.027;
             const minGx = Math.floor(sw.lng() / GRID) - 1;
             const maxGx = Math.ceil(ne.lng() / GRID) + 1;
             const minGy = Math.floor(sw.lat() / GRID) - 1;
@@ -135,11 +134,9 @@ export default function FogOverlay({
                     const h = cellHash(gx, gy);
                     const lat = gy * GRID + GRID * 0.5 + ((h % 60) - 30) * GRID / 60;
                     const lng = gx * GRID + GRID * 0.5 + ((h * 7 % 60) - 30) * GRID / 60;
-
                     const radiusMeters = GRID * 111000 * (1.3 + (h % 60) / 100);
                     const radiusPx = metersToPixels(radiusMeters, midLat);
                     if (radiusPx <= 2) continue;
-
                     const pixel = latLngToPixel(lat, lng);
                     if (!pixel) continue;
                     if (pixel.x + radiusPx < 0 || pixel.x - radiusPx > width) continue;
@@ -149,15 +146,12 @@ export default function FogOverlay({
                     const opacity = isPuffDark
                         ? 0.12 + (h % 20) / 100
                         : 0.04 + (h % 18) / 220;
-
                     const grad = ctx.createRadialGradient(pixel.x, pixel.y, 0, pixel.x, pixel.y, radiusPx);
                     if (isPuffDark) {
-                        // Shadow puff: darker than base fog
                         const c = isDark ? "5, 8, 14" : "90, 95, 110";
                         grad.addColorStop(0, `rgba(${c}, ${opacity})`);
                         grad.addColorStop(1, `rgba(${c}, 0)`);
                     } else {
-                        // Highlight puff: lighter than base fog
                         const c = isDark ? "22, 28, 40" : "215, 220, 232";
                         grad.addColorStop(0, `rgba(${c}, ${opacity})`);
                         grad.addColorStop(1, `rgba(${c}, 0)`);
@@ -176,15 +170,14 @@ export default function FogOverlay({
             if (pixel) {
                 const radius = metersToPixels(300, userLocation.lat);
                 if (radius >= 1) {
-                    // Soft blue-white glow to distinguish from visited orange glow
                     const glowGrad = ctx.createRadialGradient(
                         pixel.x, pixel.y, radius * 0.6,
                         pixel.x, pixel.y, radius * 1.5
                     );
-                    glowGrad.addColorStop(0,   "rgba(100, 160, 255, 0)");
-                    glowGrad.addColorStop(0.3,  "rgba(100, 160, 255, 0.45)");
-                    glowGrad.addColorStop(0.7,  "rgba(100, 160, 255, 0.18)");
-                    glowGrad.addColorStop(1,    "rgba(100, 160, 255, 0)");
+                    glowGrad.addColorStop(0, "rgba(100, 160, 255, 0)");
+                    glowGrad.addColorStop(0.3, "rgba(100, 160, 255, 0.45)");
+                    glowGrad.addColorStop(0.7, "rgba(100, 160, 255, 0.18)");
+                    glowGrad.addColorStop(1, "rgba(100, 160, 255, 0)");
                     ctx.fillStyle = glowGrad;
                     ctx.beginPath();
                     ctx.arc(pixel.x, pixel.y, radius * 1.5, 0, Math.PI * 2);
@@ -192,9 +185,9 @@ export default function FogOverlay({
 
                     ctx.globalCompositeOperation = "destination-out";
                     const holeGrad = ctx.createRadialGradient(pixel.x, pixel.y, 0, pixel.x, pixel.y, radius);
-                    holeGrad.addColorStop(0,    "rgba(0,0,0,1)");
+                    holeGrad.addColorStop(0, "rgba(0,0,0,1)");
                     holeGrad.addColorStop(0.72, "rgba(0,0,0,1)");
-                    holeGrad.addColorStop(1,    "rgba(0,0,0,0)");
+                    holeGrad.addColorStop(1, "rgba(0,0,0,0)");
                     ctx.fillStyle = holeGrad;
                     ctx.beginPath();
                     ctx.arc(pixel.x, pixel.y, radius, 0, Math.PI * 2);
@@ -222,15 +215,14 @@ export default function FogOverlay({
             }
             if (radius < 1) continue;
 
-            // Orange glow halo
             const glowGrad = ctx.createRadialGradient(
                 pixel.x, pixel.y, radius * 0.6,
                 pixel.x, pixel.y, radius * 1.55
             );
-            glowGrad.addColorStop(0,   "rgba(232, 93, 42, 0)");
+            glowGrad.addColorStop(0, "rgba(232, 93, 42, 0)");
             glowGrad.addColorStop(0.3, "rgba(232, 93, 42, 0.55)");
             glowGrad.addColorStop(0.6, "rgba(232, 93, 42, 0.28)");
-            glowGrad.addColorStop(1,   "rgba(232, 93, 42, 0)");
+            glowGrad.addColorStop(1, "rgba(232, 93, 42, 0)");
             ctx.fillStyle = glowGrad;
             ctx.beginPath();
             ctx.arc(pixel.x, pixel.y, radius * 1.55, 0, Math.PI * 2);
@@ -238,9 +230,9 @@ export default function FogOverlay({
 
             ctx.globalCompositeOperation = "destination-out";
             const holeGrad = ctx.createRadialGradient(pixel.x, pixel.y, 0, pixel.x, pixel.y, radius);
-            holeGrad.addColorStop(0,    "rgba(0,0,0,1)");
+            holeGrad.addColorStop(0, "rgba(0,0,0,1)");
             holeGrad.addColorStop(0.75, "rgba(0,0,0,1)");
-            holeGrad.addColorStop(1,    "rgba(0,0,0,0)");
+            holeGrad.addColorStop(1, "rgba(0,0,0,0)");
             ctx.fillStyle = holeGrad;
             ctx.beginPath();
             ctx.arc(pixel.x, pixel.y, radius, 0, Math.PI * 2);
@@ -248,27 +240,93 @@ export default function FogOverlay({
             ctx.globalCompositeOperation = "source-over";
         }
 
-        // ── 5. Marker pin holes — fully clear so pins show vibrant colors ─
+        // ── 5. Marker pin holes — screen-space radius so pins are always fully clear
+        // The teardrop pin SVG is 36×46 px, anchored at its bottom tip.
+        // We use a pixel-space hole (not meter-based) so it stays the right size
+        // at all zoom levels.  Center is shifted up by ~pinOffsetY to cover the body.
         if (markerLocations && markerLocations.length > 0) {
+            const dpr = window.devicePixelRatio || 1;
+            const pinHoleR = 30 * dpr;   // 30 CSS-px radius covers the full teardrop
+            const pinOffsetY = 18 * dpr; // shift centre above anchor (tip of teardrop)
             ctx.globalCompositeOperation = "destination-out";
             for (const loc of markerLocations) {
                 const pixel = latLngToPixel(loc.lat, loc.lng);
                 if (!pixel) continue;
-                const radius = metersToPixels(160, loc.lat);
-                if (radius < 1) continue;
-
-                const grad = ctx.createRadialGradient(pixel.x, pixel.y, 0, pixel.x, pixel.y, radius);
-                grad.addColorStop(0,    "rgba(0,0,0,1)");
-                grad.addColorStop(0.65, "rgba(0,0,0,1)");
-                grad.addColorStop(1,    "rgba(0,0,0,0)");
+                const cx = pixel.x;
+                const cy = pixel.y - pinOffsetY;
+                const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, pinHoleR);
+                grad.addColorStop(0, "rgba(0,0,0,1)");
+                grad.addColorStop(0.7, "rgba(0,0,0,1)");
+                grad.addColorStop(1, "rgba(0,0,0,0)");
                 ctx.fillStyle = grad;
                 ctx.beginPath();
-                ctx.arc(pixel.x, pixel.y, radius, 0, Math.PI * 2);
+                ctx.arc(cx, cy, pinHoleR, 0, Math.PI * 2);
                 ctx.fill();
             }
             ctx.globalCompositeOperation = "source-over";
         }
     }, [map, visitedLocations, userLocation, markerLocations, enabled, isDark, latLngToPixel, metersToPixels]);
+
+    // Always keep a ref to the latest drawFog so the OverlayView closure never goes stale
+    const drawFogRef = useRef(drawFog);
+    useEffect(() => { drawFogRef.current = drawFog; }, [drawFog]);
+
+    // ── Mount canvas inside Google Maps' mapPane via OverlayView ─────────
+    // mapPane sits below markerLayer in the Maps internal z-index stack,
+    // so markers always render on top of the fog canvas automatically.
+    useEffect(() => {
+        if (!map || !enabled) return;
+
+        const canvas = document.createElement("canvas");
+        canvas.style.position = "absolute";
+        canvas.style.inset = "0";
+        canvas.style.pointerEvents = "none";
+        canvasRef.current = canvas;
+
+        const overlay = new google.maps.OverlayView();
+
+        overlay.onAdd = function () {
+            const pane = this.getPanes()?.mapPane;
+            if (pane) pane.appendChild(canvas);
+        };
+
+        // Called by Google Maps after pan/zoom (but NOT during drag)
+        overlay.draw = function () {
+            const pane = this.getPanes()?.mapPane;
+            if (pane) {
+                const dpr = window.devicePixelRatio || 1;
+                const w = pane.clientWidth;
+                const h = pane.clientHeight;
+                if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
+                    canvas.width = w * dpr;
+                    canvas.height = h * dpr;
+                    canvas.style.width = `${w}px`;
+                    canvas.style.height = `${h}px`;
+                }
+            }
+            drawFogRef.current();
+        };
+
+        overlay.onRemove = function () {
+            canvas.remove();
+            canvasRef.current = null;
+        };
+
+        overlay.setMap(map);
+
+        // overlay.draw() is not called during drag; add a drag listener for smoothness
+        const dragListener = map.addListener("drag", () => drawFogRef.current());
+
+        return () => {
+            google.maps.event.removeListener(dragListener);
+            overlay.setMap(null);
+        };
+    }, [map, enabled]);
+
+    // Redraw whenever fog data (locations, theme) changes
+    useEffect(() => {
+        drawFog();
+    }, [drawFog]);
 
     // Animation loop for new reveals
     useEffect(() => {
@@ -308,49 +366,6 @@ export default function FogOverlay({
         };
     }, [visitedLocations, enabled, drawFog]);
 
-    // Redraw on map pan / zoom
-    useEffect(() => {
-        if (!map || !enabled) return;
-        const listeners = [
-            map.addListener("idle", drawFog),
-            map.addListener("zoom_changed", drawFog),
-            map.addListener("drag", drawFog),
-            map.addListener("bounds_changed", drawFog),
-        ];
-        drawFog();
-        return () => listeners.forEach((l) => google.maps.event.removeListener(l));
-    }, [map, enabled, drawFog]);
-
-    // Resize canvas
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const observer = new ResizeObserver(() => {
-            const parent = canvas.parentElement;
-            if (!parent) return;
-            const dpr = window.devicePixelRatio || 1;
-            canvas.width = parent.clientWidth * dpr;
-            canvas.height = parent.clientHeight * dpr;
-            canvas.style.width = `${parent.clientWidth}px`;
-            canvas.style.height = `${parent.clientHeight}px`;
-            drawFog();
-        });
-        const parent = canvas.parentElement;
-        if (parent) observer.observe(parent);
-        return () => observer.disconnect();
-    }, [drawFog]);
-
-    if (!enabled) return null;
-
-    return (
-        <canvas
-            ref={canvasRef}
-            style={{
-                position: "absolute",
-                inset: 0,
-                zIndex: 5,
-                pointerEvents: "none",
-            }}
-        />
-    );
+    // Canvas is managed imperatively — nothing to render in the React tree
+    return null;
 }
