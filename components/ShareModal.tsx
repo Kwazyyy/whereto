@@ -111,7 +111,7 @@ export function ShareModal({
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.15 }}
                         >
-                            <h2 className="text-lg font-bold text-[#2D2D2D] dark:text-[#e8edf4] mb-1">{place.name}</h2>
+                            <h2 className="text-lg font-bold text-[#0E1116] dark:text-[#e8edf4] mb-1">{place.name}</h2>
                             <p className="text-sm text-gray-400 dark:text-gray-500 mb-5">Share this place</p>
 
                             <div className="flex flex-col gap-3">
@@ -131,7 +131,7 @@ export function ShareModal({
                                         )}
                                     </div>
                                     <div>
-                                        <p className="font-semibold text-sm text-[#2D2D2D] dark:text-[#e8edf4]">
+                                        <p className="font-semibold text-sm text-[#0E1116] dark:text-[#e8edf4]">
                                             {copySuccess ? "Link copied!" : "Copy Link"}
                                         </p>
                                         <p className="text-xs text-gray-400 dark:text-gray-500">Share with anyone</p>
@@ -148,7 +148,7 @@ export function ShareModal({
                                         </svg>
                                     </div>
                                     <div>
-                                        <p className="font-semibold text-sm text-[#2D2D2D] dark:text-[#e8edf4]">Send to a Friend</p>
+                                        <p className="font-semibold text-sm text-[#0E1116] dark:text-[#e8edf4]">Send to a Friend</p>
                                         <p className="text-xs text-gray-400 dark:text-gray-500">Add a personal note</p>
                                     </div>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="ml-auto shrink-0">
@@ -174,7 +174,7 @@ export function ShareModal({
                                 <button onClick={() => setScreen("menu")} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
                                 </button>
-                                <h2 className="text-base font-bold text-[#2D2D2D] dark:text-[#e8edf4]">Send to a Friend</h2>
+                                <h2 className="text-base font-bold text-[#0E1116] dark:text-[#e8edf4]">Send to a Friend</h2>
                             </div>
 
                             {friendsLoading ? (
@@ -206,7 +206,7 @@ export function ShareModal({
                                                 </div>
                                             )}
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-semibold text-[#2D2D2D] dark:text-[#e8edf4] truncate">{f.name ?? f.email}</p>
+                                                <p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4] truncate">{f.name ?? f.email}</p>
                                                 {f.name && <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{f.email}</p>}
                                             </div>
                                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
@@ -232,7 +232,7 @@ export function ShareModal({
                                 <button onClick={() => setScreen("pick_friend")} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
                                 </button>
-                                <h2 className="text-base font-bold text-[#2D2D2D] dark:text-[#e8edf4]">Adding a note</h2>
+                                <h2 className="text-base font-bold text-[#0E1116] dark:text-[#e8edf4]">Adding a note</h2>
                             </div>
 
                             <div className="flex items-center gap-2.5 mb-4 p-3 rounded-2xl bg-gray-50 dark:bg-[#22223b]">
@@ -243,7 +243,7 @@ export function ShareModal({
                                         {selectedFriend.name?.[0]?.toUpperCase() ?? "?"}
                                     </div>
                                 )}
-                                <p className="text-sm font-semibold text-[#2D2D2D] dark:text-[#e8edf4]">
+                                <p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">
                                     Sending <span className="text-[#E85D2A]">{place.name}</span> to {selectedFriend.name?.split(" ")[0] ?? selectedFriend.email}
                                 </p>
                             </div>
@@ -253,7 +253,7 @@ export function ShareModal({
                                 onChange={(e) => setNote(e.target.value.slice(0, 120))}
                                 placeholder="You'd love this place! (optional)"
                                 rows={3}
-                                className="w-full px-4 py-3 rounded-2xl bg-gray-50 dark:bg-[#22223b] text-sm text-[#2D2D2D] dark:text-[#e8edf4] placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none border-2 border-transparent focus:border-[#E85D2A] transition-colors resize-none mb-1"
+                                className="w-full px-4 py-3 rounded-2xl bg-gray-50 dark:bg-[#22223b] text-sm text-[#0E1116] dark:text-[#e8edf4] placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none border-2 border-transparent focus:border-[#E85D2A] transition-colors resize-none mb-1"
                             />
                             <p className="text-[10px] text-gray-400 dark:text-gray-500 text-right mb-4">{note.length}/120</p>
 
@@ -280,9 +280,9 @@ export function ShareModal({
                             <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-4 text-3xl">
                                 ✅
                             </div>
-                            <p className="text-lg font-bold text-[#2D2D2D] dark:text-[#e8edf4] mb-1">Sent!</p>
+                            <p className="text-lg font-bold text-[#0E1116] dark:text-[#e8edf4] mb-1">Sent!</p>
                             <p className="text-sm text-gray-400 dark:text-gray-500">
-                                {selectedFriend?.name?.split(" ")[0] ?? "Your friend"} will see <span className="font-semibold text-[#2D2D2D] dark:text-[#e8edf4]">{place.name}</span> next time they open the app.
+                                {selectedFriend?.name?.split(" ")[0] ?? "Your friend"} will see <span className="font-semibold text-[#0E1116] dark:text-[#e8edf4]">{place.name}</span> next time they open the app.
                             </p>
                             <button
                                 onClick={onClose}

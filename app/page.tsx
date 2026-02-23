@@ -392,7 +392,7 @@ export default function Home() {
                 transition-colors duration-200 cursor-pointer whitespace-nowrap
                 ${intent === cat.id
                   ? "bg-[#E85D2A] text-white shadow-sm"
-                  : "bg-gray-100 dark:bg-white/10 text-[#2D2D2D] dark:text-[#e8edf4] hover:bg-gray-200 dark:hover:bg-white/15"
+                  : "bg-gray-100 dark:bg-white/10 text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-200 dark:hover:bg-white/15"
                 }
               `}
             >
@@ -429,7 +429,7 @@ export default function Home() {
           <div className="w-24 h-24 rounded-full bg-gray-50 dark:bg-[#1a1a2e] flex items-center justify-center text-5xl mb-2 shadow-inner border border-gray-100 dark:border-white/5">
             💸
           </div>
-          <h2 className="text-2xl font-bold text-[#2D2D2D] dark:text-[#e8edf4]">
+          <h2 className="text-2xl font-bold text-[#0E1116] dark:text-[#e8edf4]">
             No places at this price
           </h2>
           <p className="text-gray-500 dark:text-gray-400 text-sm max-w-[260px] leading-relaxed">
@@ -451,7 +451,7 @@ export default function Home() {
           <div className="w-24 h-24 rounded-full bg-gray-50 dark:bg-[#1a1a2e] flex items-center justify-center text-5xl mb-2 shadow-inner border border-gray-100 dark:border-white/5">
             {places.length === 0 ? "🗺️" : "✨"}
           </div>
-          <h2 className="text-2xl font-bold text-[#2D2D2D] dark:text-[#e8edf4]">
+          <h2 className="text-2xl font-bold text-[#0E1116] dark:text-[#e8edf4]">
             {places.length === 0 ? "Nothing nearby" : "You're all caught up!"}
           </h2>
           <p className="text-gray-500 dark:text-gray-400 text-sm max-w-[260px] leading-relaxed">

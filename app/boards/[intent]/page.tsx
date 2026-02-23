@@ -87,7 +87,7 @@ function PlaceListItem({ place, onTap, isRecs }: { place: SavedPlace; onTap: () 
                 )}
             </div>
             <div className="p-3 flex flex-col justify-center flex-1 min-w-0">
-                <h3 className="font-bold text-[#2D2D2D] dark:text-[#e8edf4] text-base leading-tight line-clamp-1">{place.name}</h3>
+                <h3 className="font-bold text-[#0E1116] dark:text-[#e8edf4] text-base leading-tight line-clamp-1">{place.name}</h3>
                 <p className="text-sm text-gray-500 line-clamp-1 mt-0.5">{place.address}</p>
 
                 <div className="flex items-center gap-3 mt-1.5">
@@ -195,13 +195,13 @@ export default function BoardDetailPage() {
             {/* Header */}
             <header className={`flex items-center px-5 pt-5 pb-4 sticky top-0 backdrop-blur-md z-10 border-b ${isRecs ? "bg-violet-50/90 dark:bg-violet-950/50 border-violet-200/50 dark:border-violet-900/40" : "bg-white/80 dark:bg-[#0f0f1a]/80 border-gray-100 dark:border-white/10"}`}>
                 <button onClick={() => router.back()} className="p-2 -ml-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer">
-                    <div className={isRecs ? "text-violet-700 dark:text-violet-400" : "text-[#2D2D2D] dark:text-[#e8edf4]"}>
+                    <div className={isRecs ? "text-violet-700 dark:text-violet-400" : "text-[#0E1116] dark:text-[#e8edf4]"}>
                         <ChevronLeftIcon size={24} />
                     </div>
                 </button>
                 <div className="flex items-center gap-2 ml-2 flex-1">
                     {isRecs && <span className="text-2xl">🎁</span>}
-                    <h1 className={`text-xl font-bold capitalize ${isRecs ? "text-violet-700 dark:text-violet-400" : "text-[#2D2D2D] dark:text-[#e8edf4]"}`}>
+                    <h1 className={`text-xl font-bold capitalize ${isRecs ? "text-violet-700 dark:text-violet-400" : "text-[#0E1116] dark:text-[#e8edf4]"}`}>
                         {label}
                     </h1>
                 </div>
@@ -221,7 +221,7 @@ export default function BoardDetailPage() {
                         <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 text-4xl">
                             {isRecs ? "🎁" : "📍"}
                         </div>
-                        <h2 className="text-xl font-bold text-[#2D2D2D] dark:text-[#e8edf4] mb-2">
+                        <h2 className="text-xl font-bold text-[#0E1116] dark:text-[#e8edf4] mb-2">
                             {isRecs ? "No recs saved yet" : "No places found"}
                         </h2>
                         <p className="text-gray-500 dark:text-gray-400 max-w-sm text-sm">

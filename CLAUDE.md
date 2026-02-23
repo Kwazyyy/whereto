@@ -29,7 +29,7 @@ WhereTo is a swipe-based café and restaurant discovery app. Users select an int
 ## Design Direction
 - Clean, modern, minimal UI
 - Orange accent color (#E85D2A) as primary brand color
-- Dark navy (#2D2D2D) for text
+- Dark navy (#0E1116) for text
 - White/light backgrounds
 - Cards should be full-bleed photos with gradient overlays
 - Mobile-first — everything should look great on a phone screen
