@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Image from "next/image";
+import { AnimatePresence } from "framer-motion";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useSavePlace } from "@/lib/use-save-place";
+import PlaceDetailSheet from "@/components/PlaceDetailSheet";
 import type { CompatibilityResult, SharedPlace } from "@/lib/tasteScore";
 import type { Place } from "@/lib/types";
 
@@ -40,10 +42,24 @@ interface MissedRec {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
+const UNSEEN_ACTIVITY_KEY = "whereto_unseen_activity";
+
 function scoreBadgeClass(score: number): string {
   if (score >= 80) return "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400";
   if (score >= 50) return "bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-400";
   return "bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400";
+}
+
+function relativeTime(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return "Yesterday";
+  return `${days}d ago`;
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────
@@ -317,12 +333,14 @@ function AddFriendModal({
 
 export default function FriendsPage() {
   const { data: session, status } = useSession();
+  const [tab, setTab] = useState<"friends" | "activity">("friends");
   const [friends, setFriends] = useState<Friend[]>([]);
   const [incoming, setIncoming] = useState<FriendRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [addFriendOpen, setAddFriendOpen] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
+  const [hasUnseenActivity, setHasUnseenActivity] = useState(false);
 
   const fetchFriends = useCallback(async () => {
     try {
@@ -364,6 +382,26 @@ export default function FriendsPage() {
     if (status === "authenticated") fetchFriends();
     else if (status === "unauthenticated") setLoading(false);
   }, [status, fetchFriends]);
+
+  // Check for unseen activity badge
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    const stored = localStorage.getItem(UNSEEN_ACTIVITY_KEY);
+    if (stored) {
+      setHasUnseenActivity(true);
+    } else {
+      // Fetch to see if there is new activity
+      fetch("/api/activity")
+        .then(r => r.ok ? r.json() : [])
+        .then((data: ActivityItem[]) => {
+          if (Array.isArray(data) && data.length > 0) {
+            localStorage.setItem(UNSEEN_ACTIVITY_KEY, "1");
+            setHasUnseenActivity(true);
+          }
+        })
+        .catch(() => { });
+    }
+  }, [status]);
 
   async function handleRequest(friendshipId: string, action: "accept" | "decline") {
     await fetch("/api/friends", {
@@ -457,27 +495,60 @@ export default function FriendsPage() {
   return (
     <div className="min-h-dvh bg-white dark:bg-[#0f0f1a] pb-24">
       {/* Header */}
-      <header className="px-5 pt-5 pb-3 flex items-center justify-between">
+      <header className="px-5 pt-5 pb-0 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: "#E85D2A" }}>
           Friends
         </h1>
-        <button
-          onClick={() => setAddFriendOpen(true)}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold text-white cursor-pointer transition-opacity active:opacity-80"
-          style={{ backgroundColor: "#E85D2A" }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <line x1="19" y1="8" x2="19" y2="14" />
-            <line x1="22" y1="11" x2="16" y2="11" />
-          </svg>
-          Add Friend
-        </button>
+        {tab === "friends" && (
+          <button
+            onClick={() => setAddFriendOpen(true)}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold text-white cursor-pointer transition-opacity active:opacity-80"
+            style={{ backgroundColor: "#E85D2A" }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <line x1="19" y1="8" x2="19" y2="14" />
+              <line x1="22" y1="11" x2="16" y2="11" />
+            </svg>
+            Add Friend
+          </button>
+        )}
       </header>
 
-      {/* Empty state */}
-      {!hasContent ? (
+      {/* Tab switcher */}
+      <div className="flex gap-1 px-5 pt-4 pb-1">
+        <button
+          onClick={() => setTab("friends")}
+          className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer ${tab === "friends"
+            ? "bg-[#E85D2A] text-white shadow-sm"
+            : "bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/15"
+            }`}
+        >
+          Friends
+        </button>
+        <button
+          onClick={() => {
+            setTab("activity");
+            setHasUnseenActivity(false);
+            localStorage.removeItem(UNSEEN_ACTIVITY_KEY);
+          }}
+          className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer relative ${tab === "activity"
+            ? "bg-[#E85D2A] text-white shadow-sm"
+            : "bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/15"
+            }`}
+        >
+          Activity
+          {hasUnseenActivity && tab !== "activity" && (
+            <span className="absolute top-1.5 right-3 w-2 h-2 rounded-full bg-red-500" />
+          )}
+        </button>
+      </div>
+
+      {/* Tab content */}
+      {tab === "activity" ? (
+        <ActivityFeed />
+      ) : !hasContent ? (
         <div className="flex flex-col items-center justify-center px-8 pt-28 text-center gap-5">
           <div className="text-5xl">👫</div>
           <div>
@@ -642,7 +713,156 @@ export default function FriendsPage() {
   );
 }
 
+// ── Activity Feed ──────────────────────────────────────────────────────────
+
+interface ActivityItem {
+  id: string;
+  type: "save" | "recommendation";
+  actorName: string | null;
+  actorImage: string | null;
+  actorId: string;
+  place: Place & { photoRef?: string | null };
+  intent?: string;
+  note?: string | null;
+  createdAt: string;
+}
+
+function ActivityPlaceThumbnail({ photoRef }: { photoRef?: string | null }) {
+  const url = usePhotoUrl(photoRef ?? null);
+  return (
+    <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-[#22223b] relative">
+      {url ? (
+        <Image src={url} alt="" fill className="object-cover" unoptimized />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-lg">📍</div>
+      )}
+    </div>
+  );
+}
+
+const INTENT_EMOJI: Record<string, string> = {
+  study: "📚", date: "❤️", trending: "🔥", quiet: "🤫",
+  laptop: "💻", group: "👯", budget: "💰", coffee: "☕", outdoor: "🌅",
+};
+
+function ActivityFeed() {
+  const [items, setItems] = useState<ActivityItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [detailPlace, setDetailPlace] = useState<Place | null>(null);
+  const { handleSave } = useSavePlace();
+  const fetchedRef = useRef(false);
+
+  useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+    fetch("/api/activity")
+      .then(r => r.ok ? r.json() : [])
+      .then((data: ActivityItem[]) => {
+        setItems(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const FALLBACK_GRADIENTS = [
+    "from-amber-800 via-orange-700 to-yellow-600",
+    "from-slate-800 via-slate-600 to-cyan-700",
+    "from-purple-900 via-violet-700 to-fuchsia-600",
+    "from-green-800 via-emerald-700 to-teal-600",
+  ];
+
+  if (loading) {
+    return (
+      <div className="px-5 pt-5 space-y-3">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="flex items-center gap-3 animate-pulse">
+            <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-white/10 shrink-0" />
+            <div className="flex-1">
+              <div className="h-3.5 w-3/4 bg-gray-200 dark:bg-white/10 rounded mb-1.5" />
+              <div className="h-3 w-1/3 bg-gray-100 dark:bg-white/8 rounded" />
+            </div>
+            <div className="w-11 h-11 rounded-xl bg-gray-200 dark:bg-white/10" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center px-8 pt-24 text-center gap-4">
+        <div className="text-5xl">🌍</div>
+        <h2 className="text-lg font-bold text-[#1B2A4A] dark:text-[#e8edf4]">No activity yet</h2>
+        <p className="text-sm text-gray-400 dark:text-gray-500 max-w-xs">
+          Your friends haven&apos;t been exploring yet. Check back later!
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-5 pt-4">
+      <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a2e] overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
+        {items.map((item, idx) => {
+          const firstName = item.actorName?.split(" ")[0] ?? "A friend";
+          const emoji = item.intent ? (INTENT_EMOJI[item.intent] ?? "📍") : "💌";
+          const actionText = item.type === "save"
+            ? `${firstName} saved ${item.place.name} ${emoji}`
+            : `${firstName} recommended ${item.place.name} to you 💌`;
+
+          const gradient = FALLBACK_GRADIENTS[idx % FALLBACK_GRADIENTS.length];
+
+          return (
+            <button
+              key={item.id}
+              onClick={() => setDetailPlace(item.place)}
+              className="flex items-center gap-3 px-4 py-3.5 w-full text-left hover:bg-gray-100 dark:hover:bg-white/5 transition-colors active:bg-gray-100 dark:active:bg-white/5 cursor-pointer"
+            >
+              {/* Actor avatar */}
+              <div className="shrink-0">
+                <Avatar image={item.actorImage} name={item.actorName} size={36} />
+              </div>
+
+              {/* Text */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-[#1B2A4A] dark:text-[#e8edf4] leading-snug line-clamp-2">
+                  {actionText}
+                </p>
+                {item.note && (
+                  <p className="text-xs text-gray-400 dark:text-gray-500 italic line-clamp-1 mt-0.5">
+                    &ldquo;{item.note}&rdquo;
+                  </p>
+                )}
+                <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">
+                  {relativeTime(item.createdAt)}
+                </p>
+              </div>
+
+              {/* Place thumbnail */}
+              <ActivityPlaceThumbnail photoRef={item.place.photoRef} />
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Place detail sheet */}
+      <AnimatePresence>
+        {detailPlace && (
+          <PlaceDetailSheet
+            place={detailPlace}
+            fallbackGradient={FALLBACK_GRADIENTS[0]}
+            isSaved={false}
+            onClose={() => setDetailPlace(null)}
+            onSave={(action) => { handleSave(detailPlace, "trending", action); }}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ── Missed Recs Section ───────────────────────────────────────────────────
+
 
 function MissedRecCard({ rec, onSave }: { rec: MissedRec; onSave: (rec: MissedRec) => void }) {
   const photoUrl = usePhotoUrl(rec.place.photoRef);
