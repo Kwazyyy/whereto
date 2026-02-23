@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   APIProvider,
   Map,
@@ -461,6 +461,24 @@ export default function MapPage() {
       : 0
     ] ?? FALLBACK_GRADIENTS[0];
 
+  const markerLocations = useMemo(() => {
+    const seen = new Set<string>();
+    return [
+      ...savedPlaces.filter(p => p.intent === intent).map(p => p.location),
+      ...nearbyPlaces.map(p => p.location),
+    ].filter(loc => {
+      const k = `${loc.lat}_${loc.lng}`;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  }, [savedPlaces, nearbyPlaces, intent]);
+
+  const neighborhoods = useMemo(
+    () => new Set(visitedLocations.map(v => `${Math.floor(v.lat * 100)}_${Math.floor(v.lng * 100)}`)).size,
+    [visitedLocations]
+  );
+
   return (
     <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-16">
       {/* Intent chips */}
@@ -517,6 +535,8 @@ export default function MapPage() {
               />
               <FogOverlay
                 visitedLocations={visitedLocations}
+                userLocation={userLocation}
+                markerLocations={markerLocations}
                 enabled={fogEnabled && status === "authenticated"}
               />
               <RecenterButton userLocation={userLocation} />
@@ -557,35 +577,39 @@ export default function MapPage() {
           </div>
         )}
 
-        {/* Fog toggle button */}
+        {/* Fog toggle button — small circle near recenter */}
         {userLocation && status === "authenticated" && (
           <button
             onClick={() => setFogEnabled(f => !f)}
-            className={`absolute bottom-24 right-4 z-10 flex items-center gap-2 px-3.5 py-2.5 rounded-full shadow-md border transition-all cursor-pointer ${fogEnabled
-              ? "bg-[#0E1116] text-white border-[#0E1116] dark:bg-white dark:text-[#0E1116] dark:border-white"
-              : "bg-white/95 dark:bg-[#161B22]/95 text-[#0E1116] dark:text-[#e8edf4] border-gray-200 dark:border-white/10"
-              }`}
             title={fogEnabled ? "Hide fog" : "Show fog"}
+            style={{
+              position: "absolute",
+              bottom: 80,
+              right: 16,
+              zIndex: 10,
+              width: 48,
+              height: 48,
+              borderRadius: "50%",
+              background: fogEnabled ? "#0E1116" : "var(--color-btn-bg)",
+              border: `1px solid ${fogEnabled ? "#0E1116" : "var(--color-btn-border)"}`,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 20,
+              cursor: "pointer",
+            }}
           >
-            <span className="text-sm leading-none">{fogEnabled ? "🌫️" : "🗺️"}</span>
-            <span className="text-xs font-semibold">{fogEnabled ? "Fog" : "Clear"}</span>
+            {fogEnabled ? "🌫️" : "🗺️"}
           </button>
         )}
 
-        {/* Exploration stats panel */}
-        {userLocation && status === "authenticated" && visitedLocations.length > 0 && (
-          <div className="absolute bottom-24 left-4 z-10 bg-white/95 dark:bg-[#161B22]/95 backdrop-blur-sm rounded-xl px-3.5 py-3 shadow-md border border-gray-100 dark:border-white/10">
-            <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Explored</p>
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="text-lg font-bold text-[#0E1116] dark:text-[#e8edf4] leading-none">{visitedLocations.length}</span>
-              <span className="text-[11px] text-gray-500 dark:text-gray-400">places</span>
-            </div>
-            <div className="w-full h-1.5 rounded-full bg-gray-200 dark:bg-white/10 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-[#22C55E] transition-all duration-500"
-                style={{ width: `${Math.min((visitedLocations.length / Math.max(nearbyPlaces.length, 1)) * 100, 100)}%` }}
-              />
-            </div>
+        {/* Exploration stats pill */}
+        {userLocation && status === "authenticated" && visitedLocations.length > 0 && fogEnabled && (
+          <div className="absolute top-3 right-3 z-10 bg-black/70 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-md">
+            <p className="text-[11px] font-semibold text-white whitespace-nowrap">
+              {visitedLocations.length} {visitedLocations.length === 1 ? "place" : "places"} · {neighborhoods} {neighborhoods === 1 ? "area" : "areas"}
+            </p>
           </div>
         )}
       </div>

@@ -6,13 +6,14 @@ import { useMap } from "@vis.gl/react-google-maps";
 interface VisitedLocation {
     lat: number;
     lng: number;
-    isNew?: boolean; // triggers reveal animation
+    isNew?: boolean;
 }
 
 interface FogOverlayProps {
     visitedLocations: VisitedLocation[];
+    userLocation?: { lat: number; lng: number } | null;
+    markerLocations?: { lat: number; lng: number }[];
     enabled: boolean;
-    revealRadiusMeters?: number;
 }
 
 /** Deterministic hash for a grid cell — stable across renders */
@@ -21,15 +22,32 @@ function cellHash(gx: number, gy: number): number {
 }
 
 /**
- * Canvas overlay that renders a thick Civilization-style fog-of-war.
- * World-space cloud puffs move with the map on pan/zoom, giving a
- * realistic "clouds covering the map" look. Visited areas are cut as
- * clean circles with a warm orange glow at their edges.
+ * Returns reveal radius for a visited location based on nearest-neighbour density.
+ * Dense areas (closest neighbour < 1 km) → 200 m to avoid over-revealing downtown.
+ * Spread-out areas → 400 m for a larger reveal.
  */
+function computeRevealRadius(
+    loc: VisitedLocation,
+    all: VisitedLocation[]
+): number {
+    if (all.length <= 1) return 400;
+    const coslat = Math.cos(loc.lat * (Math.PI / 180));
+    let minDist = Infinity;
+    for (const other of all) {
+        if (other.lat === loc.lat && other.lng === loc.lng) continue;
+        const dlat = (loc.lat - other.lat) * 111000;
+        const dlng = (loc.lng - other.lng) * 111000 * coslat;
+        const d = Math.sqrt(dlat * dlat + dlng * dlng);
+        if (d < minDist) minDist = d;
+    }
+    return minDist < 1000 ? 200 : 400;
+}
+
 export default function FogOverlay({
     visitedLocations,
+    userLocation,
+    markerLocations,
     enabled,
-    revealRadiusMeters = 500,
 }: FogOverlayProps) {
     const map = useMap();
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -37,7 +55,6 @@ export default function FogOverlay({
     const [, forceUpdate] = useState(0);
     const rafRef = useRef<number | null>(null);
 
-    // Convert meters to pixels at the current zoom level
     const metersToPixels = useCallback(
         (meters: number, lat: number) => {
             if (!map) return 0;
@@ -50,7 +67,6 @@ export default function FogOverlay({
         [map]
     );
 
-    // Convert lat/lng to pixel position relative to map container
     const latLngToPixel = useCallback(
         (lat: number, lng: number) => {
             if (!map) return null;
@@ -93,20 +109,18 @@ export default function FogOverlay({
 
         ctx.clearRect(0, 0, width, height);
 
-        // ── 1. Dense base fog layer ──────────────────────────────────────
-        ctx.fillStyle = "rgba(185, 190, 210, 0.94)";
+        // ── 1. Base fog — lighter so markers remain readable ─────────────
+        ctx.fillStyle = "rgba(185, 190, 210, 0.78)";
         ctx.fillRect(0, 0, width, height);
 
         // ── 2. World-space cloud texture ─────────────────────────────────
-        // Puffs are positioned in world coordinates so they move with the map.
         const bounds = map.getBounds();
         if (bounds) {
             const ne = bounds.getNorthEast();
             const sw = bounds.getSouthWest();
             const midLat = (ne.lat() + sw.lat()) / 2;
 
-            // Grid spacing ≈ 2.7km. Each cell gets one cloud puff.
-            const GRID = 0.027;
+            const GRID = 0.027; // ≈ 2.7 km grid
             const minGx = Math.floor(sw.lng() / GRID) - 1;
             const maxGx = Math.ceil(ne.lng() / GRID) + 1;
             const minGy = Math.floor(sw.lat() / GRID) - 1;
@@ -115,33 +129,24 @@ export default function FogOverlay({
             for (let gx = minGx; gx <= maxGx; gx++) {
                 for (let gy = minGy; gy <= maxGy; gy++) {
                     const h = cellHash(gx, gy);
-
-                    // Jitter puff centre within its cell for an organic look
                     const lat = gy * GRID + GRID * 0.5 + ((h % 60) - 30) * GRID / 60;
                     const lng = gx * GRID + GRID * 0.5 + ((h * 7 % 60) - 30) * GRID / 60;
 
-                    // Radius: 1.3–1.9× grid spacing converted to pixels
                     const radiusMeters = GRID * 111000 * (1.3 + (h % 60) / 100);
                     const radiusPx = metersToPixels(radiusMeters, midLat);
                     if (radiusPx <= 2) continue;
 
                     const pixel = latLngToPixel(lat, lng);
                     if (!pixel) continue;
-
-                    // Cull puffs fully off canvas
                     if (pixel.x + radiusPx < 0 || pixel.x - radiusPx > width) continue;
                     if (pixel.y + radiusPx < 0 || pixel.y - radiusPx > height) continue;
 
-                    // 20% dark shadow puffs, 80% light highlight puffs
                     const isDark = (h % 5) === 0;
                     const opacity = isDark
-                        ? 0.14 + (h % 20) / 100   // 0.14–0.34 (shadow depth)
-                        : 0.05 + (h % 18) / 220;  // 0.05–0.13 (subtle highlight)
+                        ? 0.12 + (h % 20) / 100
+                        : 0.04 + (h % 18) / 220;
 
-                    const grad = ctx.createRadialGradient(
-                        pixel.x, pixel.y, 0,
-                        pixel.x, pixel.y, radiusPx
-                    );
+                    const grad = ctx.createRadialGradient(pixel.x, pixel.y, 0, pixel.x, pixel.y, radiusPx);
                     if (isDark) {
                         grad.addColorStop(0, `rgba(110, 115, 145, ${opacity})`);
                         grad.addColorStop(1, "rgba(110, 115, 145, 0)");
@@ -157,62 +162,109 @@ export default function FogOverlay({
             }
         }
 
-        // ── 3. Visited reveals: orange glow + clear circle ───────────────
+        // ── 3. User location — always-visible 300 m clear circle ─────────
+        if (userLocation) {
+            const pixel = latLngToPixel(userLocation.lat, userLocation.lng);
+            if (pixel) {
+                const radius = metersToPixels(300, userLocation.lat);
+                if (radius >= 1) {
+                    // Soft blue-white glow to distinguish from visited orange glow
+                    const glowGrad = ctx.createRadialGradient(
+                        pixel.x, pixel.y, radius * 0.6,
+                        pixel.x, pixel.y, radius * 1.5
+                    );
+                    glowGrad.addColorStop(0,   "rgba(100, 160, 255, 0)");
+                    glowGrad.addColorStop(0.3,  "rgba(100, 160, 255, 0.45)");
+                    glowGrad.addColorStop(0.7,  "rgba(100, 160, 255, 0.18)");
+                    glowGrad.addColorStop(1,    "rgba(100, 160, 255, 0)");
+                    ctx.fillStyle = glowGrad;
+                    ctx.beginPath();
+                    ctx.arc(pixel.x, pixel.y, radius * 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.globalCompositeOperation = "destination-out";
+                    const holeGrad = ctx.createRadialGradient(pixel.x, pixel.y, 0, pixel.x, pixel.y, radius);
+                    holeGrad.addColorStop(0,    "rgba(0,0,0,1)");
+                    holeGrad.addColorStop(0.72, "rgba(0,0,0,1)");
+                    holeGrad.addColorStop(1,    "rgba(0,0,0,0)");
+                    ctx.fillStyle = holeGrad;
+                    ctx.beginPath();
+                    ctx.arc(pixel.x, pixel.y, radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalCompositeOperation = "source-over";
+                }
+            }
+        }
+
+        // ── 4. Visited reveals: smart radius + orange glow ───────────────
         for (const loc of visitedLocations) {
             const pixel = latLngToPixel(loc.lat, loc.lng);
             if (!pixel) continue;
 
-            let radius = metersToPixels(revealRadiusMeters, loc.lat);
+            const revealMeters = computeRevealRadius(loc, visitedLocations);
+            let radius = metersToPixels(revealMeters, loc.lat);
 
-            // Animate new reveals (expand from 0 with ease-out cubic)
             const key = `${loc.lat}_${loc.lng}`;
             if (loc.isNew && !animatingRef.current.has(key)) {
                 animatingRef.current.set(key, 0);
             }
             const progress = animatingRef.current.get(key);
             if (progress !== undefined && progress < 1) {
-                const eased = 1 - Math.pow(1 - progress, 3);
-                radius = radius * eased;
+                radius = radius * (1 - Math.pow(1 - progress, 3));
             }
             if (radius < 1) continue;
 
-            // Warm orange glow halo around the clear edge
-            // Inner radius starts at 60% of reveal so glow hugs the border.
+            // Orange glow halo
             const glowGrad = ctx.createRadialGradient(
                 pixel.x, pixel.y, radius * 0.6,
                 pixel.x, pixel.y, radius * 1.55
             );
-            glowGrad.addColorStop(0,    "rgba(232, 93, 42, 0)");
-            glowGrad.addColorStop(0.3,  "rgba(232, 93, 42, 0.55)");
-            glowGrad.addColorStop(0.6,  "rgba(232, 93, 42, 0.28)");
-            glowGrad.addColorStop(1,    "rgba(232, 93, 42, 0)");
+            glowGrad.addColorStop(0,   "rgba(232, 93, 42, 0)");
+            glowGrad.addColorStop(0.3, "rgba(232, 93, 42, 0.55)");
+            glowGrad.addColorStop(0.6, "rgba(232, 93, 42, 0.28)");
+            glowGrad.addColorStop(1,   "rgba(232, 93, 42, 0)");
             ctx.fillStyle = glowGrad;
             ctx.beginPath();
             ctx.arc(pixel.x, pixel.y, radius * 1.55, 0, Math.PI * 2);
             ctx.fill();
 
-            // Cut a clean hole through the fog (destination-out erases pixels)
             ctx.globalCompositeOperation = "destination-out";
-            const holeGrad = ctx.createRadialGradient(
-                pixel.x, pixel.y, 0,
-                pixel.x, pixel.y, radius
-            );
-            // Hard clear centre, soft feathered edge in the outer 25%
-            holeGrad.addColorStop(0,    "rgba(0, 0, 0, 1)");
-            holeGrad.addColorStop(0.75, "rgba(0, 0, 0, 1)");
-            holeGrad.addColorStop(1,    "rgba(0, 0, 0, 0)");
+            const holeGrad = ctx.createRadialGradient(pixel.x, pixel.y, 0, pixel.x, pixel.y, radius);
+            holeGrad.addColorStop(0,    "rgba(0,0,0,1)");
+            holeGrad.addColorStop(0.75, "rgba(0,0,0,1)");
+            holeGrad.addColorStop(1,    "rgba(0,0,0,0)");
             ctx.fillStyle = holeGrad;
             ctx.beginPath();
             ctx.arc(pixel.x, pixel.y, radius, 0, Math.PI * 2);
             ctx.fill();
             ctx.globalCompositeOperation = "source-over";
         }
-    }, [map, visitedLocations, enabled, latLngToPixel, metersToPixels, revealRadiusMeters]);
+
+        // ── 5. Marker pin holes — small clear spot so pins show through ───
+        if (markerLocations && markerLocations.length > 0) {
+            ctx.globalCompositeOperation = "destination-out";
+            for (const loc of markerLocations) {
+                const pixel = latLngToPixel(loc.lat, loc.lng);
+                if (!pixel) continue;
+                const radius = metersToPixels(110, loc.lat);
+                if (radius < 1) continue;
+
+                const grad = ctx.createRadialGradient(pixel.x, pixel.y, 0, pixel.x, pixel.y, radius);
+                grad.addColorStop(0,   "rgba(0,0,0,0.85)");
+                grad.addColorStop(0.5, "rgba(0,0,0,0.6)");
+                grad.addColorStop(1,   "rgba(0,0,0,0)");
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(pixel.x, pixel.y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalCompositeOperation = "source-over";
+        }
+    }, [map, visitedLocations, userLocation, markerLocations, enabled, latLngToPixel, metersToPixels]);
 
     // Animation loop for new reveals
     useEffect(() => {
         if (!enabled) return;
-
         let animating = false;
         for (const loc of visitedLocations) {
             const key = `${loc.lat}_${loc.lng}`;
@@ -224,7 +276,7 @@ export default function FogOverlay({
         if (!animating) return;
 
         const startTime = performance.now();
-        const duration = 1500; // 1.5s reveal
+        const duration = 1500;
 
         function tick() {
             const elapsed = performance.now() - startTime;
@@ -248,10 +300,9 @@ export default function FogOverlay({
         };
     }, [visitedLocations, enabled, drawFog]);
 
-    // Redraw on map changes (pan / zoom)
+    // Redraw on map pan / zoom
     useEffect(() => {
         if (!map || !enabled) return;
-
         const listeners = [
             map.addListener("idle", drawFog),
             map.addListener("zoom_changed", drawFog),
@@ -259,15 +310,13 @@ export default function FogOverlay({
             map.addListener("bounds_changed", drawFog),
         ];
         drawFog();
-
         return () => listeners.forEach((l) => google.maps.event.removeListener(l));
     }, [map, enabled, drawFog]);
 
-    // Resize canvas to match map container
+    // Resize canvas
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
-
         const observer = new ResizeObserver(() => {
             const parent = canvas.parentElement;
             if (!parent) return;
@@ -278,7 +327,6 @@ export default function FogOverlay({
             canvas.style.height = `${parent.clientHeight}px`;
             drawFog();
         });
-
         const parent = canvas.parentElement;
         if (parent) observer.observe(parent);
         return () => observer.disconnect();
