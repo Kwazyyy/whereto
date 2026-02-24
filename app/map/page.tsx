@@ -131,7 +131,7 @@ function crackedPinUrl(color: string): string {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
-const ORANGE_PIN = pinUrl("#E85D2A");
+const ORANGE_PIN = crackedPinUrl("#E85D2A");
 const BLUE_PIN = pinUrl("#3B82F6");
 const CRACKED_PIN = crackedPinUrl("#6B9AE5"); // Duller, lighter blue per request
 const GREEN_PIN = pinUrl("#22C55E");
