@@ -137,8 +137,6 @@ function crackedPinUrl(color: string): string {
     `    <path d="M17 40 L25 32 L34 31" stroke-width="1.0"/>`,
     `  </g>`,
     `  <g fill="${color}">`,
-    `    <polygon points="4,-1 6,2 3,4"/>`,
-    `    <polygon points="31,0 33,-2 34,2"/>`,
     `    <polygon points="-2,17 0,16 -1,20"/>`,
     `    <polygon points="38,20 39,18 41,21"/>`,
     `    <polygon points="27,35 32,32 30.5,41"/>`,
