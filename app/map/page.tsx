@@ -105,8 +105,35 @@ function pinUrl(color: string): string {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
+// Cracked/Dull PIN for unvisited locations in the fog
+function crackedPinUrl(color: string): string {
+  const svg = [
+    `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="46" viewBox="0 0 36 46" style="overflow: visible;">`,
+    `  <g fill="${color}">`,
+    `    <path d="M18 0C8.059 0 0 8.059 0 18c0 11.25 18 28 18 28S36 29.25 36 18C36 8.059 27.941 0 18 0z" />`,
+    `  </g>`,
+    `  <path d="M18 -5 L20 -1 L17 5 L21 11 L18 17 L21 21 L16 29 L18 36 L17 42" stroke="#0F172A" stroke-width="2.5" fill="none" stroke-linejoin="miter"/>`,
+    `  <g opacity="0.9">`,
+    `    <path d="M18 9.5 A 7.5 7.5 0 0 0 10.5 17 A 7.5 7.5 0 0 0 18 24.5 A 7.5 7.5 0 0 0 25.5 17 A 7.5 7.5 0 0 0 18 9.5 Z" fill="#F8FAFC"/>`,
+    `    <path d="M18 17 L12.5 13 M18 17 L14 21.5 M18 17 L23.5 14 M18 17 L22 22 M15 15 L20 12 M20 20 L24 18M13 18 L16 22" stroke="#64748B" stroke-width="0.75" fill="none"/>`,
+    `  </g>`,
+    `  <path d="M10.5 17 L2 14 M14 21.5 L8 27 M23.5 14 L30 10 M22 22 L32 24 M25.5 17 L34 18 M14 10 L7 6 M18 0 L15 -6 M29 27 L33 30" stroke="#1E293B" stroke-width="0.75" fill="none" opacity="0.5"/>`,
+    `  <polygon points="12,-8 15,-6 13,-3" fill="${color}"/>`,
+    `  <polygon points="23,-7 26,-4 22,-2" fill="${color}"/>`,
+    `  <polygon points="-8,10 -5,8 -6,13" fill="${color}"/>`,
+    `  <polygon points="40,5 43,7 41,10" fill="${color}"/>`,
+    `  <polygon points="32,25 36,27 34,30" fill="${color}"/>`,
+    `  <polygon points="1,28 5,30 2,33" fill="${color}"/>`,
+    `  <polygon points="9,40 12,42 8,45" fill="${color}"/>`,
+    `  <polygon points="27,42 30,44 26,45" fill="${color}"/>`,
+    `</svg>`,
+  ].join("");
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
 const ORANGE_PIN = pinUrl("#E85D2A");
 const BLUE_PIN = pinUrl("#3B82F6");
+const CRACKED_PIN = crackedPinUrl("#6B9AE5"); // Duller, lighter blue per request
 const GREEN_PIN = pinUrl("#22C55E");
 
 // --- Thumbnail photo inside the info card ---
@@ -298,14 +325,14 @@ function MapMarkers({
 
   return (
     <>
-      {/* Blue markers — nearby places (skip if already saved/visited), rendered first */}
+      {/* Blue "Cracked" markers — nearby unvisited places, rendered first */}
       {nearbyPlaces
         .filter((p) => !savedIds.has(p.placeId) && !visitedIds.has(p.placeId))
         .map((place) => (
           <Marker
             key={`nearby-${place.placeId}`}
             position={place.location}
-            icon={BLUE_PIN}
+            icon={CRACKED_PIN}
             zIndex={9999}
             onClick={() => setSelected({ place, isSaved: false })}
           />
