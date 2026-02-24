@@ -131,10 +131,12 @@ function crackedPinUrl(color: string): string {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
-const ORANGE_PIN = crackedPinUrl("#DB8E74"); // Duller, faded orange
+const ORANGE_PIN = pinUrl("#E85D2A");
+const ORANGE_CRACKED_PIN = crackedPinUrl("#DB8E74"); // Duller, faded orange
 const BLUE_PIN = pinUrl("#3B82F6");
-const CRACKED_PIN = crackedPinUrl("#6B9AE5"); // Duller, lighter blue per request
+const BLUE_CRACKED_PIN = crackedPinUrl("#6B9AE5"); // Duller, lighter blue per request
 const GREEN_PIN = pinUrl("#22C55E");
+const GREEN_CRACKED_PIN = crackedPinUrl("#86EFAC"); // Duller green if ever used in fog
 
 // --- Thumbnail photo inside the info card ---
 function InfoPhoto({ photoRef }: { photoRef: string | null }) {
@@ -309,11 +311,13 @@ function MapMarkers({
   savedPlaces,
   nearbyPlaces,
   visitedIds,
+  fogEnabled,
   onSelectPlace,
 }: {
   savedPlaces: SavedPlace[];
   nearbyPlaces: Place[];
   visitedIds: Set<string>;
+  fogEnabled: boolean;
   onSelectPlace: (place: Place) => void;
 }) {
   const [selected, setSelected] = useState<{
@@ -332,7 +336,7 @@ function MapMarkers({
           <Marker
             key={`nearby-${place.placeId}`}
             position={place.location}
-            icon={CRACKED_PIN}
+            icon={fogEnabled ? BLUE_CRACKED_PIN : BLUE_PIN}
             zIndex={9999}
             onClick={() => setSelected({ place, isSaved: false })}
           />
@@ -345,7 +349,7 @@ function MapMarkers({
           <Marker
             key={`visited-${place.placeId}`}
             position={place.location}
-            icon={GREEN_PIN}
+            icon={fogEnabled ? GREEN_CRACKED_PIN : GREEN_PIN}
             zIndex={9999}
             onClick={() => setSelected({ place, isSaved: false })}
           />
@@ -356,7 +360,7 @@ function MapMarkers({
         <Marker
           key={`saved-${place.placeId}`}
           position={place.location}
-          icon={ORANGE_PIN}
+          icon={fogEnabled ? ORANGE_CRACKED_PIN : ORANGE_PIN}
           zIndex={9999}
           onClick={() => setSelected({ place, isSaved: true })}
         />
@@ -564,6 +568,7 @@ export default function MapPage() {
                   savedPlaces={savedPlaces.filter(p => p.intent === intent)}
                   nearbyPlaces={nearbyPlaces}
                   visitedIds={visitedIds}
+                  fogEnabled={fogEnabled && status === "authenticated"}
                   onSelectPlace={setDetailPlace}
                 />
                 <RecenterButton userLocation={userLocation} />
