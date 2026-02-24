@@ -162,6 +162,33 @@ export default function FogOverlay({
                 }
 
                 ctx.globalCompositeOperation = "source-over";
+
+                // 4. Subtle glow for user location in dark mode
+                if (isDark && userLocation) {
+                    const targetLatLng = new google.maps.LatLng(userLocation.lat, userLocation.lng);
+                    const targetDivPx = projection.fromLatLngToDivPixel(targetLatLng);
+                    if (targetDivPx) {
+                        const cx = targetDivPx.x - left;
+                        const cy = targetDivPx.y - top;
+
+                        const metersPerPixel = (156543.03392 * Math.cos((userLocation.lat * Math.PI) / 180)) / Math.pow(2, zoom);
+                        const rPx = 350 / metersPerPixel;
+
+                        if (rPx >= 1 && cx >= -rPx && cx <= width + rPx && cy >= -rPx && cy <= height + rPx) {
+                            ctx.globalCompositeOperation = "screen";
+                            const glowGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rPx);
+                            glowGrad.addColorStop(0, "rgba(255, 255, 255, 0.12)");
+                            glowGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.04)");
+                            glowGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+                            ctx.fillStyle = glowGrad;
+                            ctx.beginPath();
+                            ctx.arc(cx, cy, rPx, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.globalCompositeOperation = "source-over";
+                        }
+                    }
+                }
             }
 
             onRemove() {

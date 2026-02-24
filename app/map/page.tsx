@@ -123,7 +123,7 @@ function crackedPinUrl(color: string): string {
     `  <g mask="url(#${maskId})">`,
     `    <path d="M18 0C8.059 0 0 8.059 0 18c0 11.25 18 28 18 28S36 29.25 36 18C36 8.059 27.941 0 18 0z" fill="${color}"/>`,
     `  </g>`,
-    `  <g fill="none" stroke="#94A3B8" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">`,
+    `  <g fill="none" stroke="#64748B" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">`,
     `    <path d="M21 0 L22 4 L20 8 L22 13 L21 17"/>`,
     `    <path d="M8 4 L11 8 L10 13 L14 17"/>`,
     `    <path d="M4 18 L9 19 L11 16 L14 17"/>`,
