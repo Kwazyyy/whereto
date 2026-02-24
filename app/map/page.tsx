@@ -105,27 +105,46 @@ function pinUrl(color: string): string {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
-// Cracked/Dull PIN for unvisited locations in the fog
+// Broken/Shattered PIN for unvisited locations in the fog
 function crackedPinUrl(color: string): string {
+  const maskId = `shatterMask-${color.replace('#', '')}`;
   const svg = [
     `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="46" viewBox="0 0 36 46" style="overflow: visible;">`,
+    `  <defs>`,
+    `    <mask id="${maskId}">`,
+    `      <rect x="-10" y="-10" width="56" height="66" fill="white"/>`,
+    `      <polygon points="7,-2 10,4 3,9" fill="black"/>`,
+    `      <polygon points="28,-2 25,5 34,7" fill="black"/>`,
+    `      <polygon points="-1,16 5,18 4,24 -2,25" fill="black"/>`,
+    `      <polygon points="38,15 31,18 31,24 37,26" fill="black"/>`,
+    `      <polygon points="17,46 25,32 36,32 36,50 17,50" fill="black"/>`,
+    `    </mask>`,
+    `  </defs>`,
+    `  <g mask="url(#${maskId})">`,
+    `    <path d="M18 0C8.059 0 0 8.059 0 18c0 11.25 18 28 18 28S36 29.25 36 18C36 8.059 27.941 0 18 0z" fill="${color}"/>`,
+    `  </g>`,
+    `  <g fill="none" stroke="#0F172A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">`,
+    `    <path d="M21 0 L22 4 L20 8 L22 13 L21 17"/>`,
+    `    <path d="M8 4 L11 8 L10 13 L14 17"/>`,
+    `    <path d="M4 18 L9 19 L11 16 L14 17"/>`,
+    `    <path d="M7 28 L11 25 L13 27 L16 23"/>`,
+    `    <path d="M14 40 L16 35 L14 30 L16 25 L15 21"/>`,
+    `    <path d="M31 18 L26 19 L25 15 L22 17"/>`,
+    `    <path d="M3 9 L10 4 L7 0" stroke-width="1.5"/>`,
+    `    <path d="M28 0 L25 5 L33 7" stroke-width="1.5"/>`,
+    `    <path d="M0 16 L5 18 L4 24 L0 25" stroke-width="1.5"/>`,
+    `    <path d="M36 16 L31 18 L31 24 L36 26" stroke-width="1.5"/>`,
+    `    <path d="M17 40 L25 32 L34 31" stroke-width="1.5"/>`,
+    `  </g>`,
     `  <g fill="${color}">`,
-    `    <path d="M18 0C8.059 0 0 8.059 0 18c0 11.25 18 28 18 28S36 29.25 36 18C36 8.059 27.941 0 18 0z" />`,
+    `    <polygon points="4,-1 6,2 3,4"/>`,
+    `    <polygon points="31,0 33,-2 34,2"/>`,
+    `    <polygon points="-2,17 0,16 -1,20"/>`,
+    `    <polygon points="38,20 39,18 41,21"/>`,
+    `    <polygon points="27,35 32,32 30.5,41"/>`,
+    `    <polygon points="25,43 27,41 24,46"/>`,
     `  </g>`,
-
-    `  <g opacity="0.9">`,
-    `    <path d="M18 9.5 A 7.5 7.5 0 0 0 10.5 17 A 7.5 7.5 0 0 0 18 24.5 A 7.5 7.5 0 0 0 25.5 17 A 7.5 7.5 0 0 0 18 9.5 Z" fill="#F8FAFC"/>`,
-    `    <path d="M18 17 L12.5 13 M18 17 L14 21.5 M18 17 L23.5 14 M18 17 L22 22 M15 15 L20 12 M20 20 L24 18M13 18 L16 22" stroke="#64748B" stroke-width="0.75" fill="none"/>`,
-    `  </g>`,
-    `  <path d="M10.5 17 L2 14 M14 21.5 L8 27 M23.5 14 L30 10 M22 22 L32 24 M25.5 17 L34 18 M14 10 L7 6 M18 0 L15 -6 M29 27 L33 30" stroke="#1E293B" stroke-width="0.75" fill="none" opacity="0.5"/>`,
-    `  <polygon points="12,-8 15,-6 13,-3" fill="${color}"/>`,
-    `  <polygon points="23,-7 26,-4 22,-2" fill="${color}"/>`,
-    `  <polygon points="-8,10 -5,8 -6,13" fill="${color}"/>`,
-    `  <polygon points="40,5 43,7 41,10" fill="${color}"/>`,
-    `  <polygon points="32,25 36,27 34,30" fill="${color}"/>`,
-    `  <polygon points="1,28 5,30 2,33" fill="${color}"/>`,
-    `  <polygon points="9,40 12,42 8,45" fill="${color}"/>`,
-    `  <polygon points="27,42 30,44 26,45" fill="${color}"/>`,
+    `  <circle cx="18" cy="17" r="7.5" fill="white" opacity="0.95"/>`,
     `</svg>`,
   ].join("");
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;

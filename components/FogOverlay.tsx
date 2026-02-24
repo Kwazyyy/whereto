@@ -97,7 +97,7 @@ export default function FogOverlay({
 
                 // 1. Base Dense Fog
                 ctx.fillStyle = isDark
-                    ? "rgba(14, 17, 22, 0.98)"
+                    ? "rgba(14, 17, 22, 0.92"
                     : "rgba(180, 185, 195, 0.85)";
                 ctx.fillRect(0, 0, width, height);
 
