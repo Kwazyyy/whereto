@@ -112,7 +112,7 @@ function crackedPinUrl(color: string): string {
     `  <g fill="${color}">`,
     `    <path d="M18 0C8.059 0 0 8.059 0 18c0 11.25 18 28 18 28S36 29.25 36 18C36 8.059 27.941 0 18 0z" />`,
     `  </g>`,
-    `  <path d="M18 -5 L20 -1 L17 5 L21 11 L18 17 L21 21 L16 29 L18 36 L17 42" stroke="#0F172A" stroke-width="2.5" fill="none" stroke-linejoin="miter"/>`,
+
     `  <g opacity="0.9">`,
     `    <path d="M18 9.5 A 7.5 7.5 0 0 0 10.5 17 A 7.5 7.5 0 0 0 18 24.5 A 7.5 7.5 0 0 0 25.5 17 A 7.5 7.5 0 0 0 18 9.5 Z" fill="#F8FAFC"/>`,
     `    <path d="M18 17 L12.5 13 M18 17 L14 21.5 M18 17 L23.5 14 M18 17 L22 22 M15 15 L20 12 M20 20 L24 18M13 18 L16 22" stroke="#64748B" stroke-width="0.75" fill="none"/>`,
