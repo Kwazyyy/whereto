@@ -330,7 +330,7 @@ export default function ExplorationStats() {
 
                                             {selectedHood.visitedPlaces?.length > 0 && (
                                                 <div>
-                                                    <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider">Places you've verified</h3>
+                                                    <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider">Places you&apos;ve verified</h3>
                                                     <div className="flex flex-wrap gap-2">
                                                         {selectedHood.visitedPlaces.map(place => (
                                                             <div key={place} className="px-3.5 py-1.5 bg-gray-100 dark:bg-white/10 text-[var(--foreground)] text-xs font-semibold rounded-full border border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors">
