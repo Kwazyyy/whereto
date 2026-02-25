@@ -45,13 +45,17 @@ export async function GET() {
     }
 
     // Format response
-    const neighborhoodsResult = Array.from(statsMap.entries()).map(([name, data]) => ({
-        name,
-        explored: data.explored,
-        visitCount: data.visitCount,
-        uniquePlaceCount: data.uniquePlaces.size,
-        firstVisitDate: data.firstVisitDate ? data.firstVisitDate.toISOString() : null,
-    }));
+    const neighborhoodsResult = Array.from(statsMap.entries()).map(([name, data]) => {
+        const hoodDef = torontoNeighborhoods.find(h => h.name === name);
+        return {
+            name,
+            area: hoodDef?.area || "Unknown",
+            explored: data.explored,
+            visitCount: data.visitCount,
+            uniquePlaceCount: data.uniquePlaces.size,
+            firstVisitDate: data.firstVisitDate ? data.firstVisitDate.toISOString() : null,
+        };
+    });
 
     const exploredCount = neighborhoodsResult.filter(n => n.explored).length;
     const percentage = Math.round((exploredCount / torontoNeighborhoods.length) * 100);

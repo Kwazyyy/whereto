@@ -7,6 +7,7 @@ import { Lock, Map as MapIcon, ChevronDown, CheckCircle2 } from "lucide-react";
 
 interface NeighborhoodStat {
     name: string;
+    area: string;
     explored: boolean;
     visitCount: number;
     uniquePlaceCount: number;
@@ -24,6 +25,9 @@ export default function ExplorationStats() {
     const [data, setData] = useState<ExplorationData | null>(null);
     const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState(false);
+    const [selectedArea, setSelectedArea] = useState<string>("All Toronto");
+
+    const AREAS = ["All Toronto", "Downtown", "West End", "East End", "Midtown", "North York", "Scarborough", "Etobicoke"];
 
     useEffect(() => {
         async function fetchStats() {
@@ -52,15 +56,23 @@ export default function ExplorationStats() {
 
     if (!data) return null;
 
+    const filteredNeighborhoods = data.neighborhoods.filter(
+        (n) => selectedArea === "All Toronto" || n.area === selectedArea
+    );
+
+    const filteredTotal = filteredNeighborhoods.length;
+    const filteredExploredCount = filteredNeighborhoods.filter(n => n.explored).length;
+    const filteredPercentage = filteredTotal > 0 ? Math.round((filteredExploredCount / filteredTotal) * 100) : 0;
+
     // Sort neighborhoods: Explored first, then alphabetically
-    const sortedNeighborhoods = [...data.neighborhoods].sort((a, b) => {
+    const sortedNeighborhoods = [...filteredNeighborhoods].sort((a, b) => {
         if (a.explored && !b.explored) return -1;
         if (!a.explored && b.explored) return 1;
         return a.name.localeCompare(b.name);
     });
 
     // Recent discoveries
-    const recentDiscoveries = data.neighborhoods
+    const recentDiscoveries = filteredNeighborhoods
         .filter((n) => n.explored && n.firstVisitDate)
         .sort((a, b) => new Date(b.firstVisitDate!).getTime() - new Date(a.firstVisitDate!).getTime())
         .slice(0, 3);
@@ -81,17 +93,18 @@ export default function ExplorationStats() {
             <div className="mb-2">
                 <div className="flex items-end justify-between mb-2">
                     <span className="text-sm font-semibold text-[var(--foreground)]">
-                        {data.percentage}% of Toronto Explored
+                        {filteredPercentage}% of {selectedArea} Explored
                     </span>
                     <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                        {data.exploredCount} / {data.totalNeighborhoods} neighborhoods
+                        {filteredExploredCount} / {filteredTotal} neighborhoods
                     </span>
                 </div>
                 <div className="w-full h-3 bg-gray-200 dark:bg-[#161B22] rounded-full overflow-hidden shadow-inner flex mb-6">
                     <motion.div
+                        key={selectedArea}
                         initial={{ width: 0 }}
-                        animate={{ width: `${data.percentage}%` }}
-                        transition={{ duration: 1, ease: "easeOut" }}
+                        animate={{ width: `${filteredPercentage}%` }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
                         className="h-full bg-[#E85D2A] rounded-full"
                     />
                 </div>
@@ -118,15 +131,31 @@ export default function ExplorationStats() {
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                         className="overflow-hidden"
                     >
-                        <div className="pt-6 pb-2 space-y-8">
+                        <div className="pt-6 pb-2 space-y-6">
+                            {/* Area Selector */}
+                            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x">
+                                {AREAS.map(area => (
+                                    <button
+                                        key={area}
+                                        onClick={() => setSelectedArea(area)}
+                                        className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors snap-start ${selectedArea === area
+                                                ? "bg-[#E85D2A] text-white border border-[#E85D2A]"
+                                                : "bg-white dark:bg-[#161B22] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
+                                            }`}
+                                    >
+                                        {area}
+                                    </button>
+                                ))}
+                            </div>
+
                             {/* Grid */}
                             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                                 {sortedNeighborhoods.map((hood) => (
                                     <div
                                         key={hood.name}
                                         className={`p-3 rounded-xl border transition-all ${hood.explored
-                                                ? "bg-white dark:bg-[#161B22] border-gray-200 dark:border-white/10 shadow-sm"
-                                                : "bg-gray-50 dark:bg-white/5 border-transparent opacity-60"
+                                            ? "bg-white dark:bg-[#161B22] border-gray-200 dark:border-white/10 shadow-sm"
+                                            : "bg-gray-50 dark:bg-white/5 border-transparent opacity-60"
                                             }`}
                                     >
                                         <div className="flex items-start justify-between mb-1.5">
