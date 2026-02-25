@@ -444,7 +444,7 @@ export default function ProfilePage() {
       <div className="px-5 md:px-8 md:pt-12 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 w-full">
 
         {/* ── LEFT COLUMN (User Profile) ── */}
-        <div className="md:col-span-5 flex flex-col items-center md:items-start text-center md:text-left pt-2 pb-6 px-1">
+        <div className="md:col-span-5 flex flex-col items-center text-center pt-2 pb-6 px-1">
           <div className="relative mb-4">
             {session?.user?.image ? (
               <Image
@@ -489,7 +489,7 @@ export default function ProfilePage() {
                 onChange={(e) => setBio(e.target.value)}
                 onBlur={() => saveBioToStorage(bio)}
                 placeholder="Add a short bio..."
-                className="w-full text-center md:text-left text-sm text-[#0E1116] dark:text-[#e8edf4] bg-transparent border-none resize-none focus:ring-0 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none leading-relaxed"
+                className="w-full text-center text-sm text-[#0E1116] dark:text-[#e8edf4] bg-transparent border-none resize-none focus:ring-0 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none leading-relaxed"
                 rows={2}
                 maxLength={150}
               />
@@ -497,7 +497,7 @@ export default function ProfilePage() {
           )}
 
           {/* Stats Row */}
-          <div className="flex items-center justify-center md:justify-start gap-8 md:gap-10 mt-6 w-full max-w-sm border-y border-gray-100 dark:border-white/5 py-4">
+          <div className="flex items-center justify-center gap-8 md:gap-10 mt-6 w-full max-w-sm border-y border-gray-100 dark:border-white/5 py-4">
             <Link href="/boards" className="flex flex-col items-center gap-1.5 group cursor-pointer">
               <div className="flex items-center gap-1.5 text-gray-400 group-hover:text-[#E85D2A] transition-colors">
                 <HeartIcon size={20} />
@@ -524,13 +524,13 @@ export default function ProfilePage() {
           </div>
 
           {session?.user && (
-            <div className="mt-8 w-full max-w-sm mx-auto md:mx-0">
+            <div className="mt-8 w-full max-w-sm mx-auto">
               <ExplorationStats />
             </div>
           )}
 
           {!session?.user && (
-            <div className="mt-8 w-full max-w-sm mx-auto md:mx-0">
+            <div className="mt-8 w-full max-w-sm mx-auto">
               <button
                 onClick={() => signIn("google")}
                 className="flex items-center justify-center gap-3 w-full py-3.5 rounded-2xl bg-white dark:bg-[#161B22] border border-gray-200 dark:border-white/10 font-semibold text-sm text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#1C2128] transition-colors cursor-pointer shadow-sm"
