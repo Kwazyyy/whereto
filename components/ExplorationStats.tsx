@@ -133,10 +133,7 @@ export default function ExplorationStats() {
                     >
                         <div className="pt-6 pb-2 space-y-6">
                             {/* Area Selector */}
-                            <div
-                                className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none snap-x"
-                                style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
-                            >
+                            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x">
                                 {AREAS.map(area => (
                                     <button
                                         key={area}
