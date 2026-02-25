@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { Lock, Map as MapIcon, ChevronDown, CheckCircle2 } from "lucide-react";
+import { Lock, Map as MapIcon, ChevronDown, CheckCircle2, X } from "lucide-react";
 
 interface NeighborhoodStat {
     name: string;
     area: string;
+    popularIntents: string[];
     explored: boolean;
     visitCount: number;
     uniquePlaceCount: number;
+    visitedPlaces: string[];
     firstVisitDate: string | null;
 }
 
@@ -26,6 +28,50 @@ export default function ExplorationStats() {
     const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState(false);
     const [selectedArea, setSelectedArea] = useState<string>("All Toronto");
+    const [selectedHood, setSelectedHood] = useState<NeighborhoodStat | null>(null);
+
+    // Drag to scroll refs
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const startX = useRef(0);
+    const scrollLeft = useRef(0);
+    const isDragPreventClick = useRef(false);
+
+    // Handlers
+    const handleMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
+        setIsDragging(true);
+        isDragPreventClick.current = false;
+        if (!scrollRef.current) return;
+        const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
+        startX.current = pageX - scrollRef.current.offsetLeft;
+        scrollLeft.current = scrollRef.current.scrollLeft;
+    };
+
+    const handleMouseLeaveOrUp = () => {
+        setIsDragging(false);
+    };
+
+    const handleMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
+        if (!isDragging) return;
+        if (!scrollRef.current) return;
+        const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
+        const x = pageX - scrollRef.current.offsetLeft;
+        const walk = x - startX.current;
+        if (Math.abs(walk) > 5) {
+            isDragPreventClick.current = true;
+        }
+        scrollRef.current.scrollLeft = scrollLeft.current - walk;
+    };
+
+    const handleChipClick = (area: string) => {
+        if (isDragPreventClick.current) return;
+        setSelectedArea(area);
+    };
+
+    const handleHoodClick = (hood: NeighborhoodStat) => {
+        if (isDragPreventClick.current) return;
+        setSelectedHood(hood);
+    };
 
     const AREAS = ["All Toronto", "Downtown", "West End", "East End", "Midtown", "North York", "Scarborough", "Etobicoke"];
 
@@ -137,11 +183,21 @@ export default function ExplorationStats() {
                     >
                         <div className="pt-6 pb-2 space-y-6">
                             {/* Area Selector */}
-                            <div className="flex items-center gap-2 overflow-x-auto pb-2 hide-scrollbar snap-x">
+                            <div
+                                ref={scrollRef}
+                                onMouseDown={handleMouseDown}
+                                onMouseLeave={handleMouseLeaveOrUp}
+                                onMouseUp={handleMouseLeaveOrUp}
+                                onMouseMove={handleMouseMove}
+                                onTouchStart={handleMouseDown}
+                                onTouchEnd={handleMouseLeaveOrUp}
+                                onTouchMove={handleMouseMove}
+                                className={`flex items-center gap-2 overflow-x-auto pb-2 hide-scrollbar snap-x select-none ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
+                            >
                                 {AREAS.map(area => (
                                     <button
                                         key={area}
-                                        onClick={() => setSelectedArea(area)}
+                                        onClick={() => handleChipClick(area)}
                                         className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors snap-start ${selectedArea === area
                                             ? "bg-[#E85D2A] text-white border border-[#E85D2A]"
                                             : "bg-white dark:bg-[#161B22] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
@@ -157,7 +213,8 @@ export default function ExplorationStats() {
                                 {sortedNeighborhoods.map((hood) => (
                                     <div
                                         key={hood.name}
-                                        className={`p-3 rounded-xl border transition-all ${hood.explored
+                                        onClick={() => handleHoodClick(hood)}
+                                        className={`p-3 rounded-xl border transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] select-none ${hood.explored
                                             ? "bg-white dark:bg-[#161B22] border-gray-200 dark:border-white/10 shadow-sm"
                                             : "bg-gray-50 dark:bg-white/5 border-transparent opacity-60"
                                             }`}
@@ -214,6 +271,113 @@ export default function ExplorationStats() {
                             )}
                         </div>
                     </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Neighborhood Detail Modal */}
+            <AnimatePresence>
+                {selectedHood && (
+                    <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center pointer-events-none">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedHood(null)}
+                            className="absolute inset-0 bg-black/40 dark:bg-black/80 backdrop-blur-sm pointer-events-auto cursor-pointer"
+                        />
+                        <motion.div
+                            initial={{ y: "100%", opacity: 0, scale: 0.95 }}
+                            animate={{ y: 0, opacity: 1, scale: 1 }}
+                            exit={{ y: "100%", opacity: 0, scale: 0.95 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                            className="relative w-full max-w-md bg-white dark:bg-[#161B22] rounded-t-2xl md:rounded-2xl shadow-2xl pointer-events-auto max-h-[90vh] flex flex-col overflow-hidden"
+                        >
+                            <div className="p-6 overflow-y-auto hide-scrollbar">
+                                <button
+                                    onClick={() => setSelectedHood(null)}
+                                    className="absolute top-4 right-4 p-2 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 rounded-full transition-colors cursor-pointer"
+                                >
+                                    <X className="w-5 h-5 text-gray-500 dark:text-gray-300" />
+                                </button>
+
+                                <div className="pr-10">
+                                    <h2 className="text-2xl font-bold tracking-tight text-[var(--foreground)]">{selectedHood.name}</h2>
+                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1">{selectedHood.area}</p>
+                                </div>
+
+                                <div className="mt-6">
+                                    {selectedHood.explored ? (
+                                        <div className="space-y-6">
+                                            <div className="flex items-center gap-2">
+                                                <CheckCircle2 className="w-6 h-6 text-[#E85D2A]" />
+                                                <span className="text-[var(--foreground)] font-bold text-lg">Explored ✓</span>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                                <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5">
+                                                    <div className="text-gray-500 dark:text-gray-400 font-semibold mb-1">Places Visited</div>
+                                                    <div className="text-[var(--foreground)] font-bold text-xl">{selectedHood.uniquePlaceCount}</div>
+                                                </div>
+                                                <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5">
+                                                    <div className="text-gray-500 dark:text-gray-400 font-semibold mb-1">First Visited</div>
+                                                    <div className="text-[var(--foreground)] font-bold mt-0.5">
+                                                        {selectedHood.firstVisitDate
+                                                            ? new Date(selectedHood.firstVisitDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                                                            : "Unknown"}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {selectedHood.visitedPlaces?.length > 0 && (
+                                                <div>
+                                                    <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider">Places you've verified</h3>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {selectedHood.visitedPlaces.map(place => (
+                                                            <div key={place} className="px-3.5 py-1.5 bg-gray-100 dark:bg-white/10 text-[var(--foreground)] text-xs font-semibold rounded-full border border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors">
+                                                                {place}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-6">
+                                            <div className="flex items-center gap-2 text-gray-400">
+                                                <Lock className="w-6 h-6" />
+                                                <span className="font-bold text-lg text-[var(--foreground)]">Undiscovered</span>
+                                            </div>
+                                            <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                                                Discover what <strong>{selectedHood.name}</strong> has to offer. Save and verify visits here to unlock this area!
+                                            </p>
+
+                                            {selectedHood.popularIntents?.length > 0 && (
+                                                <div className="pt-2">
+                                                    <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider">Popular Vibes Here</h3>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {selectedHood.popularIntents.map(intent => (
+                                                            <div key={intent} className="px-3.5 py-1.5 bg-gray-50 dark:bg-[#1C2128] border border-gray-200 dark:border-white/5 text-[var(--foreground)] text-xs font-semibold rounded-full flex items-center gap-1.5 shadow-sm">
+                                                                {intent}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mt-8 pt-6 border-t border-gray-100 dark:border-white/5">
+                                    <Link
+                                        href="/"
+                                        className="w-full py-4 bg-[#E85D2A] text-white flex items-center justify-center rounded-2xl font-bold text-[15px] shadow-sm hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer"
+                                    >
+                                        {selectedHood.explored ? "Explore More →" : "Start Exploring →"}
+                                    </Link>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
         </div>

@@ -17,14 +17,14 @@ export async function GET() {
     });
 
     // Track stats per neighborhood
-    const statsMap = new Map<string, { explored: boolean; visitCount: number; uniquePlaces: Set<string>; firstVisitDate: Date | null }>();
+    const statsMap = new Map<string, { explored: boolean; visitCount: number; uniquePlaces: Map<string, string>; firstVisitDate: Date | null }>();
 
     // Initialize all neighborhoods as undiscovered
     for (const hood of torontoNeighborhoods) {
         statsMap.set(hood.name, {
             explored: false,
             visitCount: 0,
-            uniquePlaces: new Set(),
+            uniquePlaces: new Map(),
             firstVisitDate: null,
         });
     }
@@ -37,7 +37,7 @@ export async function GET() {
             const stats = statsMap.get(hood.name)!;
             stats.explored = true;
             stats.visitCount += 1;
-            stats.uniquePlaces.add(v.placeId);
+            stats.uniquePlaces.set(v.placeId, v.place.name);
             if (!stats.firstVisitDate || v.verifiedAt < stats.firstVisitDate) {
                 stats.firstVisitDate = v.verifiedAt;
             }
@@ -50,9 +50,11 @@ export async function GET() {
         return {
             name,
             area: hoodDef?.area || "Unknown",
+            popularIntents: hoodDef?.popularIntents || [],
             explored: data.explored,
             visitCount: data.visitCount,
             uniquePlaceCount: data.uniquePlaces.size,
+            visitedPlaces: Array.from(data.uniquePlaces.values()),
             firstVisitDate: data.firstVisitDate ? data.firstVisitDate.toISOString() : null,
         };
     });
