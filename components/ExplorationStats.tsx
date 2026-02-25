@@ -79,6 +79,10 @@ export default function ExplorationStats() {
 
     return (
         <div className="w-full bg-[var(--color-surface-card)] rounded-2xl p-5 border border-gray-100 dark:border-white/5 overflow-hidden">
+            <style>{`
+                .hide-scrollbar::-webkit-scrollbar { display: none; }
+                .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+            `}</style>
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold tracking-tight text-[var(--foreground)]">Exploration</h2>
                 <Link
@@ -133,7 +137,7 @@ export default function ExplorationStats() {
                     >
                         <div className="pt-6 pb-2 space-y-6">
                             {/* Area Selector */}
-                            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x">
+                            <div className="flex items-center gap-2 overflow-x-auto pb-2 hide-scrollbar snap-x">
                                 {AREAS.map(area => (
                                     <button
                                         key={area}
