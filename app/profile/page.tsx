@@ -524,7 +524,7 @@ export default function ProfilePage() {
           </div>
 
           {session?.user && (
-            <div className="mt-8 w-full max-w-sm">
+            <div className="mt-8 w-full max-w-sm mx-auto md:mx-0">
               <ExplorationStats />
             </div>
           )}
