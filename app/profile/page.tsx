@@ -7,6 +7,7 @@ import Link from "next/link";
 import { SavedPlace, getSavedPlaces } from "@/lib/saved-places";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useTheme, type Theme } from "@/components/ThemeProvider";
+import ExplorationStats from "@/components/ExplorationStats";
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -521,6 +522,12 @@ export default function ProfilePage() {
               <span className="text-xs text-gray-500 font-medium">Boards</span>
             </Link>
           </div>
+
+          {session?.user && (
+            <div className="mt-8 w-full max-w-sm">
+              <ExplorationStats />
+            </div>
+          )}
 
           {!session?.user && (
             <div className="mt-8 w-full max-w-sm mx-auto md:mx-0">
