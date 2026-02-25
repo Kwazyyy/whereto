@@ -133,14 +133,17 @@ export default function ExplorationStats() {
                     >
                         <div className="pt-6 pb-2 space-y-6">
                             {/* Area Selector */}
-                            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x">
+                            <div
+                                className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none snap-x"
+                                style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
+                            >
                                 {AREAS.map(area => (
                                     <button
                                         key={area}
                                         onClick={() => setSelectedArea(area)}
                                         className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors snap-start ${selectedArea === area
-                                                ? "bg-[#E85D2A] text-white border border-[#E85D2A]"
-                                                : "bg-white dark:bg-[#161B22] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
+                                            ? "bg-[#E85D2A] text-white border border-[#E85D2A]"
+                                            : "bg-white dark:bg-[#161B22] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
                                             }`}
                                     >
                                         {area}
