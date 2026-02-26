@@ -18,6 +18,10 @@ import { useSavePlace } from "@/lib/use-save-place";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useTheme } from "@/components/ThemeProvider";
 import FogOverlay from "@/components/FogOverlay";
+import { verifyVisitOnServer } from "@/lib/use-visit-tracker";
+import { useBadges } from "@/components/providers/BadgeProvider";
+import { useNeighborhoodReveal } from "@/components/providers/NeighborhoodRevealProvider";
+import VisitCelebration from "@/components/VisitCelebration";
 
 const DEFAULT_LAT = 43.6532;
 const DEFAULT_LNG = -79.3832;
@@ -409,6 +413,14 @@ export default function MapPage() {
   const { handleSave } = useSavePlace();
 
   const [intent, setIntent] = useState("trending");
+  const [dragThresholdMet, setDragThresholdMet] = useState(false);
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  const { triggerBadgeCheck } = useBadges();
+  const { triggerNeighborhoodReveal } = useNeighborhoodReveal();
+  const [celebrationPlace, setCelebrationPlace] = useState<string | null>(null);
+
+  const [savingPlaceId, setSavingPlaceId] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{
     lat: number;
     lng: number;
@@ -480,6 +492,41 @@ export default function MapPage() {
     }
     load();
   }, [status]);
+
+  const handleManualCheckIn = async (place: Place) => {
+    if (!userLocation) return;
+
+    const result = await verifyVisitOnServer(
+      place.placeId,
+      userLocation.lat,
+      userLocation.lng,
+      "manual"
+    );
+
+    if (result) {
+      setVisitedIds(prev => new Set([...prev, place.placeId]));
+      setDetailPlace(null); // close sheet
+      setCelebrationPlace(result.name);
+
+      setTimeout(async () => {
+        try {
+          const nhRes = await fetch(`/api/exploration-stats/check-new-neighborhood?placeId=${place.placeId}`);
+          if (nhRes.ok) {
+            const nhData = await nhRes.json();
+            if (nhData.isNewNeighborhood && nhData.neighborhood) {
+              triggerNeighborhoodReveal(nhData);
+            }
+          }
+          triggerBadgeCheck();
+        } catch (e) {
+          console.error("Neighborhood check failed", e);
+          triggerBadgeCheck();
+        }
+      }, 1000);
+    } else {
+      alert("You are too far away to check in here! Get closer.");
+    }
+  };
 
   // Fetch visited places for fog-of-war
   useEffect(() => {
@@ -687,6 +734,15 @@ export default function MapPage() {
             fallbackGradient={fallbackGradient}
             onClose={() => setDetailPlace(null)}
             onSave={(action) => handleSave(detailPlace, intent, action)}
+            onCheckIn={() => handleManualCheckIn(detailPlace)}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {celebrationPlace && (
+          <VisitCelebration
+            placeName={celebrationPlace}
+            onClose={() => setCelebrationPlace(null)}
           />
         )}
       </AnimatePresence>

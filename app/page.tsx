@@ -23,6 +23,8 @@ import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { loadSkippedForIntent, persistSkippedForIntent, clearSkippedForIntent } from "@/lib/storage";
 import { setPendingVisit, checkPendingVisitProximity, verifyVisitOnServer, clearPendingVisit } from "@/lib/use-visit-tracker";
 import { useBadges } from "@/components/providers/BadgeProvider";
+import { useNeighborhoodReveal } from "@/components/providers/NeighborhoodRevealProvider";
+import Link from 'next/link';
 import VisitCelebration from "@/components/VisitCelebration";
 
 const categories = [
@@ -65,6 +67,7 @@ const PREFS_KEY = "whereto_prefs";
 export default function Home() {
   const router = useRouter();
   const { triggerBadgeCheck } = useBadges();
+  const { triggerNeighborhoodReveal } = useNeighborhoodReveal();
   const [intent, setIntent] = useState("trending");
   const [radius, setRadius] = useState(5000);
   const [priceFilter, setPriceFilter] = useState("All");
@@ -136,10 +139,26 @@ export default function Home() {
         clearPendingVisit();
         setVisitedPlaceIds(prev => new Set([...prev, pending.placeId]));
         setCelebrationPlace(result.name);
-        triggerBadgeCheck();
+
+        // Let the general celebration toast appear, then 1s later, pop the big overlay if it's a new hood
+        setTimeout(async () => {
+          try {
+            const nhRes = await fetch(`/api/exploration-stats/check-new-neighborhood?placeId=${pending.placeId}`);
+            if (nhRes.ok) {
+              const nhData = await nhRes.json();
+              if (nhData.isNewNeighborhood && nhData.neighborhood) {
+                triggerNeighborhoodReveal(nhData);
+              }
+            }
+            triggerBadgeCheck();
+          } catch (e) {
+            console.error("Neighborhood check failed", e);
+            triggerBadgeCheck(); // still run badges fallback
+          }
+        }, 1000);
       }
     });
-  }, [status]);
+  }, [status, triggerNeighborhoodReveal, triggerBadgeCheck]);
 
   // Load persisted skipped IDs when intent changes
   useEffect(() => {

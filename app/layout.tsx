@@ -6,6 +6,7 @@ import Providers from "@/components/Providers";
 import { ToastProvider } from "@/components/Toast";
 import ThemeProvider from "@/components/ThemeProvider";
 import { BadgeProvider } from "@/components/providers/BadgeProvider";
+import { NeighborhoodRevealProvider } from "@/components/providers/NeighborhoodRevealProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,10 +43,12 @@ export default function RootLayout({
         <Providers>
           <ThemeProvider>
             <ToastProvider>
-              <BadgeProvider>
-                {children}
-                <BottomNav />
-              </BadgeProvider>
+              <NeighborhoodRevealProvider>
+                <BadgeProvider>
+                  {children}
+                  <BottomNav />
+                </BadgeProvider>
+              </NeighborhoodRevealProvider>
             </ToastProvider>
           </ThemeProvider>
         </Providers>
