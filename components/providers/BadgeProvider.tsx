@@ -13,10 +13,10 @@ export interface BadgeDefinition {
 }
 
 interface BadgeContextType {
-    triggerBadgeCheck: () => Promise<void>;
+    triggerBadgeCheck: () => Promise<boolean>;
 }
 
-const BadgeContext = createContext<BadgeContextType>({ triggerBadgeCheck: async () => { } });
+const BadgeContext = createContext<BadgeContextType>({ triggerBadgeCheck: async () => false });
 
 export function useBadges() {
     return useContext(BadgeContext);
@@ -70,18 +70,23 @@ export function BadgeProvider({ children }: { children: ReactNode }) {
                 const data = await res.json();
                 if (data.newBadges && data.newBadges.length > 0) {
                     setQueue(prev => [...prev, ...data.newBadges]);
+                    return true;
                 }
             }
         } catch (e) {
             console.error("Failed to check badges", e);
         }
+        return false;
     };
 
-    // Process consecutive queued badges
+    // Process consecutive queued badges with a 2-second delay
     useEffect(() => {
         if (!currentBadge && queue.length > 0) {
-            setCurrentBadge(queue[0]);
-            setQueue(prev => prev.slice(1));
+            const timer = setTimeout(() => {
+                setCurrentBadge(queue[0]);
+                setQueue(prev => prev.slice(1));
+            }, 2000);
+            return () => clearTimeout(timer);
         }
     }, [queue, currentBadge]);
 

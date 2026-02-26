@@ -28,6 +28,7 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
 
     // COLLECTOR
     { type: "first_save", name: "Bookmarked", description: "Save your first place", icon: "🔖", category: "collector", requirement: 1 },
+    { type: "saves_10", name: "Local Collector", description: "Save 10 places", icon: "📋", category: "collector", requirement: 10 },
     { type: "saves_25", name: "Curator", description: "Save 25 places", icon: "📚", category: "collector", requirement: 25 },
     { type: "saves_50", name: "Connoisseur", description: "Save 50 places", icon: "🎯", category: "collector", requirement: 50 },
     { type: "all_intents", name: "Well Rounded", description: "Save a place from every intent category", icon: "🎨", category: "collector", requirement: 9 },

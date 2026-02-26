@@ -135,6 +135,7 @@ export async function checkAndAwardBadges(userId: string): Promise<string[]> {
                 case "rec_10": meetsRequirement = recommendationsSentCount >= def.requirement; break;
 
                 case "first_save": meetsRequirement = savesCount >= def.requirement; break;
+                case "saves_10": meetsRequirement = savesCount >= def.requirement; break;
                 case "saves_25": meetsRequirement = savesCount >= def.requirement; break;
                 case "saves_50": meetsRequirement = savesCount >= def.requirement; break;
 
