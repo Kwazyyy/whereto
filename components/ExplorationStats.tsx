@@ -33,33 +33,101 @@ export default function ExplorationStats() {
     // Drag to scroll refs
     const scrollRef = useRef<HTMLDivElement>(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [isCoasting, setIsCoasting] = useState(false);
+
+    // Physics simulation refs
     const startX = useRef(0);
     const scrollLeft = useRef(0);
+    const lastClientX = useRef(0);
+    const lastTimestamp = useRef(0);
+    const velocity = useRef(0);
+    const rafId = useRef<number | null>(null);
     const isDragPreventClick = useRef(false);
+
+    // Cleanup animation frames
+    useEffect(() => {
+        return () => {
+            if (rafId.current !== null) cancelAnimationFrame(rafId.current);
+        };
+    }, []);
 
     // Handlers
     const handleMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
         setIsDragging(true);
+        setIsCoasting(false);
         isDragPreventClick.current = false;
+
+        if (rafId.current !== null) {
+            cancelAnimationFrame(rafId.current);
+            rafId.current = null;
+        }
+
         if (!scrollRef.current) return;
         const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
         startX.current = pageX - scrollRef.current.offsetLeft;
         scrollLeft.current = scrollRef.current.scrollLeft;
+
+        lastClientX.current = pageX;
+        lastTimestamp.current = performance.now();
+        velocity.current = 0;
+    };
+
+    const applyMomentum = () => {
+        if (!scrollRef.current) return;
+
+        setIsCoasting(true);
+        const friction = 0.95; // Deceleration rate
+
+        const tick = () => {
+            if (!scrollRef.current || Math.abs(velocity.current) < 0.1) {
+                setIsCoasting(false);
+                rafId.current = null;
+                return;
+            }
+
+            scrollRef.current.scrollLeft -= velocity.current * 16;
+            velocity.current *= friction;
+
+            rafId.current = requestAnimationFrame(tick);
+        };
+
+        rafId.current = requestAnimationFrame(tick);
     };
 
     const handleMouseLeaveOrUp = () => {
+        if (!isDragging) return;
         setIsDragging(false);
+
+        // Coast if there's enough velocity
+        if (Math.abs(velocity.current) > 0.1) {
+            applyMomentum();
+        }
     };
 
     const handleMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
-        if (!isDragging) return;
-        if (!scrollRef.current) return;
+        if (!isDragging || !scrollRef.current) return;
+
+        // Prevent accidental text selection and standard mouse behaviors during drag
+        if (e.cancelable) e.preventDefault();
+
         const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
         const x = pageX - scrollRef.current.offsetLeft;
         const walk = x - startX.current;
+
         if (Math.abs(walk) > 5) {
             isDragPreventClick.current = true;
         }
+
+        const now = performance.now();
+        const dt = now - lastTimestamp.current;
+        if (dt > 0) {
+            const dx = pageX - lastClientX.current;
+            velocity.current = dx / dt; // px per ms
+        }
+
+        lastClientX.current = pageX;
+        lastTimestamp.current = now;
+
         scrollRef.current.scrollLeft = scrollLeft.current - walk;
     };
 
@@ -192,13 +260,13 @@ export default function ExplorationStats() {
                                 onTouchStart={handleMouseDown}
                                 onTouchEnd={handleMouseLeaveOrUp}
                                 onTouchMove={handleMouseMove}
-                                className={`flex items-center gap-2 overflow-x-auto pb-2 hide-scrollbar snap-x select-none ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
+                                className={`flex items-center gap-2 overflow-x-auto pb-2 hide-scrollbar select-none ${isDragging ? "cursor-grabbing" : "cursor-grab"} ${(!isDragging && !isCoasting) ? "scroll-smooth" : ""}`}
                             >
                                 {AREAS.map(area => (
                                     <button
                                         key={area}
                                         onClick={() => handleChipClick(area)}
-                                        className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors snap-start ${selectedArea === area
+                                        className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${selectedArea === area
                                             ? "bg-[#E85D2A] text-white border border-[#E85D2A]"
                                             : "bg-white dark:bg-[#161B22] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
                                             }`}
