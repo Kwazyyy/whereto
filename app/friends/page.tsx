@@ -8,6 +8,7 @@ import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useSavePlace } from "@/lib/use-save-place";
 import PlaceDetailSheet from "@/components/PlaceDetailSheet";
 import { useBadges } from "@/components/providers/BadgeProvider";
+import { FriendCompareModal } from "@/components/FriendCompareModal";
 import type { CompatibilityResult, SharedPlace } from "@/lib/tasteScore";
 import type { Place } from "@/lib/types";
 
@@ -127,10 +128,12 @@ function CompatibilityDrawer({
   friend,
   compat,
   onClose,
+  onCompare,
 }: {
   friend: Friend;
   compat: CompatibilityResult | null | undefined;
   onClose: () => void;
+  onCompare: () => void;
 }) {
   return (
     <div
@@ -232,6 +235,18 @@ function CompatibilityDrawer({
               </div>
             )}
           </>
+        )}
+
+        {/* Global compare button action below shared places */}
+        {compat && !compat.noData && (
+          <button
+            onClick={() => { onClose(); onCompare(); }}
+            className="w-full mt-6 py-4 bg-gray-100 dark:bg-white/5 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-200 dark:hover:bg-white/10 active:scale-95 transition-all outline-none"
+          >
+            <span className="text-xl">🗺️</span>
+            <span className="text-sm font-bold text-gray-800 dark:text-gray-200">Compare Exploration Map</span>
+            <span className="text-gray-400">→</span>
+          </button>
         )}
       </div>
     </div>
@@ -342,6 +357,8 @@ export default function FriendsPage() {
   const [addFriendOpen, setAddFriendOpen] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
+  const [selectedCompareFriend, setSelectedCompareFriend] = useState<string | null>(null);
+  const [compareData, setCompareData] = useState<any>(null);
   const [hasUnseenActivity, setHasUnseenActivity] = useState(false);
 
   const fetchFriends = useCallback(async () => {
@@ -405,6 +422,25 @@ export default function FriendsPage() {
     }
   }, [status]);
 
+  // Comparison Detail Fetcher
+  useEffect(() => {
+    if (!selectedCompareFriend) {
+      setCompareData(null);
+      return;
+    }
+
+    async function fetchCompare() {
+      try {
+        const res = await fetch(`/api/friends/${selectedCompareFriend}/exploration-compare`);
+        if (res.ok) {
+          const data = await res.json();
+          setCompareData(data);
+        }
+      } catch (e) { console.error("Could not fetch comparison mapping"); }
+    }
+    fetchCompare();
+  }, [selectedCompareFriend]);
+
   async function handleRequest(friendshipId: string, action: "accept" | "decline") {
     const res = await fetch("/api/friends", {
       method: "PATCH",
@@ -417,7 +453,7 @@ export default function FriendsPage() {
     fetchFriends();
   }
 
-  async function handleRemove(friendshipId: string) {
+  const handleRemove = async (friendshipId: string) => {
     setRemovingId(null);
     await fetch("/api/friends", {
       method: "DELETE",
@@ -652,6 +688,17 @@ export default function FriendsPage() {
                         )}
                       </div>
 
+                      {/* Map Action Button Layer */}
+                      {hasScore && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedCompareFriend(friend.userId); }}
+                          className="shrink-0 w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+                          title="Compare Map"
+                        >
+                          🗺️
+                        </button>
+                      )}
+
                       {/* Remove or chevron */}
                       {removingId === friend.friendshipId ? (
                         <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -704,6 +751,21 @@ export default function FriendsPage() {
           friend={selectedFriend}
           compat={selectedFriend.compatibility}
           onClose={() => setSelectedFriend(null)}
+          onCompare={() => {
+            setSelectedFriend(null);
+            setSelectedCompareFriend(selectedFriend.userId);
+          }}
+        />
+      )}
+
+      {/* Map Compare Full Modal */}
+      {selectedCompareFriend && compareData && (
+        <FriendCompareModal
+          data={compareData}
+          onClose={() => {
+            setSelectedCompareFriend(null);
+            setCompareData(null);
+          }}
         />
       )}
 
