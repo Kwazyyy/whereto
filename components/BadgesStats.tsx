@@ -59,6 +59,8 @@ export function BadgesStats() {
                 const res = await fetch("/api/badges");
                 const data: { earned: EarnedBadge[], definitions: BadgeDefinition[], progress: BadgeProgress } = await res.json();
 
+                console.log("Fetched badges progress:", data.progress);
+
                 if (!data.definitions) return;
                 const earnedMap = new Map(data.earned.map(e => [e.badgeType, e.earnedAt]));
                 setTotalEarned(data.earned.length);
@@ -196,9 +198,10 @@ export function BadgesStats() {
         animationRef.current = requestAnimationFrame(applyMomentum);
     };
 
-    const handleBadgeClick = (type: string) => {
+    const handleBadgeClick = (badge: BadgeDisplay) => {
+        console.log('Badge clicked:', badge);
         if (isDragClickRef.current) return;
-        setSelectedBadge(prev => prev === type ? null : type);
+        setSelectedBadge(prev => prev === badge.def.type ? null : badge.def.type);
     };
 
     if (loading || badges.length === 0) return null;
@@ -237,9 +240,12 @@ export function BadgesStats() {
                     className={`flex items-center gap-3 overflow-x-auto px-4 pb-4 hide-scrollbar select-none ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
                 >
                     {badges.map(b => (
-                        <div key={b.def.type} className="relative flex flex-col items-center shrink-0 mt-2">
-                            <button
-                                onClick={() => handleBadgeClick(b.def.type)}
+                        <div
+                            key={b.def.type}
+                            onClick={() => handleBadgeClick(b)}
+                            className="relative flex flex-col items-center shrink-0 mt-2 cursor-pointer"
+                        >
+                            <div
                                 className={`flex items-center justify-center rounded-full text-2xl transition-all relative w-12 h-12 md:w-14 md:h-14 bg-gray-100 dark:bg-[#1E2530]
                                     ${b.earned
                                         ? "opacity-100 border-2 border-[#E85D2A] shadow-[0_0_8px_rgba(232,93,42,0.3)]"
@@ -252,7 +258,7 @@ export function BadgesStats() {
                                         <span className="text-[11px] transform -translate-y-[0.5px]">🔒</span>
                                     </div>
                                 )}
-                            </button>
+                            </div>
 
                             <AnimatePresence>
                                 {selectedBadge === b.def.type && (
