@@ -207,11 +207,11 @@ export function BadgesStats() {
     const getProgressLabel = (def: BadgeDefinition) => {
         if (def.type.includes("explore") || def.type.includes("first_visit")) return "places visited";
         if (def.type.includes("neighborhood")) return "neighborhoods explored";
-        if (def.type.includes("friend")) return "friends added";
+        if (def.type.includes("friend")) return "friends";
         if (def.type.includes("rec")) return "recommendations sent";
         if (def.type.includes("save")) return "places saved";
-        if (def.type === "all_intents") return "unique intents";
-        if (def.type.includes("streak")) return "day current streak";
+        if (def.type === "all_intents") return "intent categories";
+        if (def.type.includes("streak")) return "day streak";
         return "";
     };
 
@@ -248,7 +248,7 @@ export function BadgesStats() {
                             >
                                 <span className="transform -translate-y-[1px]">{b.def.icon}</span>
                                 {!b.earned && (
-                                    <div className="absolute right-0 bottom-0 translate-x-1 translate-y-1 w-5 h-5 rounded-full bg-gray-200 dark:bg-[#1E2530] flex items-center justify-center ring-2 ring-white dark:ring-[#0E1116]">
+                                    <div className="absolute right-0 bottom-0 translate-x-1 translate-y-1 w-5 h-5 rounded-full bg-gray-200 dark:bg-[#1E2530] flex items-center justify-center ring-2 ring-white dark:ring-[#0E1116] pointer-events-none">
                                         <span className="text-[11px] transform -translate-y-[0.5px]">🔒</span>
                                     </div>
                                 )}
@@ -264,20 +264,31 @@ export function BadgesStats() {
                                         className="absolute top-16 md:top-20 left-1/2 -translate-x-1/2 z-[60] w-64 p-4 rounded-2xl bg-white dark:bg-[#1C2128] border border-gray-100 dark:border-white/10 shadow-xl pointer-events-none"
                                     >
                                         <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white dark:bg-[#1C2128] border-t border-l border-gray-100 dark:border-white/10 rotate-45" />
-                                        <div className="relative z-10 flex flex-col items-center text-center">
-                                            <div className="text-3xl mb-1">{b.def.icon}</div>
+                                        <div className="relative z-10 flex flex-col items-center text-center w-full">
+                                            <div className={`text-3xl mb-1 ${!b.earned ? 'opacity-40 grayscale' : ''}`}>
+                                                {b.def.icon}
+                                            </div>
                                             <h4 className="font-semibold text-[#0E1116] dark:text-[#e8edf4] text-base">{b.def.name}</h4>
                                             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{b.def.description}</p>
 
-                                            <div className="mt-3 text-xs font-semibold">
+                                            <div className="mt-3 w-full">
                                                 {b.earned ? (
-                                                    <span className="text-green-600 dark:text-green-500">
+                                                    <div className="text-xs font-semibold text-green-600 dark:text-green-500">
                                                         Earned {new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date(b.earnedAt!))}
-                                                    </span>
+                                                    </div>
                                                 ) : (
-                                                    <span className="text-gray-400 dark:text-gray-500">
-                                                        {Math.min(b.currentProgress, b.def.requirement)} / {b.def.requirement} {getProgressLabel(b.def)}
-                                                    </span>
+                                                    <div className="flex flex-col items-center w-full gap-1.5 focus:outline-none">
+                                                        <span className="text-xs font-semibold text-gray-400 dark:text-gray-500">
+                                                            {Math.min(b.currentProgress, b.def.requirement)} / {b.def.requirement} {getProgressLabel(b.def)}
+                                                        </span>
+                                                        <div className="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden mt-0.5">
+                                                            <div
+                                                                className="h-full bg-[#E85D2A] rounded-full transition-all duration-500"
+                                                                style={{ width: `${Math.min((b.currentProgress / b.def.requirement) * 100, 100)}%` }}
+                                                            />
+                                                        </div>
+                                                        <span className="text-[10px] text-gray-400 dark:text-gray-600 mt-1 uppercase tracking-wider font-semibold">Not yet earned</span>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>
