@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/Toast";
 import { Place } from "@/lib/types";
+import { useBadges } from "@/components/providers/BadgeProvider";
 
 const INTENT_LABELS: Record<string, string> = {
   study: "Study / Work",
@@ -19,6 +20,7 @@ const INTENT_LABELS: Record<string, string> = {
 export function useSavePlace() {
   const { status } = useSession();
   const { showToast } = useToast();
+  const { triggerBadgeCheck } = useBadges();
 
   async function handleSave(
     place: Place,
@@ -40,6 +42,9 @@ export function useSavePlace() {
 
     const label = recommendationId ? "Recs from Friends" : (INTENT_LABELS[intent] ?? intent);
     showToast(`Saved to ${label}`);
+
+    // Check for badges asynchronously
+    triggerBadgeCheck();
   }
 
   async function handleUnsave(placeId: string): Promise<void> {

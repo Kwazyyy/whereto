@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useBadges } from "@/components/providers/BadgeProvider";
 
 interface Friend {
     userId: string;
@@ -27,6 +28,7 @@ export function ShareModal({
     const [note, setNote] = useState("");
     const [sending, setSending] = useState(false);
     const [copySuccess, setCopySuccess] = useState(false);
+    const { triggerBadgeCheck } = useBadges();
 
     // Fetch friends when picking
     useEffect(() => {
@@ -66,6 +68,7 @@ export function ShareModal({
                     note: note.trim() || undefined,
                 }),
             });
+            triggerBadgeCheck();
             setScreen("sent");
         } catch {
             // ignore

@@ -22,6 +22,7 @@ import { ShareModal } from "@/components/ShareModal";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { loadSkippedForIntent, persistSkippedForIntent, clearSkippedForIntent } from "@/lib/storage";
 import { setPendingVisit, checkPendingVisitProximity, verifyVisitOnServer, clearPendingVisit } from "@/lib/use-visit-tracker";
+import { useBadges } from "@/components/providers/BadgeProvider";
 import VisitCelebration from "@/components/VisitCelebration";
 
 const categories = [
@@ -63,6 +64,7 @@ const PREFS_KEY = "whereto_prefs";
 
 export default function Home() {
   const router = useRouter();
+  const { triggerBadgeCheck } = useBadges();
   const [intent, setIntent] = useState("trending");
   const [radius, setRadius] = useState(5000);
   const [priceFilter, setPriceFilter] = useState("All");
@@ -134,6 +136,7 @@ export default function Home() {
         clearPendingVisit();
         setVisitedPlaceIds(prev => new Set([...prev, pending.placeId]));
         setCelebrationPlace(result.name);
+        triggerBadgeCheck();
       }
     });
   }, [status]);

@@ -8,6 +8,7 @@ import { SavedPlace, getSavedPlaces } from "@/lib/saved-places";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useTheme, type Theme } from "@/components/ThemeProvider";
 import ExplorationStats from "@/components/ExplorationStats";
+import { BadgesStats } from "@/components/BadgesStats";
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -524,7 +525,8 @@ export default function ProfilePage() {
           </div>
 
           {session?.user && (
-            <div className="mt-8 w-full max-w-sm mx-auto">
+            <div className="mt-8 w-full max-w-sm mx-auto flex flex-col gap-6">
+              <BadgesStats />
               <ExplorationStats />
             </div>
           )}

@@ -7,6 +7,7 @@ import { AnimatePresence } from "framer-motion";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useSavePlace } from "@/lib/use-save-place";
 import PlaceDetailSheet from "@/components/PlaceDetailSheet";
+import { useBadges } from "@/components/providers/BadgeProvider";
 import type { CompatibilityResult, SharedPlace } from "@/lib/tasteScore";
 import type { Place } from "@/lib/types";
 
@@ -333,6 +334,7 @@ function AddFriendModal({
 
 export default function FriendsPage() {
   const { data: session, status } = useSession();
+  const { triggerBadgeCheck } = useBadges();
   const [tab, setTab] = useState<"friends" | "activity">("friends");
   const [friends, setFriends] = useState<Friend[]>([]);
   const [incoming, setIncoming] = useState<FriendRequest[]>([]);
@@ -404,11 +406,14 @@ export default function FriendsPage() {
   }, [status]);
 
   async function handleRequest(friendshipId: string, action: "accept" | "decline") {
-    await fetch("/api/friends", {
+    const res = await fetch("/api/friends", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ friendshipId, action }),
     });
+    if (res.ok && action === "accept") {
+      triggerBadgeCheck();
+    }
     fetchFriends();
   }
 

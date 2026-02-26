@@ -5,6 +5,7 @@ import BottomNav from "@/components/BottomNav";
 import Providers from "@/components/Providers";
 import { ToastProvider } from "@/components/Toast";
 import ThemeProvider from "@/components/ThemeProvider";
+import { BadgeProvider } from "@/components/providers/BadgeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,8 +42,10 @@ export default function RootLayout({
         <Providers>
           <ThemeProvider>
             <ToastProvider>
-              {children}
-              <BottomNav />
+              <BadgeProvider>
+                {children}
+                <BottomNav />
+              </BadgeProvider>
             </ToastProvider>
           </ThemeProvider>
         </Providers>
