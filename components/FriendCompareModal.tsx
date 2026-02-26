@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { X, Map, ShieldAlert } from "lucide-react";
@@ -70,6 +70,112 @@ export function FriendCompareModal({ data, onClose }: FriendCompareModalProps) {
     const filteredList = selectedArea === "All"
         ? combinedList
         : combinedList.filter(n => n.area === selectedArea);
+
+    // Drag to scroll refs
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [isCoasting, setIsCoasting] = useState(false);
+
+    // Physics simulation refs
+    const startX = useRef(0);
+    const scrollLeft = useRef(0);
+    const lastClientX = useRef(0);
+    const lastTimestamp = useRef(0);
+    const velocity = useRef(0);
+    const rafId = useRef<number | null>(null);
+    const isDragPreventClick = useRef(false);
+
+    // Cleanup animation frames
+    useEffect(() => {
+        return () => {
+            if (rafId.current !== null) cancelAnimationFrame(rafId.current);
+        };
+    }, []);
+
+    // Handlers
+    const handleMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
+        setIsDragging(true);
+        setIsCoasting(false);
+        isDragPreventClick.current = false;
+
+        if (rafId.current !== null) {
+            cancelAnimationFrame(rafId.current);
+            rafId.current = null;
+        }
+
+        if (!scrollRef.current) return;
+        const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
+        startX.current = pageX - scrollRef.current.offsetLeft;
+        scrollLeft.current = scrollRef.current.scrollLeft;
+
+        lastClientX.current = pageX;
+        lastTimestamp.current = performance.now();
+        velocity.current = 0;
+    };
+
+    const applyMomentum = () => {
+        if (!scrollRef.current) return;
+
+        setIsCoasting(true);
+        const friction = 0.95; // Deceleration rate
+
+        const tick = () => {
+            if (!scrollRef.current || Math.abs(velocity.current) < 0.1) {
+                setIsCoasting(false);
+                rafId.current = null;
+                return;
+            }
+
+            scrollRef.current.scrollLeft -= velocity.current * 16;
+            velocity.current *= friction;
+
+            rafId.current = requestAnimationFrame(tick);
+        };
+
+        rafId.current = requestAnimationFrame(tick);
+    };
+
+    const handleMouseLeaveOrUp = () => {
+        if (!isDragging) return;
+        setIsDragging(false);
+
+        // Coast if there's enough velocity
+        if (Math.abs(velocity.current) > 0.1) {
+            applyMomentum();
+        }
+    };
+
+    const handleMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
+        if (!isDragging || !scrollRef.current) return;
+
+        // Prevent accidental text selection and standard mouse behaviors during drag
+        if (e.cancelable) e.preventDefault();
+
+        const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
+        const x = pageX - scrollRef.current.offsetLeft;
+        const walk = x - startX.current;
+
+        if (Math.abs(walk) > 5) {
+            isDragPreventClick.current = true;
+        }
+
+        const now = performance.now();
+        const dt = now - lastTimestamp.current;
+        if (dt > 0) {
+            const dx = pageX - lastClientX.current;
+            velocity.current = dx / dt; // px per ms
+        }
+
+        lastClientX.current = pageX;
+        lastTimestamp.current = now;
+
+        scrollRef.current.scrollLeft = scrollLeft.current - walk;
+    };
+
+    const handleChipClick = (area: string) => {
+        if (isDragPreventClick.current) return;
+        setSelectedArea(area);
+    };
 
     // Determine Message
     let ctaTitle = "";
@@ -218,11 +324,25 @@ export function FriendCompareModal({ data, onClose }: FriendCompareModalProps) {
 
                         {/* Neighborhood Breakdown List */}
                         <div>
-                            <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-3 mt-8">
+                            <style>{`
+                                .hide-scrollbar::-webkit-scrollbar { display: none; }
+                                .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+                            `}</style>
+                            <div
+                                ref={scrollRef}
+                                className={`flex items-center gap-2 overflow-x-auto hide-scrollbar pb-3 mt-8 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                                onMouseDown={handleMouseDown}
+                                onMouseLeave={handleMouseLeaveOrUp}
+                                onMouseUp={handleMouseLeaveOrUp}
+                                onMouseMove={handleMouseMove}
+                                onTouchStart={handleMouseDown}
+                                onTouchEnd={handleMouseLeaveOrUp}
+                                onTouchMove={handleMouseMove}
+                            >
                                 {ALL_AREAS.map(area => (
                                     <button
                                         key={area}
-                                        onClick={() => setSelectedArea(area)}
+                                        onClick={() => handleChipClick(area)}
                                         className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${selectedArea === area
                                             ? "bg-[#0E1116] dark:bg-white text-white dark:text-[#0E1116]"
                                             : "bg-white dark:bg-[#161B22] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10"
