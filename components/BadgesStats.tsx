@@ -170,10 +170,12 @@ export function BadgesStats() {
         if (!isDragging || !scrollRef.current) return;
         const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
         const x = pageX - scrollRef.current.offsetLeft;
-        const walk = (x - startX) * 2;
+        const dx = x - startX;
+        const walk = dx * 2;
         scrollRef.current.scrollLeft = scrollLeft - walk;
 
-        if (Math.abs(walk) > 5) {
+        // Increase threshold to 5 actual pixels to prevent trackpad jitters from blocking clicks
+        if (Math.abs(dx) > 5) {
             isDragClickRef.current = true;
             if (selectedBadge) setSelectedBadge(null);
         }
@@ -198,10 +200,11 @@ export function BadgesStats() {
         animationRef.current = requestAnimationFrame(applyMomentum);
     };
 
-    const handleBadgeClick = (badge: BadgeDisplay) => {
-        console.log('Badge clicked:', badge);
+    const handleBadgeClick = (e: React.MouseEvent | React.TouchEvent, type: string) => {
+        e.stopPropagation();
+        console.log('Badge clicked:', type);
         if (isDragClickRef.current) return;
-        setSelectedBadge(prev => prev === badge.def.type ? null : badge.def.type);
+        setSelectedBadge(prev => prev === type ? null : type);
     };
 
     if (loading || badges.length === 0) return null;
@@ -240,16 +243,17 @@ export function BadgesStats() {
                     className={`flex items-center gap-3 overflow-x-auto px-4 pb-4 hide-scrollbar select-none ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
                 >
                     {badges.map(b => (
-                        <div
+                        <button
+                            type="button"
                             key={b.def.type}
-                            onClick={() => handleBadgeClick(b)}
-                            className="relative flex flex-col items-center shrink-0 mt-2 cursor-pointer"
+                            onClick={(e) => handleBadgeClick(e, b.def.type)}
+                            className="relative flex flex-col items-center shrink-0 mt-2 cursor-pointer focus:outline-none rounded-2xl group"
                         >
                             <div
                                 className={`flex items-center justify-center rounded-full text-2xl transition-all relative w-12 h-12 md:w-14 md:h-14 bg-gray-100 dark:bg-[#1E2530]
                                     ${b.earned
                                         ? "opacity-100 border-2 border-[#E85D2A] shadow-[0_0_8px_rgba(232,93,42,0.3)]"
-                                        : "opacity-40 border border-gray-300 dark:border-gray-700"
+                                        : "opacity-40 border border-gray-300 dark:border-gray-700 group-hover:opacity-60"
                                     }`}
                             >
                                 <span className="transform -translate-y-[1px]">{b.def.icon}</span>
@@ -301,7 +305,7 @@ export function BadgesStats() {
                                     </motion.div>
                                 )}
                             </AnimatePresence>
-                        </div>
+                        </button>
                     ))}
                 </div>
             </div>
