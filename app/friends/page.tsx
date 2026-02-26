@@ -141,7 +141,7 @@ function CompatibilityDrawer({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-white dark:bg-[#161B22] rounded-t-3xl px-6 pt-4 pb-10 max-h-[85dvh] overflow-y-auto"
+        className="w-full max-w-lg bg-white dark:bg-[#161B22] rounded-t-3xl px-6 pt-4 pb-28 max-h-[85dvh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Handle bar */}
@@ -689,15 +689,13 @@ export default function FriendsPage() {
                       </div>
 
                       {/* Map Action Button Layer */}
-                      {hasScore && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setSelectedCompareFriend(friend.userId); }}
-                          className="shrink-0 w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
-                          title="Compare Map"
-                        >
-                          🗺️
-                        </button>
-                      )}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setSelectedCompareFriend(friend.userId); }}
+                        className="w-8 h-8 rounded-full bg-white dark:bg-[#161B22] border border-gray-300 dark:border-gray-700 hover:border-[#E85D2A] dark:hover:border-[#E85D2A] flex items-center justify-center text-sm transition-colors shrink-0"
+                        title="Compare Map"
+                      >
+                        🗺️
+                      </button>
 
                       {/* Remove or chevron */}
                       {removingId === friend.friendshipId ? (
