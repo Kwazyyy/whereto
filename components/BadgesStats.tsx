@@ -40,6 +40,7 @@ export function BadgesStats() {
     const [loading, setLoading] = useState(true);
     const [selectedBadge, setSelectedBadge] = useState<string | null>(null);
     const [totalEarned, setTotalEarned] = useState(0);
+    const [hasDragged, setHasDragged] = useState(false);
     const { triggerBadgeCheck } = useBadges();
 
     // Scroll Physics
@@ -146,6 +147,7 @@ export function BadgesStats() {
 
     const handleMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
         setIsDragging(true);
+        setHasDragged(false);
         isDragClickRef.current = false;
         if (animationRef.current) cancelAnimationFrame(animationRef.current);
         const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
@@ -177,6 +179,7 @@ export function BadgesStats() {
         // Increase threshold to 5 actual pixels to prevent trackpad jitters from blocking clicks
         if (Math.abs(dx) > 5) {
             isDragClickRef.current = true;
+            setHasDragged(true);
             if (selectedBadge) setSelectedBadge(null);
         }
 
@@ -200,12 +203,7 @@ export function BadgesStats() {
         animationRef.current = requestAnimationFrame(applyMomentum);
     };
 
-    const handleBadgeClick = (e: React.MouseEvent | React.TouchEvent, type: string) => {
-        e.stopPropagation();
-        console.log('Badge clicked:', type);
-        if (isDragClickRef.current) return;
-        setSelectedBadge(prev => prev === type ? null : type);
-    };
+    const selectedBadgeData = badges.find(b => b.def.type === selectedBadge);
 
     if (loading || badges.length === 0) return null;
 
@@ -243,17 +241,16 @@ export function BadgesStats() {
                     className={`flex items-center gap-3 overflow-x-auto px-4 pb-4 hide-scrollbar select-none ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
                 >
                     {badges.map(b => (
-                        <button
-                            type="button"
+                        <div
                             key={b.def.type}
-                            onClick={(e) => handleBadgeClick(e, b.def.type)}
-                            className="relative flex flex-col items-center shrink-0 mt-2 cursor-pointer focus:outline-none rounded-2xl group"
+                            onClick={() => { if (!hasDragged) setSelectedBadge(b.def.type) }}
+                            className="cursor-pointer relative flex flex-col items-center shrink-0 mt-2"
                         >
                             <div
                                 className={`flex items-center justify-center rounded-full text-2xl transition-all relative w-12 h-12 md:w-14 md:h-14 bg-gray-100 dark:bg-[#1E2530]
                                     ${b.earned
                                         ? "opacity-100 border-2 border-[#E85D2A] shadow-[0_0_8px_rgba(232,93,42,0.3)]"
-                                        : "opacity-40 border border-gray-300 dark:border-gray-700 group-hover:opacity-60"
+                                        : "opacity-40 border border-gray-300 dark:border-gray-700"
                                     }`}
                             >
                                 <span className="transform -translate-y-[1px]">{b.def.icon}</span>
@@ -263,52 +260,67 @@ export function BadgesStats() {
                                     </div>
                                 )}
                             </div>
-
-                            <AnimatePresence>
-                                {selectedBadge === b.def.type && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                        transition={{ duration: 0.15 }}
-                                        className="absolute top-16 md:top-20 left-1/2 -translate-x-1/2 z-[60] w-64 p-4 rounded-2xl bg-white dark:bg-[#1C2128] border border-gray-100 dark:border-white/10 shadow-xl pointer-events-none"
-                                    >
-                                        <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white dark:bg-[#1C2128] border-t border-l border-gray-100 dark:border-white/10 rotate-45" />
-                                        <div className="relative z-10 flex flex-col items-center text-center w-full">
-                                            <div className={`text-3xl mb-1 ${!b.earned ? 'opacity-40 grayscale' : ''}`}>
-                                                {b.def.icon}
-                                            </div>
-                                            <h4 className="font-semibold text-[#0E1116] dark:text-[#e8edf4] text-base">{b.def.name}</h4>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{b.def.description}</p>
-
-                                            <div className="mt-3 w-full">
-                                                {b.earned ? (
-                                                    <div className="text-xs font-semibold text-green-600 dark:text-green-500">
-                                                        Earned {new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date(b.earnedAt!))}
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex flex-col items-center w-full gap-1.5 focus:outline-none">
-                                                        <span className="text-xs font-semibold text-gray-400 dark:text-gray-500">
-                                                            {Math.min(b.currentProgress, b.def.requirement)} / {b.def.requirement} {getProgressLabel(b.def)}
-                                                        </span>
-                                                        <div className="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden mt-0.5">
-                                                            <div
-                                                                className="h-full bg-[#E85D2A] rounded-full transition-all duration-500"
-                                                                style={{ width: `${Math.min((b.currentProgress / b.def.requirement) * 100, 100)}%` }}
-                                                            />
-                                                        </div>
-                                                        <span className="text-[10px] text-gray-400 dark:text-gray-600 mt-1 uppercase tracking-wider font-semibold">Not yet earned</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </button>
+                        </div>
                     ))}
                 </div>
             </div>
+
+            <AnimatePresence>
+                {selectedBadgeData && (
+                    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedBadge(null)}
+                            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ y: "100%", opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: "100%", opacity: 0 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                            className="relative w-full sm:w-96 bg-white dark:bg-[#1C2128] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col z-10"
+                        >
+                            <div className="p-6 flex flex-col items-center text-center">
+                                <button
+                                    onClick={() => setSelectedBadge(null)}
+                                    className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400"
+                                >
+                                    ✕
+                                </button>
+
+                                <div className={`text-6xl mb-4 ${!selectedBadgeData.earned ? 'opacity-40 grayscale' : ''}`}>
+                                    {selectedBadgeData.def.icon}
+                                </div>
+                                <h4 className="font-bold text-[#0E1116] dark:text-[#e8edf4] text-xl mb-2">{selectedBadgeData.def.name}</h4>
+                                <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">{selectedBadgeData.def.description}</p>
+
+                                <div className="w-full bg-gray-50 dark:bg-[#0E1116] rounded-2xl p-4">
+                                    {selectedBadgeData.earned ? (
+                                        <div className="text-sm font-bold text-green-600 dark:text-green-500">
+                                            Earned {new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date(selectedBadgeData.earnedAt!))}
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center w-full gap-2">
+                                            <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">
+                                                {Math.min(selectedBadgeData.currentProgress, selectedBadgeData.def.requirement)} / {selectedBadgeData.def.requirement} {getProgressLabel(selectedBadgeData.def)}
+                                            </span>
+                                            <div className="w-full h-2 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-[#E85D2A] rounded-full transition-all duration-500"
+                                                    style={{ width: `${Math.min((selectedBadgeData.currentProgress / selectedBadgeData.def.requirement) * 100, 100)}%` }}
+                                                />
+                                            </div>
+                                            <span className="text-xs text-gray-400 dark:text-gray-600 font-bold uppercase tracking-wider mt-1">Not yet earned</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
