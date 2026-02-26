@@ -5,7 +5,7 @@ import { torontoNeighborhoods, getNeighborhoodForPlace } from "@/lib/neighborhoo
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const session = await auth();
     if (!session?.user?.id) {
@@ -13,7 +13,7 @@ export async function GET(
     }
 
     const currentUserId = session.user.id;
-    const friendId = params.id;
+    const { id: friendId } = await params;
 
     if (!friendId) {
         return NextResponse.json({ error: "Missing friend ID" }, { status: 400 });
@@ -53,7 +53,7 @@ export async function GET(
         const TOTAL_NEIGHBORHOODS = torontoNeighborhoods.length;
 
         // Helper to process arrays into neighborhood data maps
-        const processNeighborhoods = (visits: any[]) => {
+        const processNeighborhoods = (visits: { place: { lat: number, lng: number } }[]) => {
             const map = new Map<string, { name: string; area: string; explored: boolean; visitCount: number }>();
 
             // prefill map with all available hoods defaulted to false

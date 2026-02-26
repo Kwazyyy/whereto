@@ -8,7 +8,7 @@ import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useSavePlace } from "@/lib/use-save-place";
 import PlaceDetailSheet from "@/components/PlaceDetailSheet";
 import { useBadges } from "@/components/providers/BadgeProvider";
-import { FriendCompareModal } from "@/components/FriendCompareModal";
+import { FriendCompareModal, CompareData } from "@/components/FriendCompareModal";
 import type { CompatibilityResult, SharedPlace } from "@/lib/tasteScore";
 import type { Place } from "@/lib/types";
 
@@ -358,7 +358,7 @@ export default function FriendsPage() {
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [selectedCompareFriend, setSelectedCompareFriend] = useState<string | null>(null);
-  const [compareData, setCompareData] = useState<any>(null);
+  const [compareData, setCompareData] = useState<CompareData | null>(null);
   const [hasUnseenActivity, setHasUnseenActivity] = useState(false);
 
   const fetchFriends = useCallback(async () => {

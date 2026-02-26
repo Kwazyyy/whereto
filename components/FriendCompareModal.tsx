@@ -13,7 +13,7 @@ interface NeighborhoodStat {
     visitCount: number;
 }
 
-interface CompareData {
+export interface CompareData {
     user: {
         name: string | null;
         avatarUrl: string | null;
@@ -224,8 +224,8 @@ export function FriendCompareModal({ data, onClose }: FriendCompareModalProps) {
                                         key={area}
                                         onClick={() => setSelectedArea(area)}
                                         className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${selectedArea === area
-                                                ? "bg-[#0E1116] dark:bg-white text-white dark:text-[#0E1116]"
-                                                : "bg-white dark:bg-[#161B22] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10"
+                                            ? "bg-[#0E1116] dark:bg-white text-white dark:text-[#0E1116]"
+                                            : "bg-white dark:bg-[#161B22] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10"
                                             }`}
                                     >
                                         {area}
