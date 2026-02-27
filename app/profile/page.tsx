@@ -9,6 +9,9 @@ import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useTheme, type Theme } from "@/components/ThemeProvider";
 import ExplorationStats from "@/components/ExplorationStats";
 import { BadgesStats } from "@/components/BadgesStats";
+import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
+import { useNeighborhoodReveal } from "@/components/providers/NeighborhoodRevealProvider";
+import { useToast } from "@/components/Toast";
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -343,6 +346,48 @@ export default function ProfilePage() {
   const [saves, setSaves] = useState<SavedPlace[]>([]);
   const [visitCount, setVisitCount] = useState<number>(0);
 
+  const { triggerVibeVoting } = useVibeVoting();
+  const { triggerNeighborhoodReveal } = useNeighborhoodReveal();
+  const { showToast } = useToast();
+
+  const handleSimulateVisit = async () => {
+    if (saves.length === 0) {
+      alert("Please save at least one place first to simulate a visit.");
+      return;
+    }
+    const randomPlace = saves[Math.floor(Math.random() * saves.length)];
+
+    showToast(`Simulated visit to ${randomPlace.name}!`);
+
+    try {
+      // Create manual visit mock
+      await fetch('/api/visits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ placeId: randomPlace.placeId, lat: 43.65, lng: -79.38, method: "manual" })
+      });
+
+      const nhRes = await fetch(`/api/exploration-stats/check-new-neighborhood?placeId=${randomPlace.placeId}`);
+      let triggeredReveal = false;
+      if (nhRes.ok) {
+        const nhData = await nhRes.json();
+        if (nhData.isNewNeighborhood && nhData.neighborhood) {
+          triggerNeighborhoodReveal(nhData, () => {
+            triggerVibeVoting(randomPlace.placeId, randomPlace.name);
+          });
+          triggeredReveal = true;
+        }
+      }
+
+      if (!triggeredReveal) {
+        setTimeout(() => triggerVibeVoting(randomPlace.placeId, randomPlace.name), 1000);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Simulation failed");
+    }
+  };
+
   // Load prefs from localStorage on mount
   useEffect(() => {
     setPrefs(loadPrefs());
@@ -658,7 +703,47 @@ export default function ProfilePage() {
               </span>
               <ChevronRight />
             </Link>
+
+            {process.env.NODE_ENV === "development" && (
+              <button
+                onClick={() => triggerVibeVoting("dummy_place_id", "Test Cafe")}
+                className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors border-t border-gray-100 dark:border-white/5"
+              >
+                <span className="text-sm font-medium text-blue-500">
+                  Test Vibe Voting
+                </span>
+                <ChevronRight />
+              </button>
+            )}
           </SettingsCard>
+
+          {/* Dev Tools - Only visible locally */}
+          {process.env.NODE_ENV === "development" && (
+            <>
+              <SectionHeader title="Dev Tools" />
+              <SettingsCard>
+                <button
+                  onClick={() => triggerVibeVoting("dummy_place_id", "Test Cafe")}
+                  className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer border-b border-gray-100 dark:border-white/5 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                >
+                  <span className="text-sm font-medium text-blue-500">
+                    Test Vibe Voting
+                  </span>
+                  <ChevronRight />
+                </button>
+                <button
+                  onClick={handleSimulateVisit}
+                  className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                >
+                  <span className="text-sm font-medium text-amber-500">
+                    Simulate Visit
+                  </span>
+                  <ChevronRight />
+                </button>
+              </SettingsCard>
+            </>
+          )}
+
 
           <p className="text-center md:text-left text-xs text-gray-400 dark:text-gray-500 mt-8 pb-2 px-1">
             Made with love in Toronto

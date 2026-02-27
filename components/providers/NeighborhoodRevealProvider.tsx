@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useCallback } from "react";
+import React, { createContext, useContext, useState, ReactNode, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Confetti from "react-confetti";
 import { useWindowSize } from "react-use";
@@ -17,7 +17,7 @@ interface RevealData {
 }
 
 interface NeighborhoodRevealContextType {
-    triggerNeighborhoodReveal: (data: RevealData) => void;
+    triggerNeighborhoodReveal: (data: RevealData, onComplete?: () => void) => void;
 }
 
 const NeighborhoodRevealContext = createContext<NeighborhoodRevealContextType | undefined>(undefined);
@@ -27,9 +27,11 @@ export function NeighborhoodRevealProvider({ children }: { children: ReactNode }
     const { width, height } = useWindowSize();
     const [showConfetti, setShowConfetti] = useState(false);
     const [progressFill, setProgressFill] = useState(0);
+    const onCompleteRef = useRef<(() => void) | null>(null);
 
-    const triggerNeighborhoodReveal = useCallback((data: RevealData) => {
+    const triggerNeighborhoodReveal = useCallback((data: RevealData, onComplete?: () => void) => {
         setRevealData(data);
+        if (onComplete) onCompleteRef.current = onComplete;
         setShowConfetti(false);
         setProgressFill(data.totalExplored - 1); // Start animating from previous value
 
@@ -51,6 +53,10 @@ export function NeighborhoodRevealProvider({ children }: { children: ReactNode }
     const closeModal = () => {
         setRevealData(null);
         setShowConfetti(false);
+        if (onCompleteRef.current) {
+            onCompleteRef.current();
+            onCompleteRef.current = null;
+        }
     };
 
     return (

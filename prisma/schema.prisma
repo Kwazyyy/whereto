@@ -24,6 +24,7 @@ model User {
   receivedRecommendations Recommendation[] @relation("ReceivedRecommendations")
   visits                  Visit[]
   badges                  Badge[]
+  vibeVotes               VibeVote[]
 }
 
 model Account {
@@ -76,6 +77,7 @@ model Place {
   saves           Save[]
   recommendations Recommendation[]
   visits          Visit[]
+  vibeVotes       VibeVote[]
 }
 
 model Save {
@@ -146,5 +148,19 @@ model Badge {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, badgeType])
+  @@index([userId])
+}
+
+model VibeVote {
+  id        String   @id @default(cuid())
+  userId    String
+  placeId   String
+  vibeTag   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, placeId, vibeTag])
+  @@index([placeId])
   @@index([userId])
 }

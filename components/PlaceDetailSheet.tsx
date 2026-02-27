@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Place, FriendSignal } from "@/lib/types";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { haversineMeters } from "@/lib/haversine";
+import CommunityVibes from "./CommunityVibes";
 
 export default function PlaceDetailSheet({
   place,
@@ -142,6 +143,8 @@ export default function PlaceDetailSheet({
             {place.address && (
               <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">{place.address}</p>
             )}
+
+            <CommunityVibes placeId={place.placeId} limit={3} />
 
             {/* Friends who saved this */}
             {place.friendSaves && place.friendSaves.length > 0 && (

@@ -10,6 +10,7 @@ import { usePhotoUrl } from "@/lib/use-photo-url";
 import { Place } from "@/lib/types";
 import PlaceDetailSheet from "@/components/PlaceDetailSheet";
 import { useSavePlace } from "@/lib/use-save-place";
+import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
 
 const RECS_INTENT = "recs_from_friends";
 
@@ -66,7 +67,7 @@ function RecSenderAvatar({ image, name }: { image?: string | null; name?: string
     );
 }
 
-function PlaceListItem({ place, onTap, isRecs }: { place: SavedPlace; onTap: () => void; isRecs: boolean }) {
+function PlaceListItem({ place, onTap, isRecs, hasVisited, userVibesForPlace, onRateVibes }: { place: SavedPlace; onTap: () => void; isRecs: boolean; hasVisited?: boolean; userVibesForPlace?: string[]; onRateVibes?: () => void }) {
     const photoUrl = usePhotoUrl(place.photoRef);
 
     return (
@@ -105,6 +106,21 @@ function PlaceListItem({ place, onTap, isRecs }: { place: SavedPlace; onTap: () 
                     )}
                 </div>
 
+                {/* Rate Vibes Button */}
+                {hasVisited && (
+                    <div className="mt-2.5">
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onRateVibes?.(); }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#E85D2A]/10 text-[#E85D2A] hover:bg-[#E85D2A]/20 transition-colors border border-[#E85D2A]/20"
+                        >
+                            <span className="text-sm">✨</span>
+                            <span className="text-xs font-bold">
+                                {userVibesForPlace && userVibesForPlace.length > 0 ? "Edit vibes" : "Rate vibes"}
+                            </span>
+                        </button>
+                    </div>
+                )}
+
                 {/* Recommendation metadata */}
                 {isRecs && place.recommendedByName && (
                     <div className="flex items-start gap-1.5 mt-2 p-2 rounded-xl bg-violet-50 dark:bg-violet-950/30">
@@ -142,6 +158,9 @@ export default function BoardDetailPage() {
     const [loading, setLoading] = useState(true);
     const [detailPlace, setDetailPlace] = useState<SavedPlace | null>(null);
     const { handleSave, handleUnsave } = useSavePlace();
+    const { triggerVibeVoting } = useVibeVoting();
+    const [visitedIds, setVisitedIds] = useState<Set<string>>(new Set());
+    const [userVibes, setUserVibes] = useState<Record<string, string[]>>({});
 
     useEffect(() => {
         if (status === "loading") return;
@@ -158,6 +177,21 @@ export default function BoardDetailPage() {
                     setLoading(false);
                 })
                 .catch(() => setLoading(false));
+
+            // Fetch visited ids
+            fetch("/api/visits")
+                .then(r => r.json())
+                .then(data => {
+                    if (Array.isArray(data)) setVisitedIds(new Set(data.map(v => v.placeId)));
+                }).catch(() => { });
+
+            // Fetch user votes
+            fetch("/api/vibe-votes")
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.userVotes) setUserVibes(data.userVotes);
+                }).catch(() => { });
+
         } else {
             const allSaves = getSavedPlaces();
             setPlaces(allSaves.filter((s) => (s.intent || "uncategorized") === intent));
@@ -238,6 +272,9 @@ export default function BoardDetailPage() {
                                 place={place}
                                 isRecs={isRecs}
                                 onTap={() => setDetailPlace(place)}
+                                hasVisited={visitedIds.has(place.placeId)}
+                                userVibesForPlace={userVibes[place.placeId]}
+                                onRateVibes={() => triggerVibeVoting(place.placeId, place.name)}
                             />
                         ))}
                     </div>

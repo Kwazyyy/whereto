@@ -7,6 +7,7 @@ import { ToastProvider } from "@/components/Toast";
 import ThemeProvider from "@/components/ThemeProvider";
 import { BadgeProvider } from "@/components/providers/BadgeProvider";
 import { NeighborhoodRevealProvider } from "@/components/providers/NeighborhoodRevealProvider";
+import { VibeVotingProvider } from "@/components/providers/VibeVotingProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,8 +46,10 @@ export default function RootLayout({
             <ToastProvider>
               <NeighborhoodRevealProvider>
                 <BadgeProvider>
-                  {children}
-                  <BottomNav />
+                  <VibeVotingProvider>
+                    {children}
+                    <BottomNav />
+                  </VibeVotingProvider>
                 </BadgeProvider>
               </NeighborhoodRevealProvider>
             </ToastProvider>

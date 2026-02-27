@@ -24,6 +24,8 @@ import { loadSkippedForIntent, persistSkippedForIntent, clearSkippedForIntent } 
 import { setPendingVisit, checkPendingVisitProximity, verifyVisitOnServer, clearPendingVisit } from "@/lib/use-visit-tracker";
 import { useBadges } from "@/components/providers/BadgeProvider";
 import { useNeighborhoodReveal } from "@/components/providers/NeighborhoodRevealProvider";
+import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
+import { Theme } from "@/components/ThemeProvider";
 import Link from 'next/link';
 import VisitCelebration from "@/components/VisitCelebration";
 
@@ -68,6 +70,7 @@ export default function Home() {
   const router = useRouter();
   const { triggerBadgeCheck } = useBadges();
   const { triggerNeighborhoodReveal } = useNeighborhoodReveal();
+  const { triggerVibeVoting } = useVibeVoting();
   const [intent, setIntent] = useState("trending");
   const [radius, setRadius] = useState(5000);
   const [priceFilter, setPriceFilter] = useState("All");
@@ -142,18 +145,25 @@ export default function Home() {
 
         // Let the general celebration toast appear, then 1s later, pop the big overlay if it's a new hood
         setTimeout(async () => {
+          let triggeredReveal = false;
           try {
             const nhRes = await fetch(`/api/exploration-stats/check-new-neighborhood?placeId=${pending.placeId}`);
             if (nhRes.ok) {
               const nhData = await nhRes.json();
               if (nhData.isNewNeighborhood && nhData.neighborhood) {
-                triggerNeighborhoodReveal(nhData);
+                triggerNeighborhoodReveal(nhData, () => {
+                  triggerVibeVoting(pending.placeId, result.name);
+                });
+                triggeredReveal = true;
               }
             }
-            triggerBadgeCheck();
           } catch (e) {
             console.error("Neighborhood check failed", e);
-            triggerBadgeCheck(); // still run badges fallback
+          } finally {
+            if (!triggeredReveal) {
+              setTimeout(() => triggerVibeVoting(pending.placeId, result.name), 1000);
+            }
+            triggerBadgeCheck();
           }
         }, 1000);
       }

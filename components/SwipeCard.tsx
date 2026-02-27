@@ -11,6 +11,7 @@ import {
 import Image from "next/image";
 import { Place, FriendSignal } from "@/lib/types";
 import { usePhotoUrl } from "@/lib/use-photo-url";
+import CommunityVibes from "./CommunityVibes";
 
 const SWIPE_THRESHOLD = 100;
 const SWIPE_UP_THRESHOLD = 50;
@@ -448,6 +449,8 @@ export function SwipeCard({
                             {place.address && (
                                 <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">{place.address}</p>
                             )}
+
+                            <CommunityVibes placeId={place.placeId} limit={5} />
 
                             {/* Friends who saved this */}
                             {place.friendSaves && place.friendSaves.length > 0 && (

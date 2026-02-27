@@ -21,6 +21,7 @@ import FogOverlay from "@/components/FogOverlay";
 import { verifyVisitOnServer } from "@/lib/use-visit-tracker";
 import { useBadges } from "@/components/providers/BadgeProvider";
 import { useNeighborhoodReveal } from "@/components/providers/NeighborhoodRevealProvider";
+import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
 import VisitCelebration from "@/components/VisitCelebration";
 
 const DEFAULT_LAT = 43.6532;
@@ -418,6 +419,7 @@ export default function MapPage() {
 
   const { triggerBadgeCheck } = useBadges();
   const { triggerNeighborhoodReveal } = useNeighborhoodReveal();
+  const { triggerVibeVoting } = useVibeVoting();
   const [celebrationPlace, setCelebrationPlace] = useState<string | null>(null);
 
   const [savingPlaceId, setSavingPlaceId] = useState<string | null>(null);
@@ -509,17 +511,24 @@ export default function MapPage() {
       setCelebrationPlace(result.name);
 
       setTimeout(async () => {
+        let triggeredReveal = false;
         try {
           const nhRes = await fetch(`/api/exploration-stats/check-new-neighborhood?placeId=${place.placeId}`);
           if (nhRes.ok) {
             const nhData = await nhRes.json();
             if (nhData.isNewNeighborhood && nhData.neighborhood) {
-              triggerNeighborhoodReveal(nhData);
+              triggerNeighborhoodReveal(nhData, () => {
+                triggerVibeVoting(place.placeId, result.name);
+              });
+              triggeredReveal = true;
             }
           }
-          triggerBadgeCheck();
         } catch (e) {
           console.error("Neighborhood check failed", e);
+        } finally {
+          if (!triggeredReveal) {
+            setTimeout(() => triggerVibeVoting(place.placeId, result.name), 1000);
+          }
           triggerBadgeCheck();
         }
       }, 1000);
