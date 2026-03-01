@@ -21,7 +21,9 @@ const INTENT_LABELS: Record<string, string> = {
     outdoor: "Outdoor / Patio",
 };
 
-function CreatorBoardCard({ intent, label, items, creatorName }: { intent: string, label: string, items: any[], creatorName: string }) {
+type CompactSave = { intent?: string; id: string; place: { id: string; name: string; category?: string | null; primaryImage?: string | null; formattedAddress?: string | null; photoUrl?: string | null; photoRef?: string | null; address?: string | null; } };
+
+function CreatorBoardCard({ intent, label, items, creatorName }: { intent: string, label: string, items: CompactSave[], creatorName: string }) {
     const previewItem = items[0];
     const photoUrl = usePhotoUrl(previewItem?.place?.photoUrl || previewItem?.place?.photoRef || null);
 
@@ -43,7 +45,7 @@ function CreatorBoardCard({ intent, label, items, creatorName }: { intent: strin
     );
 }
 
-function RecentSaveCard({ save }: { save: any }) {
+function RecentSaveCard({ save }: { save: CompactSave }) {
     const photoUrl = usePhotoUrl(save.place?.photoUrl || save.place?.photoRef || null);
 
     return (
@@ -73,10 +75,10 @@ export default function CreatorProfilePage() {
     const { status } = useSession();
 
     const [loading, setLoading] = useState(true);
-    const [creator, setCreator] = useState<any>(null);
-    const [boards, setBoards] = useState<any[]>([]);
-    const [recentSaves, setRecentSaves] = useState<any[]>([]);
-    const [topVibes, setTopVibes] = useState<any[]>([]);
+    const [creator, setCreator] = useState<{ id: string; name: string; image: string; creatorBio?: string; instagramHandle?: string | null; tiktokHandle?: string | null; savedCount?: number; visitedCount?: number; _count?: { followers: number; following: number; saves: number; vibeVotes: number } } | null>(null);
+    const [boards, setBoards] = useState<Array<{ intent: string; items: CompactSave[] }>>([]);
+    const [recentSaves, setRecentSaves] = useState<CompactSave[]>([]);
+    const [topVibes, setTopVibes] = useState<Array<{ tag: string; count: number; emoji: string }>>([]);
     const [isFollowing, setIsFollowing] = useState(false);
     const [followerCount, setFollowerCount] = useState(0);
     const [isFollowLoading, setIsFollowLoading] = useState(false);

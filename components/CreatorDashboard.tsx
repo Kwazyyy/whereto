@@ -5,7 +5,13 @@ import { useSession } from "next-auth/react";
 
 export function CreatorDashboard() {
     const { data: session } = useSession();
-    const [stats, setStats] = useState<any>(null);
+    const [stats, setStats] = useState<{
+        totalFollowers?: number;
+        followerGrowth?: number;
+        totalViews?: number | string;
+        totalSaves?: number;
+        topPlaces?: { name: string; saves: number }[];
+    } | null>(null);
     const [bio, setBio] = useState("");
     const [instagram, setInstagram] = useState("");
     const [tiktok, setTiktok] = useState("");
@@ -96,7 +102,7 @@ export function CreatorDashboard() {
                         <div className="bg-gray-50 dark:bg-[#1C2128] rounded-2xl p-3 flex flex-col items-center justify-center text-center">
                             <div className="text-2xl font-bold text-[#0E1116] dark:text-white flex items-center gap-1">
                                 {stats?.totalFollowers || 0}
-                                {(stats?.followerGrowth || 0) > 0 && (
+                                {stats?.followerGrowth && stats.followerGrowth > 0 && (
                                     <span className="text-[10px] text-green-500 flex items-center bg-green-500/10 px-1 py-0.5 rounded">↑ {stats.followerGrowth}</span>
                                 )}
                             </div>
@@ -118,7 +124,7 @@ export function CreatorDashboard() {
                         <div>
                             <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Your Top Places (By saves)</h4>
                             <div className="flex flex-col gap-2">
-                                {stats.topPlaces.map((p: any, i: number) => (
+                                {stats.topPlaces.map((p: { name: string; saves: number }, i: number) => (
                                     <div key={i} className="flex justify-between items-center bg-gray-50 dark:bg-white/5 py-2.5 px-3 rounded-xl border border-gray-100 dark:border-white/5 text-sm shadow-sm">
                                         <span className="font-semibold text-[#0E1116] dark:text-[#e8edf4] truncate pr-4">{p.name}</span>
                                         <span className="text-[#E85D2A] font-bold shrink-0">{p.saves} saves</span>
