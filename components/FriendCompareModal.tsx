@@ -386,13 +386,13 @@ export function FriendCompareModal({ data, onClose }: FriendCompareModalProps) {
 
                 {/* Floating Bottom CTA */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 pb-[88px] pt-16 bg-gradient-to-t from-gray-50 via-[#f9fafb] to-transparent dark:from-[#0E1116] dark:via-[#0E1116] pointer-events-none">
-                    <div className="max-w-md mx-auto bg-[#0E1116] dark:bg-white rounded-2xl p-4 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4 pointer-events-auto">
+                    <div className="max-w-md mx-auto bg-white dark:bg-[#161B22] border border-gray-200 dark:border-gray-800 rounded-2xl p-4 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4 pointer-events-auto">
                         <div>
-                            <p className="font-bold text-white dark:text-[#0E1116]">{ctaTitle}</p>
-                            <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">{ctaDesc}</p>
+                            <p className="font-bold text-gray-900 dark:text-white">{ctaTitle}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{ctaDesc}</p>
                         </div>
                         <Link
-                            href="/discover"
+                            href="/"
                             onClick={onClose}
                             className="shrink-0 px-6 py-3 bg-[#E85D2A] text-white text-sm font-bold rounded-xl shadow-lg shadow-[#E85D2A]/20"
                         >
