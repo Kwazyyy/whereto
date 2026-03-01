@@ -7,8 +7,6 @@ import Image from "next/image";
 import { SavedPlace } from "@/lib/saved-places";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 
-const RECS_INTENT = "recs_from_friends";
-
 const INTENT_LABELS: Record<string, string> = {
   study: "Study / Work",
   date: "Date / Chill",
@@ -43,12 +41,11 @@ function GridIcon({ size = 24 }: { size?: number }) {
 function BoardCard({ intent, label, items }: { intent: string; label: string; items: SavedPlace[] }) {
   const previewItem = items[0];
   const photoUrl = usePhotoUrl(previewItem?.photoRef ?? null);
-  const isRecs = intent === RECS_INTENT;
 
   return (
     <Link href={`/boards/${intent}`} className="block">
-      <div className={`bg-white dark:bg-[#161B22] rounded-2xl overflow-hidden border shadow-sm cursor-pointer group ${isRecs ? "border-violet-300/50 dark:border-violet-700/40 ring-1 ring-violet-400/20" : "border-gray-100 dark:border-white/10"}`}>
-        <div className={`h-32 w-full relative ${isRecs ? "bg-violet-100 dark:bg-violet-950/40" : "bg-gray-100 dark:bg-[#1C2128]"}`}>
+      <div className="bg-white dark:bg-[#161B22] rounded-2xl overflow-hidden border shadow-sm cursor-pointer group border-gray-100 dark:border-white/10">
+        <div className="h-32 w-full relative bg-gray-100 dark:bg-[#1C2128]">
           {photoUrl ? (
             <Image
               src={photoUrl}
@@ -57,21 +54,12 @@ function BoardCard({ intent, label, items }: { intent: string; label: string; it
               className="object-cover group-hover:scale-105 transition-transform duration-500"
               unoptimized
             />
-          ) : isRecs ? (
-            <div className="w-full h-full flex items-center justify-center text-5xl">🎁</div>
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600">
               <GridIcon size={32} />
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-          {/* Recs badge */}
-          {isRecs && (
-            <div className="absolute top-3 right-3 bg-violet-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow">
-              ✨ Special
-            </div>
-          )}
 
           <div className="absolute bottom-4 left-4 right-4">
             <h3 className="font-bold text-lg text-white capitalize drop-shadow-md">{label}</h3>
@@ -155,22 +143,22 @@ export default function BoardsPage() {
     );
   }
 
-  // Group by intent, putting recs_from_friends first
+  // Group by intent
   const groupedSaves: Record<string, SavedPlace[]> = {};
   saves.forEach((save) => {
+    // Only group by assigned intents or uncategorized. Re-routing recs back into standard boards or omitting them here.
+    if (save.intent === "recs_from_friends") return;
+
     const intent = save.intent || "uncategorized";
     if (!groupedSaves[intent]) groupedSaves[intent] = [];
     groupedSaves[intent].push(save);
   });
 
   const intents = Object.keys(groupedSaves).sort((a, b) => {
-    if (a === RECS_INTENT) return -1;
-    if (b === RECS_INTENT) return 1;
     return a.localeCompare(b);
   });
 
   const BOARD_LABELS: Record<string, string> = {
-    recs_from_friends: "Recs from Friends",
     ...INTENT_LABELS,
   };
 

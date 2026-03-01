@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Image from "next/image";
+import Link from "next/link";
 import { AnimatePresence } from "framer-motion";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useSavePlace } from "@/lib/use-save-place";
@@ -14,15 +15,12 @@ import type { Place } from "@/lib/types";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
-interface Friend {
-  friendshipId: string;
-  userId: string;
-  name: string | null;
-  email: string;
-  image: string | null;
-  friendsSince: string;
-  compatibility?: CompatibilityResult | null;
-}
+import {
+  CompatibilityDrawer,
+  Avatar,
+  scoreBadgeClass,
+  type Friend,
+} from "@/components/CompatibilityDrawer";
 
 interface FriendRequest {
   friendshipId: string;
@@ -42,216 +40,18 @@ interface MissedRec {
   place: Place;
 }
 
+interface CreatorPreview {
+  id: string;
+  name: string;
+  image: string | null;
+  creatorBio: string | null;
+  followerCount: number;
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 const UNSEEN_ACTIVITY_KEY = "whereto_unseen_activity";
 
-function scoreBadgeClass(score: number): string {
-  if (score >= 80) return "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400";
-  if (score >= 50) return "bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-400";
-  return "bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400";
-}
-
-function relativeTime(iso: string): string {
-  const diffMs = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days === 1) return "Yesterday";
-  return `${days}d ago`;
-}
-
-// ── Sub-components ─────────────────────────────────────────────────────────
-
-function Avatar({
-  image,
-  name,
-  size = 44,
-}: {
-  image: string | null;
-  name: string | null;
-  size?: number;
-}) {
-  if (image) {
-    return (
-      <Image
-        src={image}
-        alt={name ?? ""}
-        width={size}
-        height={size}
-        className="rounded-full shrink-0 object-cover"
-        unoptimized
-      />
-    );
-  }
-  return (
-    <div
-      className="rounded-full bg-[#E85D2A] flex items-center justify-center text-white font-bold shrink-0"
-      style={{ width: size, height: size, fontSize: size * 0.38 }}
-    >
-      {name?.[0]?.toUpperCase() ?? "?"}
-    </div>
-  );
-}
-
-// ── Shared Place Card ──────────────────────────────────────────────────────
-
-function SharedPlaceCard({ place }: { place: SharedPlace }) {
-  const photoUrl = usePhotoUrl(place.photoRef);
-  return (
-    <div className="flex items-center gap-3 py-2.5">
-      <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-[#1C2128] relative">
-        {photoUrl ? (
-          <Image src={photoUrl} alt={place.name} fill className="object-cover" unoptimized />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-600">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
-            </svg>
-          </div>
-        )}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4] truncate">{place.name}</p>
-        <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{place.intent}</p>
-      </div>
-    </div>
-  );
-}
-
-// ── Compatibility Drawer ───────────────────────────────────────────────────
-
-function CompatibilityDrawer({
-  friend,
-  compat,
-  onClose,
-  onCompare,
-}: {
-  friend: Friend;
-  compat: CompatibilityResult | null | undefined;
-  onClose: () => void;
-  onCompare: () => void;
-}) {
-  return (
-    <div
-      className="fixed inset-0 z-40 flex items-end justify-center bg-black/40 backdrop-blur-[2px]"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-lg bg-white dark:bg-[#161B22] rounded-t-3xl px-6 pt-4 pb-28 max-h-[85dvh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Handle bar */}
-        <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-5" />
-
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <Avatar image={friend.image} name={friend.name} size={48} />
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-[#0E1116] dark:text-[#e8edf4] truncate">{friend.name ?? friend.email}</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500">Taste Compatibility</p>
-          </div>
-        </div>
-
-        {!compat ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="w-7 h-7 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }} />
-          </div>
-        ) : compat.noData || compat.sharedCount === 0 ? (
-          <div className="text-center py-10 flex flex-col items-center gap-3">
-            <div className="text-4xl">🗺️</div>
-            <p className="text-base font-semibold text-[#0E1116] dark:text-[#e8edf4]">Keep exploring!</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 max-w-xs">
-              Save more places and discover your taste match with {friend.name?.split(" ")[0] ?? "your friend"}.
-            </p>
-          </div>
-        ) : (
-          <>
-            {/* Score ring */}
-            <div className="flex justify-center mb-6">
-              <div className="relative flex items-center justify-center w-28 h-28">
-                <svg className="absolute inset-0" viewBox="0 0 110 110">
-                  <circle cx="55" cy="55" r="48" fill="none" stroke="#F3F4F6" strokeWidth="8" className="dark:stroke-white/10" />
-                  <circle
-                    cx="55" cy="55" r="48"
-                    fill="none"
-                    stroke={compat.score >= 80 ? "#22c55e" : compat.score >= 50 ? "#E85D2A" : "#9CA3AF"}
-                    strokeWidth="8"
-                    strokeLinecap="round"
-                    strokeDasharray={`${(compat.score / 100) * 301.6} 301.6`}
-                    transform="rotate(-90 55 55)"
-                  />
-                </svg>
-                <div className="text-center z-10">
-                  <p className="text-2xl font-black text-[#0E1116] dark:text-[#e8edf4] leading-none">{compat.score}%</p>
-                  <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium mt-0.5">match</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="flex flex-col gap-3 mb-6">
-              <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-gray-50 dark:bg-[#1C2128]">
-                <span className="text-xl">🏠</span>
-                <p className="text-sm text-[#0E1116] dark:text-[#e8edf4] font-medium">
-                  You both saved <span className="font-bold">{compat.sharedCount} place{compat.sharedCount !== 1 ? "s" : ""}</span>
-                </p>
-              </div>
-
-              {compat.sharedIntents.length > 0 && (
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-gray-50 dark:bg-[#1C2128]">
-                  <span className="text-xl">✨</span>
-                  <div>
-                    <p className="text-sm text-[#0E1116] dark:text-[#e8edf4] font-medium">Top shared vibes</p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{compat.sharedIntents.join(", ")}</p>
-                  </div>
-                </div>
-              )}
-
-              {compat.sharedPrice && (
-                <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-gray-50 dark:bg-[#1C2128]">
-                  <span className="text-xl">💰</span>
-                  <p className="text-sm text-[#0E1116] dark:text-[#e8edf4] font-medium">
-                    You both love <span className="font-bold">{compat.sharedPrice}</span> restaurants
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Shared places */}
-            {compat.sharedPlaces.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-1">
-                  Shared Saves
-                </p>
-                <div className="divide-y divide-gray-100 dark:divide-white/8">
-                  {compat.sharedPlaces.map((p) => (
-                    <SharedPlaceCard key={p.placeId} place={p} />
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Global compare button action below shared places */}
-        {compat && !compat.noData && (
-          <button
-            onClick={() => { onClose(); onCompare(); }}
-            className="w-full mt-6 py-4 bg-gray-100 dark:bg-white/5 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-200 dark:hover:bg-white/10 active:scale-95 transition-all outline-none"
-          >
-            <span className="text-xl">🗺️</span>
-            <span className="text-sm font-bold text-gray-800 dark:text-gray-200">Compare Exploration Map</span>
-            <span className="text-gray-400">→</span>
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
 
 // ── Add Friend Modal ───────────────────────────────────────────────────────
 
@@ -347,10 +147,10 @@ function AddFriendModal({
 
 // ── Main Page ──────────────────────────────────────────────────────────────
 
-export default function FriendsPage() {
+export default function SocialPage() {
   const { data: session, status } = useSession();
   const { triggerBadgeCheck } = useBadges();
-  const [tab, setTab] = useState<"friends" | "activity">("friends");
+  const [tab, setTab] = useState<"friends" | "activity" | "creators" | "recs">("friends");
   const [friends, setFriends] = useState<Friend[]>([]);
   const [incoming, setIncoming] = useState<FriendRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -469,7 +269,7 @@ export default function FriendsPage() {
       <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24">
         <header className="px-5 pt-5 pb-3">
           <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: "#E85D2A" }}>
-            Friends
+            Social
           </h1>
         </header>
         <div className="px-5 mt-4">
@@ -495,7 +295,7 @@ export default function FriendsPage() {
       <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-20">
         <header className="px-5 pt-5 pb-3">
           <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: "#E85D2A" }}>
-            Friends
+            Social
           </h1>
         </header>
         <div className="flex flex-col items-center justify-center px-8 pt-24 text-center gap-5">
@@ -538,7 +338,7 @@ export default function FriendsPage() {
       {/* Header */}
       <header className="px-5 pt-5 pb-0 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: "#E85D2A" }}>
-          Friends
+          Social
         </h1>
         {tab === "friends" && (
           <button
@@ -584,11 +384,33 @@ export default function FriendsPage() {
             <span className="absolute top-1.5 right-3 w-2 h-2 rounded-full bg-red-500" />
           )}
         </button>
+        <button
+          onClick={() => setTab("creators")}
+          className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer ${tab === "creators"
+            ? "bg-[#E85D2A] text-white shadow-sm"
+            : "bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/15"
+            }`}
+        >
+          Creators
+        </button>
+        <button
+          onClick={() => setTab("recs")}
+          className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer relative ${tab === "recs"
+            ? "bg-[#E85D2A] text-white shadow-sm"
+            : "bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/15"
+            }`}
+        >
+          Recs
+        </button>
       </div>
 
       {/* Tab content */}
       {tab === "activity" ? (
         <ActivityFeed />
+      ) : tab === "creators" ? (
+        <CreatorsTab />
+      ) : tab === "recs" ? (
+        <RecsTab />
       ) : !hasContent ? (
         <div className="flex flex-col items-center justify-center px-8 pt-28 text-center gap-5">
           <div className="text-5xl">👫</div>
@@ -739,9 +561,6 @@ export default function FriendsPage() {
           )}
         </div>
       )}
-
-      {/* Missed Recs Section */}
-      {hasContent && <MissedRecsSection />}
 
       {/* Compatibility Drawer */}
       {selectedFriend && (
@@ -1129,6 +948,178 @@ function MissedRecsSection() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Creators Tab ───────────────────────────────────────────────────────────
+
+function CreatorsTab() {
+  const [creators, setCreators] = useState<CreatorPreview[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/creators")
+      .then(r => r.json())
+      .then(data => {
+        setCreators(Array.isArray(data) ? data : []);
+      })
+      .catch()
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <div className="w-8 h-8 rounded-full border-3 border-t-transparent animate-spin" style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }} />
+      </div>
+    );
+  }
+
+  if (creators.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center px-5">
+        <div className="text-4xl mb-4">✨</div>
+        <h2 className="text-lg font-bold text-[#0E1116] dark:text-[#e8edf4]">Creator profiles coming soon!</h2>
+        <p className="text-sm text-gray-500 mt-2 max-w-xs">
+          Know a Toronto food expert? Tell them about WhereTo to get featured here.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-5 pt-4 pb-12">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {creators.map(creator => (
+          <Link href={`/creators/${creator.id}`} key={creator.id} className="block group">
+            <div className="bg-white dark:bg-[#161B22] border border-gray-100 dark:border-white/10 rounded-2xl p-4 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow cursor-pointer h-full relative overflow-hidden">
+              <div className="relative mb-3">
+                {creator.image ? (
+                  <Image src={creator.image} alt={creator.name} width={64} height={64} className="w-16 h-16 rounded-full object-cover shadow-sm ring-2 ring-transparent group-hover:ring-[#E85D2A]/30 transition-all" unoptimized />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-[#E85D2A] flex items-center justify-center text-white text-xl font-bold">{creator.name?.[0] || "?"}</div>
+                )}
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#E85D2A] border-2 border-white dark:border-[#161B22] flex items-center justify-center text-white shadow-sm">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                </div>
+              </div>
+              <h3 className="font-bold text-[#0E1116] dark:text-[#e8edf4] text-sm leading-tight line-clamp-1">{creator.name}</h3>
+              <p className="text-[11px] text-[#E85D2A] font-semibold mt-1">
+                {creator.followerCount} follower{creator.followerCount !== 1 ? 's' : ''}
+              </p>
+              {creator.creatorBio && (
+                <p className="text-xs text-gray-500 mt-2 line-clamp-2 leading-relaxed">
+                  {creator.creatorBio}
+                </p>
+              )}
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Recs Tab ───────────────────────────────────────────────────────────────
+
+function RecsTab() {
+  const [recs, setRecs] = useState<MissedRec[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { handleSave } = useSavePlace();
+
+  useEffect(() => {
+    fetch("/api/recommendations?all=true")
+      .then(r => r.ok ? r.json() : [])
+      .then((data: MissedRec[]) => {
+        setRecs(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setRecs([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  async function handleSaveRec(rec: MissedRec) {
+    await handleSave(rec.place, "trending", "save", rec.recommendationId);
+    setRecs((prev) => prev.filter((r) => r.recommendationId !== rec.recommendationId));
+  }
+
+  async function handleDismissRec(rec: MissedRec) {
+    // A save action mapped to an empty or existing structure simply removes the Rec
+    // Instead of using handleSave, we just dismiss it via the recs API (or standard removal)
+    await fetch(`/api/recommendations/${rec.recommendationId}`, { method: "DELETE" });
+    setRecs((prev) => prev.filter((r) => r.recommendationId !== rec.recommendationId));
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <div className="w-8 h-8 rounded-full border-3 border-t-transparent animate-spin" style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }} />
+      </div>
+    );
+  }
+
+  if (recs.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center px-8 pt-24 text-center gap-4">
+        <div className="text-5xl">🎁</div>
+        <h2 className="text-lg font-bold text-[#0E1116] dark:text-[#e8edf4]">No recommendations yet</h2>
+        <p className="text-sm text-gray-400 dark:text-gray-500 max-w-xs">
+          When friends send you a spot they loved, it will show up here.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-5 pt-4 pb-12">
+      <div className="rounded-2xl bg-gray-50 dark:bg-[#161B22] overflow-hidden divide-y divide-gray-100 dark:divide-white/8">
+        {recs.map(rec => {
+          const photoUrl = usePhotoUrl(rec.place.photoRef);
+          return (
+            <div key={rec.recommendationId} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 px-4 py-4 w-full">
+              {/* Photo & Sender Cluster */}
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-[#1C2128] relative">
+                  {photoUrl ? (
+                    <Image src={photoUrl} alt={rec.place.name} fill className="object-cover" unoptimized />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-600 text-lg">📍</div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-[#0E1116] dark:text-[#e8edf4] truncate">{rec.place.name}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
+                    From {rec.sender.name?.split(" ")[0] ?? "a friend"}
+                    {!rec.seen && <span className="inline-block ml-2 w-2 h-2 rounded-full bg-red-500" />}
+                  </p>
+                  {rec.note && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 italic mt-1 line-clamp-2">
+                      &ldquo;{rec.note}&rdquo;
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Bullets */}
+              <div className="flex items-center gap-2 mt-2 sm:mt-0 ml-auto mr-auto sm:mr-0 w-full sm:w-auto justify-end shrink-0">
+                <button
+                  onClick={() => handleDismissRec(rec)}
+                  className="px-3 py-1.5 rounded-full bg-gray-200 dark:bg-white/10 text-xs font-semibold text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-gray-300 dark:hover:bg-white/15 transition-colors"
+                >
+                  Dismiss
+                </button>
+                <button
+                  onClick={() => handleSaveRec(rec)}
+                  className="px-3 py-1.5 rounded-full text-xs font-semibold text-white cursor-pointer transition-opacity active:opacity-80"
+                  style={{ backgroundColor: "#E85D2A" }}
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

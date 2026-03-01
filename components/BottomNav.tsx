@@ -54,11 +54,20 @@ function ProfileIcon({ color }: { color: string }) {
   );
 }
 
+function CreatorsIcon({ color }: { color: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2v20" />
+      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+    </svg>
+  );
+}
+
 const NAV_ITEMS = [
   { href: "/boards", label: "Boards", Icon: BoardsIcon },
   { href: "/map", label: "Map", Icon: MapIcon },
   { href: "/", label: "Discover", Icon: DiscoverIcon },
-  { href: "/friends", label: "Friends", Icon: FriendsIcon },
+  { href: "/social", label: "Social", Icon: FriendsIcon },
   { href: "/profile", label: "Profile", Icon: ProfileIcon },
 ];
 

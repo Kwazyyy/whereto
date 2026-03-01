@@ -127,6 +127,9 @@ export function SwipeCard({
     const dragEnabled = isTop && !isFlipped;
     dragEnabledRef.current = dragEnabled;
 
+    // Build an overlay for Friend / Creator saves at bottom of card
+    const hasSpecialSignals = (place.friendSaves && place.friendSaves.length > 0) || place.creatorSignal;
+
     // Prevent the browser from intercepting vertical touch gestures as page scroll.
     // Must be a non-passive native listener — React's synthetic events can't call
     // preventDefault on touchmove in React 17+.
@@ -214,20 +217,47 @@ export function SwipeCard({
 
                     <div className="absolute bottom-0 inset-x-0 h-[50%] bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none" />
 
-                    {/* Recommendation banner */}
-                    {place.recommendedBy && (
-                        <div className="absolute top-4 left-4 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-600/90 backdrop-blur-sm pointer-events-none shadow-lg shadow-violet-900/40">
-                            {place.recommendedBy.image ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={place.recommendedBy.image} alt={place.recommendedBy.name ?? ""} className="w-4 h-4 rounded-full object-cover" />
-                            ) : (
-                                <span className="text-white text-[9px] font-bold">
-                                    {place.recommendedBy.name?.[0]?.toUpperCase() ?? "★"}
-                                </span>
+                    {/* Top Special Badges (Friends / Creators) */}
+                    {hasSpecialSignals && (
+                        <div className="absolute top-4 left-4 right-4 z-20 flex flex-col gap-2 pointer-events-none">
+                            {place.creatorSignal && (
+                                <div className="self-start flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 dark:bg-[#161B22]/90 backdrop-blur-md shadow-lg border border-orange-100 dark:border-white/10">
+                                    {place.creatorSignal.avatarUrl ? (
+                                        <div className="relative w-5 h-5">
+                                            <Image src={place.creatorSignal.avatarUrl} alt={place.creatorSignal.name} fill className="rounded-full object-cover ring-1 ring-white dark:ring-[#161B22]" unoptimized />
+                                            <div className="absolute -bottom-0.5 -right-0.5 w-[10px] h-[10px] bg-[#E85D2A] rounded-full border border-white dark:border-[#161B22] flex items-center justify-center">
+                                                <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="relative w-5 h-5 rounded-full bg-[#E85D2A] text-[9px] font-bold text-white flex items-center justify-center ring-1 ring-white dark:ring-[#161B22]">
+                                            {place.creatorSignal.name[0]}
+                                            <div className="absolute -bottom-0.5 -right-0.5 w-[10px] h-[10px] bg-[#E85D2A] rounded-full border border-white dark:border-[#161B22] flex items-center justify-center">
+                                                <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <span className="text-xs font-bold text-[#E85D2A]">Saved by {place.creatorSignal.name.split(' ')[0]}</span>
+                                </div>
                             )}
-                            <span className="text-white text-[11px] font-semibold leading-none">
-                                Rec&apos;d by {place.recommendedBy.name?.split(" ")[0] ?? "a friend"}
-                            </span>
+                            {place.friendSaves && place.friendSaves.length > 0 && (
+                                <div className="self-start flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 dark:bg-[#161B22]/90 backdrop-blur-md shadow-lg border border-gray-100 dark:border-white/10">
+                                    <div className="flex -space-x-1.5">
+                                        {place.friendSaves.slice(0, 3).map((f) => (
+                                            f.image ? (
+                                                <Image key={f.userId} src={f.image} alt={f.name || ""} width={20} height={20} className="w-5 h-5 rounded-full ring-2 ring-white dark:ring-[#161B22] object-cover" unoptimized />
+                                            ) : (
+                                                <div key={f.userId} className="w-5 h-5 rounded-full bg-blue-500 text-[9px] font-bold text-white flex items-center justify-center ring-2 ring-white dark:ring-[#161B22]">
+                                                    {f.name?.[0]}
+                                                </div>
+                                            )
+                                        ))}
+                                    </div>
+                                    <span className="text-xs font-semibold text-[#0E1116] dark:text-[#e8edf4]">
+                                        Saved by {place.friendSaves[0].name?.split(' ')[0]} {place.friendSaves.length > 1 && `+${place.friendSaves.length - 1}`}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     )}
 

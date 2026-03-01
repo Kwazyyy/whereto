@@ -10,12 +10,26 @@ export async function GET() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { createdAt: true },
+    select: {
+      createdAt: true,
+      isCreator: true,
+      username: true,
+      displayName: true,
+      customAvatar: true,
+      creatorBio: true,
+    },
   });
 
   if (!user) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ createdAt: user.createdAt.toISOString() });
+  return NextResponse.json({
+    createdAt: user.createdAt.toISOString(),
+    isCreator: user.isCreator,
+    username: user.username,
+    displayName: user.displayName,
+    customAvatar: user.customAvatar,
+    creatorBio: user.creatorBio,
+  });
 }

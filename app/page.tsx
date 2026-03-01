@@ -271,7 +271,7 @@ export default function Home() {
 
             // Collect unique friend IDs across all signals
             const friendIds = new Set<string>();
-            for (const friends of Object.values(signals)) {
+            for (const { friends } of Object.values(signals) as any) {
               for (const f of friends) friendIds.add(f.userId);
             }
 
@@ -293,13 +293,15 @@ export default function Home() {
             // Attach scores to each FriendSignal and merge into places
             setPlaces((prev) =>
               prev.map((p) => {
-                if (!signals[p.placeId]) return p;
-                const enriched = signals[p.placeId].map((f) =>
+                const signalSet = (signals as any)[p.placeId];
+                if (!signalSet) return p;
+
+                const enrichedFriends = signalSet.friends.map((f: any) =>
                   scoreMap[f.userId] !== undefined
                     ? { ...f, tasteScore: scoreMap[f.userId] }
                     : f
                 );
-                return { ...p, friendSaves: enriched };
+                return { ...p, friendSaves: enrichedFriends, creatorSignal: signalSet.creator };
               })
             );
           })

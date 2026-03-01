@@ -12,6 +12,10 @@ import { BadgesStats } from "@/components/BadgesStats";
 import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
 import { useNeighborhoodReveal } from "@/components/providers/NeighborhoodRevealProvider";
 import { useToast } from "@/components/Toast";
+import { ApplyCreatorForm } from "@/components/ApplyCreatorForm";
+import { CreatorDashboard } from "@/components/CreatorDashboard";
+import { CompatibilityDrawer, Avatar, type Friend } from "@/components/CompatibilityDrawer";
+import { FriendCompareModal, type CompareData } from "@/components/FriendCompareModal";
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -340,11 +344,141 @@ export default function ProfilePage() {
   const { theme, setTheme } = useTheme();
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [saveCount, setSaveCount] = useState<number | null>(null);
-  const [boardCount, setBoardCount] = useState<number | null>(null);
+  const [friendCount, setFriendCount] = useState<number | null>(null);
   const [joinedDate, setJoinedDate] = useState<string | null>(null);
   const [bio, setBio] = useState("");
   const [saves, setSaves] = useState<SavedPlace[]>([]);
   const [visitCount, setVisitCount] = useState<number>(0);
+  const [isCreator, setIsCreator] = useState<boolean>(false);
+
+  // Modal system states
+  const [friendsModalOpen, setFriendsModalOpen] = useState(false);
+  const [friendsData, setFriendsData] = useState<Friend[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
+  const [selectedCompareFriend, setSelectedCompareFriend] = useState<string | null>(null);
+  const [compareData, setCompareData] = useState<CompareData | null>(null);
+
+  // Profile Edit States
+  const [displayName, setDisplayName] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+  const [customAvatar, setCustomAvatar] = useState<string | null>(null);
+
+  const [editAvatarOpen, setEditAvatarOpen] = useState(false);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+
+  const [editDisplayName, setEditDisplayName] = useState("");
+  const [editUsername, setEditUsername] = useState("");
+  const [editBio, setEditBio] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  // Edit Hooks
+  useEffect(() => {
+    if (!editProfileOpen) return;
+    if (editUsername === username) {
+      setUsernameStatus("idle");
+      return;
+    }
+    if (!/^[a-z0-9_]{3,20}$/.test(editUsername.toLowerCase())) {
+      if (editUsername === "") setUsernameStatus("idle");
+      else setUsernameStatus("invalid");
+      return;
+    }
+
+    setUsernameStatus("checking");
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/profile/check-username?username=${editUsername.toLowerCase()}`);
+        const data = await res.json();
+        setUsernameStatus(data.available ? "available" : "taken");
+      } catch {
+        setUsernameStatus("idle");
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [editUsername, editProfileOpen, username]);
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const size = 300;
+        canvas.width = size;
+        canvas.height = size;
+
+        const scale = Math.max(size / img.width, size / img.height);
+        const x = (size / scale - img.width) / 2;
+        const y = (size / scale - img.height) / 2;
+
+        ctx?.scale(scale, scale);
+        ctx?.drawImage(img, x, y);
+
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+        setCustomAvatar(dataUrl);
+        setEditAvatarOpen(false);
+
+        fetch("/api/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ customAvatar: dataUrl })
+        });
+      };
+      if (event.target?.result) {
+        img.src = event.target.result as string;
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveCustomAvatar = async () => {
+    setCustomAvatar(null);
+    setEditAvatarOpen(false);
+    await fetch("/api/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ customAvatar: null })
+    });
+  };
+
+  const handleSaveProfile = async () => {
+    if (usernameStatus === "checking" || usernameStatus === "taken" || usernameStatus === "invalid") return;
+    setSavingProfile(true);
+
+    try {
+      const payload: any = { bio: editBio };
+      if (editDisplayName !== displayName) payload.displayName = editDisplayName;
+      if (editUsername !== username) payload.username = editUsername.toLowerCase();
+
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        const { user } = await res.json();
+        if (user.displayName) setDisplayName(user.displayName);
+        setBio(user.creatorBio || "");
+        if (user.username !== undefined) setUsername(user.username);
+        setEditProfileOpen(false);
+        showToast("Profile updated!");
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to update profile");
+      }
+    } catch {
+      alert("Network error");
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   const { triggerVibeVoting } = useVibeVoting();
   const { triggerNeighborhoodReveal } = useNeighborhoodReveal();
@@ -409,24 +543,37 @@ export default function ProfilePage() {
         if (Array.isArray(data)) {
           setSaves(data);
           setSaveCount(data.length);
-          const uniqueIntents = new Set(data.map((s) => s.intent).filter(Boolean));
-          setBoardCount(uniqueIntents.size);
         } else {
           setSaveCount(0);
-          setBoardCount(0);
         }
       })
       .catch(() => {
         setSaveCount(0);
-        setBoardCount(0);
       });
 
     fetch("/api/user")
       .then((r) => r.json())
-      .then((data: { createdAt?: string }) => {
+      .then((data: any) => {
         if (data.createdAt) setJoinedDate(formatJoinDate(data.createdAt));
+        if (data.isCreator) setIsCreator(data.isCreator);
+        if (data.displayName) setDisplayName(data.displayName);
+        if (data.username) setUsername(data.username);
+        if (data.customAvatar) setCustomAvatar(data.customAvatar);
+        if (data.creatorBio) setBio(data.creatorBio);
       })
       .catch(() => { });
+
+    fetch("/api/friends")
+      .then((r) => r.json())
+      .then((data: { friends: Friend[] }) => {
+        if (data && Array.isArray(data.friends)) {
+          setFriendCount(data.friends.length);
+          setFriendsData(data.friends);
+        } else {
+          setFriendCount(0);
+        }
+      })
+      .catch(() => setFriendCount(0));
 
     fetch("/api/visits")
       .then((r) => r.json())
@@ -442,8 +589,7 @@ export default function ProfilePage() {
       const places = getSavedPlaces();
       setSaves(places);
       setSaveCount(places.length);
-      const uniqueIntents = new Set(places.map((p) => p.intent).filter(Boolean));
-      setBoardCount(uniqueIntents.size);
+      setFriendCount(0);
     }
   }, [status]);
 
@@ -466,6 +612,39 @@ export default function ProfilePage() {
     acc[save.intent].push(save);
     return acc;
   }, {} as Record<string, SavedPlace[]>);
+
+  // Open modals via fetch map compare
+  useEffect(() => {
+    if (!selectedCompareFriend) {
+      setCompareData(null);
+      return;
+    }
+    async function fetchCompare() {
+      try {
+        const res = await fetch(`/api/friends/${selectedCompareFriend}/exploration-compare`);
+        if (res.ok) {
+          const data = await res.json();
+          setCompareData(data);
+        }
+      } catch (e) { console.error("Could not fetch comparison mapping"); }
+    }
+    fetchCompare();
+  }, [selectedCompareFriend]);
+
+  // Open taste compatibility fetching proxy
+  const handleOpenTaste = async (friend: Friend) => {
+    try {
+      const r = await fetch(`/api/friends/${friend.userId}/compatibility`);
+      if (r.ok) {
+        const compat = await r.json();
+        setSelectedFriend({ ...friend, compatibility: compat });
+      } else {
+        setSelectedFriend({ ...friend, compatibility: null });
+      }
+    } catch {
+      setSelectedFriend({ ...friend, compatibility: null });
+    }
+  };
 
   const recentBoards = Object.entries(boardGroups)
     .map(([intent, items]) => ({ intent, items }))
@@ -492,10 +671,10 @@ export default function ProfilePage() {
         {/* ── LEFT COLUMN (User Profile) ── */}
         <div className="md:col-span-5 flex flex-col items-center text-center pt-2 pb-6 px-1">
           <div className="relative mb-4">
-            {session?.user?.image ? (
+            {customAvatar || session?.user?.image ? (
               <Image
-                src={session.user.image}
-                alt={session.user.name ?? ""}
+                src={customAvatar || session?.user?.image || ""}
+                alt={displayName || session?.user?.name || ""}
                 width={120}
                 height={120}
                 className="w-24 h-24 md:w-32 md:h-32 rounded-full ring-4 ring-white dark:ring-[#0E1116] shadow-sm object-cover"
@@ -515,21 +694,38 @@ export default function ProfilePage() {
                 )}
               </div>
             )}
-            <button className="absolute bottom-0 right-0 bg-[#0E1116] dark:bg-white text-white dark:text-[#0E1116] p-2.5 rounded-full shadow-md border-2 border-white dark:border-[#0E1116] hover:scale-105 transition-transform cursor-pointer">
+            <button
+              onClick={() => setEditAvatarOpen(true)}
+              className="absolute bottom-0 right-0 bg-[#0E1116] dark:bg-white text-white dark:text-[#0E1116] p-2.5 rounded-full shadow-md border-2 border-white dark:border-[#0E1116] hover:scale-105 transition-transform cursor-pointer"
+            >
               <EditIcon size={16} />
             </button>
           </div>
 
           <h2 className="text-2xl md:text-3xl font-bold text-[#0E1116] dark:text-[#e8edf4]">
-            {session?.user ? session.user.name : "Guest User"}
+            {displayName || session?.user?.name || "Guest User"}
           </h2>
           <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 mt-1">
-            {session?.user ? `@${session.user.email?.split('@')[0] || 'user'} • Toronto, ON` : "Sign in to save your places"}
+            {username ? (
+              <span className="cursor-pointer" onClick={() => {
+                setEditDisplayName(displayName || session?.user?.name || "");
+                setEditUsername(username || "");
+                setEditBio(bio || "");
+                setEditProfileOpen(true);
+              }}>@{username} • Toronto, ON</span>
+            ) : session?.user ? (
+              <span className="cursor-pointer text-[#E85D2A] hover:underline" onClick={() => {
+                setEditDisplayName(displayName || session?.user?.name || "");
+                setEditUsername(username || "");
+                setEditBio(bio || "");
+                setEditProfileOpen(true);
+              }}>Set username</span>
+            ) : "Sign in to save your places"}
           </p>
 
           {/* User Bio */}
           {session?.user && (
-            <div className="w-full max-w-sm mt-4">
+            <div className="w-full max-w-sm mt-4 flex flex-col items-center">
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
@@ -539,6 +735,17 @@ export default function ProfilePage() {
                 rows={2}
                 maxLength={150}
               />
+              <button
+                onClick={() => {
+                  setEditDisplayName(displayName || session?.user?.name || "");
+                  setEditUsername(username || "");
+                  setEditBio(bio || "");
+                  setEditProfileOpen(true);
+                }}
+                className="mt-3 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-1.5 text-sm text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer"
+              >
+                Edit Profile
+              </button>
             </div>
           )}
 
@@ -560,19 +767,26 @@ export default function ProfilePage() {
               <span className="text-xs text-gray-500 font-medium">Visited</span>
             </Link>
 
-            <Link href="/boards" className="flex flex-col items-center gap-1.5 group cursor-pointer">
+            <button onClick={() => setFriendsModalOpen(true)} className="flex flex-col items-center gap-1.5 group cursor-pointer">
               <div className="flex items-center gap-1.5 text-gray-400 group-hover:text-blue-500 transition-colors">
-                <GridIcon size={20} />
-                <span className="font-bold text-xl text-[#0E1116] dark:text-gray-200 leading-none">{boardCount || 0}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                <span className="font-bold text-xl text-[#0E1116] dark:text-gray-200 leading-none">{friendCount || 0}</span>
               </div>
-              <span className="text-xs text-gray-500 font-medium">Boards</span>
-            </Link>
+              <span className="text-xs text-gray-500 font-medium">Friends</span>
+            </button>
           </div>
 
           {session?.user && (
             <div className="mt-8 w-full max-w-sm mx-auto flex flex-col gap-6">
               <BadgesStats />
               <ExplorationStats />
+              {isCreator && <CreatorDashboard />}
+              {!isCreator && <ApplyCreatorForm />}
             </div>
           )}
 
@@ -704,17 +918,7 @@ export default function ProfilePage() {
               <ChevronRight />
             </Link>
 
-            {process.env.NODE_ENV === "development" && (
-              <button
-                onClick={() => triggerVibeVoting("dummy_place_id", "Test Cafe")}
-                className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors border-t border-gray-100 dark:border-white/5"
-              >
-                <span className="text-sm font-medium text-blue-500">
-                  Test Vibe Voting
-                </span>
-                <ChevronRight />
-              </button>
-            )}
+
           </SettingsCard>
 
           {/* Dev Tools - Only visible locally */}
@@ -733,10 +937,25 @@ export default function ProfilePage() {
                 </button>
                 <button
                   onClick={handleSimulateVisit}
-                  className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                  className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer border-b border-gray-100 dark:border-white/5 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
                 >
                   <span className="text-sm font-medium text-amber-500">
                     Simulate Visit
+                  </span>
+                  <ChevronRight />
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await fetch('/api/creators/dev-toggle', { method: 'POST' });
+                      setIsCreator(!isCreator);
+                      window.location.reload();
+                    } catch (e) { console.error(e) }
+                  }}
+                  className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                >
+                  <span className="text-sm font-medium text-purple-500">
+                    Toggle Creator Status {isCreator ? "(On)" : "(Off)"}
                   </span>
                   <ChevronRight />
                 </button>
@@ -751,6 +970,147 @@ export default function ProfilePage() {
 
         </div>
       </div>
+
+      {/* Friends List Modal Overlay */}
+      {friendsModalOpen && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-[2px]" onClick={() => setFriendsModalOpen(false)}>
+          <div className="w-[90%] max-w-sm bg-white dark:bg-[#161B22] rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[80dvh]" onClick={e => e.stopPropagation()}>
+            <div className="px-5 pt-5 pb-3 border-b border-gray-100 dark:border-white/10 flex items-center justify-between">
+              <h3 className="font-bold text-lg text-[#0E1116] dark:text-[#e8edf4]">Friends</h3>
+              <button onClick={() => setFriendsModalOpen(false)} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center hover:scale-105 transition-transform text-gray-500 dark:text-gray-400 cursor-pointer">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+              </button>
+            </div>
+
+            <div className="p-4 border-b border-gray-100 dark:border-white/10">
+              <div className="relative">
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+                <input
+                  type="text"
+                  placeholder="Search friends..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-gray-50 dark:bg-[#1C2128] border-none rounded-xl pl-10 pr-4 py-2 text-sm text-[#0E1116] dark:text-[#e8edf4] placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#E85D2A]"
+                />
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto min-h-[300px]">
+              {friendsData
+                .filter(f => !searchQuery || (f.name ?? f.email).toLowerCase().includes(searchQuery.toLowerCase()))
+                .map(friend => (
+                  <div key={friend.friendshipId} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+                    <Avatar image={friend.image} name={friend.name} size={44} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-[#0E1116] dark:text-[#e8edf4] truncate">{friend.name ?? friend.email}</p>
+                      {friend.name && <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{friend.email}</p>}
+                    </div>
+                    <div className="flex items-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => setSelectedCompareFriend(friend.userId)} className="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-700 hover:border-[#E85D2A] dark:hover:border-[#E85D2A] flex items-center justify-center text-sm transition-colors cursor-pointer" title="Compare Map">🗺️</button>
+                      <button onClick={() => handleOpenTaste(friend)} className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-[#E85D2A] transition-colors cursor-pointer" title="Taste Compatibility"><ChevronRight /></button>
+                    </div>
+                  </div>
+                ))}
+              {friendsData.length > 0 && friendsData.filter(f => !searchQuery || (f.name ?? f.email).toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                <div className="text-center py-12 text-sm text-gray-400">No friends found.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Compatibility Modal Passthrough */}
+      {selectedFriend && (
+        <CompatibilityDrawer
+          friend={selectedFriend}
+          compat={selectedFriend.compatibility}
+          onClose={() => setSelectedFriend(null)}
+          onCompare={() => {
+            setSelectedFriend(null);
+            setSelectedCompareFriend(selectedFriend.userId);
+          }}
+        />
+      )}
+
+      {selectedCompareFriend && compareData && (
+        <FriendCompareModal
+          data={compareData}
+          onClose={() => {
+            setSelectedCompareFriend(null);
+            setCompareData(null);
+          }}
+        />
+      )}
+
+      {/* Editor Overlays */}
+      {editAvatarOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-[2px]" onClick={() => setEditAvatarOpen(false)}>
+          <div className="w-full max-w-md bg-white dark:bg-[#161B22] rounded-t-3xl p-6" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-center mb-4 text-[#0E1116] dark:text-white">Change Profile Photo</h3>
+            <div className="flex flex-col gap-2">
+              <label className="w-full py-3.5 bg-gray-100 dark:bg-white/5 text-center font-bold text-[#E85D2A] rounded-2xl cursor-pointer hover:bg-gray-200 dark:hover:bg-white/10 transition-colors">
+                Upload Photo
+                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+              </label>
+              <button onClick={handleRemoveCustomAvatar} className="w-full py-3.5 bg-gray-100 dark:bg-white/5 text-center font-bold text-[#0E1116] dark:text-gray-200 rounded-2xl cursor-pointer hover:bg-gray-200 dark:hover:bg-white/10 transition-colors">
+                Use Google Photo
+              </button>
+              <button onClick={() => setEditAvatarOpen(false)} className="w-full py-3.5 mt-2 text-center font-bold text-gray-500 rounded-2xl cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editProfileOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4" onClick={() => setEditProfileOpen(false)}>
+          <div className="w-full max-w-md bg-white dark:bg-[#161B22] rounded-3xl p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-bold text-[#0E1116] dark:text-white">Edit Profile</h3>
+              <button onClick={() => setEditProfileOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Display Name</label>
+                <input type="text" value={editDisplayName} onChange={e => setEditDisplayName(e.target.value)} className="w-full bg-gray-50 dark:bg-[#1C2128] border-none rounded-xl px-4 py-3 text-sm text-[#0E1116] dark:text-[#e8edf4] placeholder-gray-400 focus:ring-2 focus:ring-[#E85D2A] outline-none" placeholder="Your Name" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Username</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">@</span>
+                  <input type="text" value={editUsername} onChange={e => setEditUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20))} className="w-full bg-gray-50 dark:bg-[#1C2128] border-none rounded-xl pl-9 pr-4 py-3 text-sm text-[#0E1116] dark:text-[#e8edf4] focus:ring-2 focus:ring-[#E85D2A] outline-none" placeholder="username" />
+                </div>
+                {editUsername.length > 0 && editUsername !== username && (
+                  <div className="mt-2 text-xs font-medium">
+                    {usernameStatus === "checking" && <span className="text-gray-400">Checking availability...</span>}
+                    {usernameStatus === "invalid" && <span className="text-red-500">3-20 lowercase letters, numbers, or underscores.</span>}
+                    {usernameStatus === "available" && <span className="text-green-500">✓ Available</span>}
+                    {usernameStatus === "taken" && <span className="text-red-500">✗ Username taken</span>}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Bio</label>
+                <textarea value={editBio} onChange={e => setEditBio(e.target.value)} rows={3} maxLength={150} className="w-full bg-gray-50 dark:bg-[#1C2128] border-none rounded-xl px-4 py-3 text-sm text-[#0E1116] dark:text-[#e8edf4] placeholder-gray-400 focus:ring-2 focus:ring-[#E85D2A] outline-none resize-none" placeholder="Add a short bio..." />
+                <p className="text-right text-[10px] text-gray-400 mt-1">{editBio.length}/150</p>
+              </div>
+
+              <button
+                onClick={handleSaveProfile}
+                disabled={savingProfile || usernameStatus === "taken" || usernameStatus === "invalid"}
+                className="w-full mt-4 bg-[#E85D2A] text-white font-bold py-3.5 rounded-2xl hover:bg-[#d45222] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {savingProfile ? "Saving..." : "Save Profile"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

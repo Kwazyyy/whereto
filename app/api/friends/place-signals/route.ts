@@ -28,30 +28,42 @@ export async function POST(req: NextRequest) {
     select: { senderId: true, receiverId: true },
   });
 
-  if (friendships.length === 0) return NextResponse.json({});
+  // Get followed creators
+  const follows = await prisma.follow.findMany({
+    where: { followerId: userId },
+    select: { followingId: true }
+  });
 
   const friendIds = friendships.map((f) =>
     f.senderId === userId ? f.receiverId : f.senderId
   );
 
-  // Find saves by friends for the given place IDs
+  const creatorIds = follows.map(f => f.followingId);
+  const combinedIds = Array.from(new Set([...friendIds, ...creatorIds]));
+
+  // Find saves by friends OR followed creators for the given place IDs
   const saves = await prisma.save.findMany({
     where: {
-      userId: { in: friendIds },
+      userId: { in: combinedIds },
       place: { googlePlaceId: { in: placeIds } },
     },
     include: {
-      user:  { select: { id: true, name: true, image: true } },
+      user: { select: { id: true, name: true, image: true, isCreator: true } },
       place: { select: { googlePlaceId: true } },
     },
   });
 
   // Group by Google Place ID
-  const signals: Record<string, { userId: string; name: string | null; image: string | null }[]> = {};
+  const signals: Record<string, { friends: any[], creator: any | null }> = {};
   for (const save of saves) {
     const gid = save.place.googlePlaceId;
-    if (!signals[gid]) signals[gid] = [];
-    signals[gid].push({ userId: save.user.id, name: save.user.name, image: save.user.image });
+    if (!signals[gid]) signals[gid] = { friends: [], creator: null };
+
+    if (save.user.isCreator && creatorIds.includes(save.user.id) && !signals[gid].creator) {
+      signals[gid].creator = { id: save.user.id, name: save.user.name, avatarUrl: save.user.image };
+    } else if (friendIds.includes(save.user.id)) {
+      signals[gid].friends.push({ userId: save.user.id, name: save.user.name, image: save.user.image });
+    }
   }
 
   return NextResponse.json(signals);

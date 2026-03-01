@@ -24,4 +24,6 @@ export interface Place {
   recommendationId?: string;
   recommendedBy?: { name: string | null; image: string | null };
   recommenderNote?: string | null;
+  // Creator Signal
+  creatorSignal?: { id: string; name: string; avatarUrl: string | null };
 }
