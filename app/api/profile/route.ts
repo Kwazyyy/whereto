@@ -42,7 +42,7 @@ export async function PATCH(req: NextRequest) {
             }
         }
 
-        const dataToUpdate: any = {};
+        const dataToUpdate: Record<string, string | null> = {};
         if (displayName !== undefined) dataToUpdate.displayName = displayName;
         if (updatedUsername !== undefined) dataToUpdate.username = updatedUsername;
         if (bio !== undefined) dataToUpdate.creatorBio = bio;

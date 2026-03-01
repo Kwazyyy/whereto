@@ -33,7 +33,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         });
         const placeIds = theirSaves.map(s => s.placeId);
 
-        let topPlaces: any[] = [];
+        let topPlaces: Array<{ placeId: string; name: string; saves: number }> = [];
         if (placeIds.length > 0) {
             const othersSavesOnThosePlaces = await prisma.save.groupBy({
                 by: ['placeId'],

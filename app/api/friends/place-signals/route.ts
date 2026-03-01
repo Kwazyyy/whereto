@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
   });
 
   // Group by Google Place ID
-  const signals: Record<string, { friends: any[], creator: any | null }> = {};
+  const signals: Record<string, { friends: Array<{ userId: string; name: string | null; image: string | null }>, creator: { id: string; name: string | null; avatarUrl: string | null } | null }> = {};
   for (const save of saves) {
     const gid = save.place.googlePlaceId;
     if (!signals[gid]) signals[gid] = { friends: [], creator: null };

@@ -14,13 +14,13 @@ export async function GET() {
         // 1. Get user's accepted friendships
         const friendships = await prisma.friendship.findMany({
             where: {
-                OR: [{ user1Id: userId }, { user2Id: userId }],
+                OR: [{ senderId: userId }, { receiverId: userId }],
                 status: "ACCEPTED",
             },
         });
 
         const friendIds = friendships.map((f) =>
-            f.user1Id === userId ? f.user2Id : f.user1Id
+            f.senderId === userId ? f.receiverId : f.senderId
         );
 
         if (friendIds.length === 0) {
@@ -54,6 +54,7 @@ export async function GET() {
         });
 
         // 4. Deduplicate by placeId and group the friends who saved it
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const matchesMap = new Map<string, { place: any; friends: { id: string; name: string | null; image: string | null }[] }>();
 
         for (const save of friendSaves) {
