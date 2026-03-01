@@ -212,7 +212,7 @@ export function FriendCompareModal({ data, onClose }: FriendCompareModalProps) {
                     <div className="w-10" />
                 </div>
 
-                <div className="flex-1 overflow-y-auto hide-scrollbar pb-32">
+                <div className="flex-1 overflow-y-auto hide-scrollbar pb-48">
                     {/* Avatars Hero */}
                     <div className="flex items-center justify-center gap-6 py-10 bg-white dark:bg-[#161B22]">
                         <div className="flex flex-col items-center">
@@ -380,13 +380,13 @@ export function FriendCompareModal({ data, onClose }: FriendCompareModalProps) {
                         </div>
 
                         {/* CTA Bottom spacing */}
-                        <div className="h-32" />
+                        <div className="h-[200px]" />
                     </div>
                 </div>
 
                 {/* Floating Bottom CTA */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 pb-24 sm:pb-8 bg-gradient-to-t from-gray-50 via-gray-50 to-transparent dark:from-[#0E1116] dark:via-[#0E1116]">
-                    <div className="max-w-md mx-auto bg-[#0E1116] dark:bg-white rounded-2xl p-4 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="absolute bottom-0 left-0 right-0 p-4 pb-[88px] pt-16 bg-gradient-to-t from-gray-50 via-[#f9fafb] to-transparent dark:from-[#0E1116] dark:via-[#0E1116] pointer-events-none">
+                    <div className="max-w-md mx-auto bg-[#0E1116] dark:bg-white rounded-2xl p-4 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4 pointer-events-auto">
                         <div>
                             <p className="font-bold text-white dark:text-[#0E1116]">{ctaTitle}</p>
                             <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">{ctaDesc}</p>
