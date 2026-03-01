@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Avatar, type Friend } from "@/components/CompatibilityDrawer";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CompatibilityDrawer } from "@/components/CompatibilityDrawer";
 import { FriendCompareModal, CompareData } from "@/components/FriendCompareModal";
@@ -16,6 +16,9 @@ export function FriendsListModal({ onClose }: { onClose: () => void }) {
     const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
     const [selectedCompareFriend, setSelectedCompareFriend] = useState<string | null>(null);
     const [compareData, setCompareData] = useState<CompareData | null>(null);
+
+    const [friendToRemove, setFriendToRemove] = useState<Friend | null>(null);
+    const [isRemoving, setIsRemoving] = useState(false);
 
     useEffect(() => {
         fetch("/api/friends")
@@ -60,6 +63,25 @@ export function FriendsListModal({ onClose }: { onClose: () => void }) {
             }
         } catch {
             setSelectedFriend({ ...friend, compatibility: null });
+        }
+    };
+
+    const handleRemoveFriend = async (friendshipId: string) => {
+        setIsRemoving(true);
+        try {
+            const res = await fetch(`/api/friends`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ friendshipId })
+            });
+            if (res.ok) {
+                setFriendsData(prev => prev.filter(f => f.friendshipId !== friendshipId));
+                setFriendToRemove(null);
+            }
+        } catch (e) {
+            console.error("Failed to remove friend", e);
+        } finally {
+            setIsRemoving(false);
         }
     };
 
@@ -143,8 +165,11 @@ export function FriendsListModal({ onClose }: { onClose: () => void }) {
                                         className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group"
                                     >
                                         <Avatar image={friend.image} name={friend.name} size={44} />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-bold text-[#0E1116] dark:text-[#e8edf4] truncate">
+                                        <div
+                                            className="flex-1 min-w-0 cursor-pointer group/name"
+                                            onClick={() => setSelectedCompareFriend(friend.userId)}
+                                        >
+                                            <p className="text-sm font-bold text-[#0E1116] dark:text-[#e8edf4] truncate group-hover/name:text-[#E85D2A] group-hover/name:underline transition-all">
                                                 {friend.name ?? friend.email}
                                             </p>
                                             {friend.name && (
@@ -155,11 +180,14 @@ export function FriendsListModal({ onClose }: { onClose: () => void }) {
                                         </div>
                                         <div className="flex items-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
                                             <button
-                                                onClick={() => setSelectedCompareFriend(friend.userId)}
-                                                className="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-700 hover:border-[#E85D2A] dark:hover:border-[#E85D2A] flex items-center justify-center text-sm transition-colors cursor-pointer"
-                                                title="Compare Map"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setFriendToRemove(friend);
+                                                }}
+                                                className="w-8 h-8 rounded-full flex items-center justify-center text-red-500 opacity-50 hover:opacity-100 transition-opacity cursor-pointer"
+                                                title="Remove Friend"
                                             >
-                                                🗺️
+                                                <X size={20} />
                                             </button>
                                             <button
                                                 onClick={() => handleOpenTaste(friend)}
@@ -188,6 +216,42 @@ export function FriendsListModal({ onClose }: { onClose: () => void }) {
                     )}
                 </div>
             </div>
+
+            {friendToRemove && (
+                <div
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4"
+                    onClick={() => setFriendToRemove(null)}
+                >
+                    <div
+                        className="w-full max-w-sm bg-white dark:bg-[#1C2128] rounded-3xl p-6 shadow-2xl flex flex-col items-center text-center"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-bold text-[#0E1116] dark:text-[#e8edf4] mb-2">
+                            Remove {friendToRemove.name?.split(' ')[0] || 'Friend'}?
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                            This will remove your friendship and you won&apos;t see each other&apos;s activity.
+                        </p>
+                        <div className="flex gap-3 w-full">
+                            <button
+                                onClick={() => setFriendToRemove(null)}
+                                className="flex-1 py-3 rounded-xl font-bold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => friendToRemove.friendshipId && handleRemoveFriend(friendToRemove.friendshipId)}
+                                disabled={isRemoving}
+                                className="flex-1 py-3 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-50 cursor-pointer flex justify-center items-center"
+                            >
+                                {isRemoving ? (
+                                    <div className="w-5 h-5 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "#ffffff", borderTopColor: "transparent" }} />
+                                ) : "Remove"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Compatibility Modal Passthrough */}
             {selectedFriend && (

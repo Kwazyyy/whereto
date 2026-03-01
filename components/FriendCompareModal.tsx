@@ -212,7 +212,7 @@ export function FriendCompareModal({ data, onClose }: FriendCompareModalProps) {
                     <div className="w-10" />
                 </div>
 
-                <div className="flex-1 overflow-y-auto hide-scrollbar pb-12">
+                <div className="flex-1 overflow-y-auto hide-scrollbar pb-28">
                     {/* Avatars Hero */}
                     <div className="flex items-center justify-center gap-6 py-10 bg-white dark:bg-[#161B22]">
                         <div className="flex flex-col items-center">
