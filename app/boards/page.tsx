@@ -19,6 +19,28 @@ const INTENT_LABELS: Record<string, string> = {
   outdoor: "Outdoor / Patio",
 };
 
+interface CreatorInfo {
+  id: string;
+  name: string;
+  image: string;
+  isVerified: boolean;
+}
+
+interface CuratedListSummary {
+  id: string;
+  title: string;
+  category: string;
+  createdAt: string;
+  creator: CreatorInfo;
+  stats: {
+    places: number;
+    saves: number;
+  };
+  heroImage: string | null;
+}
+
+const CATEGORIES = ["All", "Date Night", "Study Spots", "Budget Eats", "Hidden Gems", "Brunch", "Patios", "Coffee", "Late Night", "Groups"];
+
 function ChevronLeftIcon({ size = 24 }: { size?: number }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -76,6 +98,10 @@ export default function BoardsPage() {
   const [saves, setSaves] = useState<SavedPlace[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [savedLists, setSavedLists] = useState<CuratedListSummary[]>([]);
+  const [featuredLists, setFeaturedLists] = useState<CuratedListSummary[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+
   useEffect(() => {
     if (status === "loading") return;
 
@@ -94,10 +120,22 @@ export default function BoardsPage() {
           setSaves([]);
           setLoading(false);
         });
+
+      fetch("/api/curated-lists/saved")
+        .then((r) => r.json())
+        .then((d) => setSavedLists(d.lists || []))
+        .catch(console.error);
+
+      // Fetch featured
+      fetch(`/api/curated-lists?category=${encodeURIComponent(selectedCategory)}`)
+        .then((r) => r.json())
+        .then((d) => setFeaturedLists(d.lists || []))
+        .catch(console.error);
+
     } else {
       setLoading(false);
     }
-  }, [status]);
+  }, [status, selectedCategory]);
 
   if (loading || status === "loading") {
     return (
@@ -191,6 +229,101 @@ export default function BoardsPage() {
               const label = BOARD_LABELS[intent] || intent;
               return <BoardCard key={intent} intent={intent} label={label} items={items} />;
             })}
+          </div>
+        )}
+      </div>
+
+      {/* SECTION 2: Saved Lists */}
+      {savedLists.length > 0 && (
+        <div className="mt-12">
+          <h2 className="text-xl font-bold text-[#0E1116] dark:text-[#e8edf4] px-5 mb-4">Saved Lists</h2>
+          <div className="flex overflow-x-auto hide-scrollbar pl-5 pr-5 pb-4 gap-4">
+            {savedLists.map((list) => (
+              <Link key={list.id} href={`/boards/list/${list.id}`} className="block shrink-0 w-[200px]">
+                <div className="h-[140px] w-full rounded-2xl overflow-hidden relative bg-gray-100 dark:bg-[#1C2128] shadow-sm border border-gray-100 dark:border-white/5">
+                  {list.heroImage && (
+                    <Image src={list.heroImage} alt={list.title} fill className="object-cover" unoptimized />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <h3 className="text-white font-bold text-sm leading-tight line-clamp-2">{list.title}</h3>
+                    <p className="text-[11px] font-medium text-gray-300 mt-1">
+                      {list.creator.name} {list.creator.isVerified && '✓'} · {list.stats.places} places
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* SECTION 3: Featured Lists */}
+      <div className="mt-12 px-5 pb-12">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-[#0E1116] dark:text-[#e8edf4]">Featured Lists</h2>
+        </div>
+
+        <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-4 mb-2 -mx-5 px-5">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${selectedCategory === cat
+                ? "bg-[#0E1116] dark:bg-white text-white dark:text-[#0E1116]"
+                : "bg-gray-100 dark:bg-[#161B22] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10"
+                }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {featuredLists.length === 0 ? (
+          <div className="text-center py-12 px-6 bg-gray-50 dark:bg-[#161B22] rounded-3xl border border-gray-100 dark:border-white/5 mt-2">
+            <p className="text-gray-500 dark:text-gray-400 font-medium leading-relaxed">Lists from Toronto&apos;s best food creators are on the way! Check back soon. 📋</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
+            {featuredLists.map((list) => (
+              <Link key={list.id} href={`/boards/list/${list.id}`} className="block group">
+                <div className="aspect-[4/5] rounded-2xl overflow-hidden relative bg-gray-100 dark:bg-[#1C2128] shadow-sm border border-gray-100 dark:border-white/5">
+                  {list.heroImage && (
+                    <Image
+                      src={list.heroImage}
+                      alt={list.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      unoptimized
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                  <div className="absolute top-2 left-2 bg-black/40 backdrop-blur-md rounded-full px-2 py-0.5 text-[9px] font-bold text-white uppercase tracking-wider">
+                    {list.category.replace("-", " ")}
+                  </div>
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <h3 className="text-white font-bold text-sm mb-2 leading-tight line-clamp-2 drop-shadow-md">
+                      {list.title}
+                    </h3>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                        {list.creator.image ? (
+                          <Image src={list.creator.image} alt="Avatar" width={16} height={16} className="rounded-full shrink-0 object-cover" />
+                        ) : (
+                          <div className="w-4 h-4 rounded-full bg-gray-600 shrink-0" />
+                        )}
+                        <span className="text-[10px] font-semibold text-gray-200 truncate pr-1">
+                          {list.creator.name.split(" ")[0]} {list.creator.isVerified && '✓'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-white shrink-0 bg-black/20 px-1.5 py-0.5 rounded-md backdrop-blur-sm">
+                        <span className="flex items-center gap-0.5">❤️ {list.stats.saves}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         )}
       </div>

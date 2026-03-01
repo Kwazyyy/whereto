@@ -16,6 +16,7 @@ import { ApplyCreatorForm } from "@/components/ApplyCreatorForm";
 import { CreatorDashboard } from "@/components/CreatorDashboard";
 import { type Friend } from "@/components/CompatibilityDrawer";
 import { FriendsListModal } from "@/components/FriendsListModal";
+import { CreatorMyLists } from "@/components/CreatorMyLists";
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const INTENT_OPTIONS = [
@@ -352,6 +353,7 @@ export default function ProfilePage() {
 
   // Modal system states
   const [friendsModalOpen, setFriendsModalOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
 
   // Profile Edit States
@@ -623,8 +625,17 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24 md:pb-12">
-      <header className="px-5 pt-5 pb-1 h-16 md:hidden" />
+    <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24 md:pb-12 relative">
+      <div className="absolute top-6 right-6 z-20 hidden md:block">
+        <button onClick={() => setSettingsOpen(true)} className="p-2 text-gray-400 hover:text-[#E85D2A] transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
+        </button>
+      </div>
+      <header className="px-5 pt-5 pb-1 h-16 md:hidden flex justify-end items-center">
+        <button onClick={() => setSettingsOpen(true)} className="p-2 -mr-2 text-gray-400 hover:text-[#E85D2A] transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
+        </button>
+      </header>
 
       {/* Main Responsive Grid Layout */}
       <div className="px-5 md:px-8 md:pt-12 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 w-full">
@@ -744,6 +755,7 @@ export default function ProfilePage() {
 
           {session?.user && (
             <div className="mt-8 w-full max-w-sm mx-auto flex flex-col gap-6">
+              {isCreator && <CreatorMyLists />}
               <BadgesStats />
               <ExplorationStats />
               {isCreator && <CreatorDashboard />}
@@ -792,137 +804,7 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Discovery Preferences */}
-          <SectionHeader title="Discovery Preferences" />
-          <SettingsCard>
-            <SelectRow
-              label="Default Intent"
-              options={INTENT_OPTIONS.map((o) => ({ label: o.label, value: o.id }))}
-              value={prefs.defaultIntent}
-              onChange={(v) => updatePref("defaultIntent", v)}
-            />
-            <SelectRow
-              label="Default Distance"
-              options={DISTANCE_OPTIONS}
-              value={prefs.defaultDistance}
-              onChange={(v) => updatePref("defaultDistance", Number(v))}
-            />
-            <Row label="Auto-detect location">
-              <Toggle
-                checked={prefs.autoDetectLocation}
-                onChange={(v) => updatePref("autoDetectLocation", v)}
-              />
-            </Row>
-            <SegmentedRow
-              label="Theme"
-              options={THEME_OPTIONS}
-              value={prefs.theme}
-              onChange={handleThemeChange}
-            />
-          </SettingsCard>
 
-          {/* Account */}
-          <SectionHeader title="Account" />
-          <SettingsCard>
-            {session?.user && (
-              <Row label="Joined">
-                <span className="text-sm text-gray-400 dark:text-gray-500">{joinedDate ?? "—"}</span>
-              </Row>
-            )}
-            {session?.user && (
-              <button
-                onClick={() => signOut()}
-                className="flex items-center px-4 py-3.5 min-h-[52px] w-full text-left text-red-500 font-semibold text-sm cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-              >
-                Sign Out
-              </button>
-            )}
-          </SettingsCard>
-
-          {/* About */}
-          <SectionHeader title="About" />
-          <SettingsCard>
-            <Row label="App Version">
-              <span className="text-sm text-gray-400 dark:text-gray-500">1.0.0 (Beta)</span>
-            </Row>
-            <a
-              href="mailto:hello@whereto.app?subject=WhereTo%20Feedback"
-              className="flex items-center justify-between px-4 py-3.5 min-h-[52px]"
-            >
-              <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">
-                Send Feedback
-              </span>
-              <ChevronRight />
-            </a>
-            <button className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
-              <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">
-                Rate WhereTo
-              </span>
-              <ChevronRight />
-            </button>
-            <Link
-              href="/privacy"
-              className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
-            >
-              <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">
-                Privacy Policy
-              </span>
-              <ChevronRight />
-            </Link>
-            <Link
-              href="/terms"
-              className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
-            >
-              <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">
-                Terms of Service
-              </span>
-              <ChevronRight />
-            </Link>
-
-
-          </SettingsCard>
-
-          {/* Dev Tools - Only visible locally */}
-          {process.env.NODE_ENV === "development" && (
-            <>
-              <SectionHeader title="Dev Tools" />
-              <SettingsCard>
-                <button
-                  onClick={() => triggerVibeVoting("dummy_place_id", "Test Cafe")}
-                  className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer border-b border-gray-100 dark:border-white/5 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
-                >
-                  <span className="text-sm font-medium text-blue-500">
-                    Test Vibe Voting
-                  </span>
-                  <ChevronRight />
-                </button>
-                <button
-                  onClick={handleSimulateVisit}
-                  className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer border-b border-gray-100 dark:border-white/5 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
-                >
-                  <span className="text-sm font-medium text-amber-500">
-                    Simulate Visit
-                  </span>
-                  <ChevronRight />
-                </button>
-                <button
-                  onClick={async () => {
-                    try {
-                      await fetch('/api/creators/dev-toggle', { method: 'POST' });
-                      setIsCreator(!isCreator);
-                      window.location.reload();
-                    } catch (e) { console.error(e) }
-                  }}
-                  className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
-                >
-                  <span className="text-sm font-medium text-purple-500">
-                    Toggle Creator Status {isCreator ? "(On)" : "(Off)"}
-                  </span>
-                  <ChevronRight />
-                </button>
-              </SettingsCard>
-            </>
-          )}
 
 
           <p className="text-center md:text-left text-xs text-gray-400 dark:text-gray-500 mt-8 pb-2 px-1">
@@ -1001,6 +883,60 @@ export default function ProfilePage() {
               >
                 {savingProfile ? "Saving..." : "Save Profile"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {settingsOpen && (
+        <div className="fixed inset-0 z-[100] flex justify-end flex-col">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSettingsOpen(false)} />
+          <div className="relative bg-gray-50 dark:bg-[#0E1116] rounded-t-3xl p-5 md:p-8 w-full max-w-2xl mx-auto animate-slide-up h-[90vh] flex flex-col shadow-2xl">
+            <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-white/10 shrink-0">
+              <h2 className="text-xl md:text-2xl font-bold text-[#0E1116] dark:text-[#e8edf4]">Settings</h2>
+              <button onClick={() => setSettingsOpen(false)} className="w-8 h-8 rounded-full bg-gray-200 dark:bg-white/10 flex items-center justify-center text-gray-600 dark:text-gray-400 cursor-pointer">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto hide-scrollbar pt-2 pb-10">
+              {/* Discovery Preferences */}
+              <SectionHeader title="Discovery Preferences" />
+              <SettingsCard>
+                <SelectRow label="Default Intent" options={INTENT_OPTIONS.map(o => ({ label: o.label, value: o.id }))} value={prefs.defaultIntent} onChange={v => updatePref("defaultIntent", v)} />
+                <SelectRow label="Default Distance" options={DISTANCE_OPTIONS} value={prefs.defaultDistance} onChange={v => updatePref("defaultDistance", Number(v))} />
+                <Row label="Auto-detect location"><Toggle checked={prefs.autoDetectLocation} onChange={v => updatePref("autoDetectLocation", v)} /></Row>
+                <SegmentedRow label="Theme" options={THEME_OPTIONS} value={prefs.theme} onChange={handleThemeChange} />
+              </SettingsCard>
+
+              {/* Account */}
+              <SectionHeader title="Account" />
+              <SettingsCard>
+                {session?.user && <Row label="Joined"><span className="text-sm text-gray-400 dark:text-gray-500">{joinedDate ?? "—"}</span></Row>}
+                {session?.user && <button onClick={() => signOut()} className="flex items-center px-4 py-3.5 min-h-[52px] w-full text-left text-red-500 font-semibold text-sm cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">Sign Out</button>}
+              </SettingsCard>
+
+              {/* About */}
+              <SectionHeader title="About" />
+              <SettingsCard>
+                <Row label="App Version"><span className="text-sm text-gray-400 dark:text-gray-500">1.0.0 (Beta)</span></Row>
+                <a href="mailto:hello@whereto.app?subject=WhereTo%20Feedback" className="flex items-center justify-between px-4 py-3.5 min-h-[52px]"><span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Send Feedback</span><ChevronRight /></a>
+                <button className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"><span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Rate WhereTo</span><ChevronRight /></button>
+                <Link href="/privacy" className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"><span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Privacy Policy</span><ChevronRight /></Link>
+                <Link href="/terms" className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"><span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Terms of Service</span><ChevronRight /></Link>
+              </SettingsCard>
+
+              {/* Dev Tools - Only visible locally */}
+              {process.env.NODE_ENV === "development" && (
+                <>
+                  <SectionHeader title="Dev Tools" />
+                  <SettingsCard>
+                    <button onClick={() => triggerVibeVoting("dummy_place_id", "Test Cafe")} className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer border-b border-gray-100 dark:border-white/5 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"><span className="text-sm font-medium text-blue-500">Test Vibe Voting</span><ChevronRight /></button>
+                    <button onClick={handleSimulateVisit} className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer border-b border-gray-100 dark:border-white/5 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"><span className="text-sm font-medium text-amber-500">Simulate Visit</span><ChevronRight /></button>
+                    <button onClick={async () => { try { await fetch('/api/creators/dev-toggle', { method: 'POST' }); setIsCreator(!isCreator); window.location.reload(); } catch { } }} className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"><span className="text-sm font-medium text-purple-500">Toggle Creator Status {isCreator ? "(On)" : "(Off)"}</span><ChevronRight /></button>
+                  </SettingsCard>
+                </>
+              )}
             </div>
           </div>
         </div>

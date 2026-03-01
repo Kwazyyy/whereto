@@ -38,6 +38,10 @@ model User {
   verifiedAt              DateTime?
   followers               Follow[]         @relation("followers")
   following               Follow[]         @relation("following")
+  
+  // Curated Lists
+  curatedLists            CuratedList[]
+  savedLists              CuratedListSave[]
 }
 
 model Follow {
@@ -104,6 +108,7 @@ model Place {
   recommendations Recommendation[]
   visits          Visit[]
   vibeVotes       VibeVote[]
+  curatedListItems CuratedListItem[]
 }
 
 model Save {
@@ -189,4 +194,47 @@ model VibeVote {
   @@unique([userId, placeId, vibeTag])
   @@index([placeId])
   @@index([userId])
+}
+
+model CuratedList {
+  id          String            @id @default(cuid())
+  creatorId   String
+  title       String
+  description String?
+  category    String
+  isPublic    Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  creator     User              @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  items       CuratedListItem[]
+  saves       CuratedListSave[]
+
+  @@index([creatorId])
+  @@index([category])
+}
+
+model CuratedListItem {
+  id        String      @id @default(cuid())
+  listId    String
+  placeId   String
+  note      String?
+  position  Int         @default(0)
+  createdAt DateTime    @default(now())
+  list      CuratedList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  place     Place       @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, placeId])
+  @@index([listId])
+}
+
+model CuratedListSave {
+  id        String      @id @default(cuid())
+  userId    String
+  listId    String
+  createdAt DateTime    @default(now())
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  list      CuratedList @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listId])
+  @@index([listId])
 }
