@@ -23,6 +23,7 @@ import { useBadges } from "@/components/providers/BadgeProvider";
 import { useNeighborhoodReveal } from "@/components/providers/NeighborhoodRevealProvider";
 import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
 import VisitCelebration from "@/components/VisitCelebration";
+import { useToast } from "@/components/Toast";
 
 const DEFAULT_LAT = 43.6532;
 const DEFAULT_LNG = -79.3832;
@@ -412,6 +413,7 @@ function MapMarkers({
 export default function MapPage() {
   const { status } = useSession();
   const { handleSave } = useSavePlace();
+  const { showToast } = useToast();
 
   const [intent, setIntent] = useState("trending");
   const [dragThresholdMet, setDragThresholdMet] = useState(false);
@@ -533,7 +535,7 @@ export default function MapPage() {
         }
       }, 1000);
     } else {
-      alert("You are too far away to check in here! Get closer.");
+      showToast("You are too far away to check in here! Get closer.");
     }
   };
 

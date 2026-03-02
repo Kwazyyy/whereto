@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useToast } from "@/components/Toast";
 
 interface ListSummary {
     id: string;
@@ -22,6 +23,7 @@ export function CreatorMyLists() {
     const [lists, setLists] = useState<ListSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [createSheetOpen, setCreateSheetOpen] = useState(false);
+    const { showToast } = useToast();
 
     const [newTitle, setNewTitle] = useState("");
     const [newDescription, setNewDescription] = useState("");
@@ -67,10 +69,10 @@ export function CreatorMyLists() {
                 fetchLists(); // Re-fetch
             } else {
                 const d = await res.json();
-                alert(d.error || "Failed to create list");
+                showToast(d.error || "Failed to create list");
             }
         } catch {
-            alert("Network error");
+            showToast("Network error");
         } finally {
             setIsSubmitting(false);
         }
@@ -82,12 +84,6 @@ export function CreatorMyLists() {
         <div className="w-full text-left">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-[#0E1116] dark:text-[#e8edf4]">My Lists</h3>
-                <button
-                    onClick={() => setCreateSheetOpen(true)}
-                    className="text-sm font-bold text-[#E85D2A] hover:opacity-80 transition-opacity"
-                >
-                    Create New +
-                </button>
             </div>
 
             {lists.length === 0 ? (
@@ -129,6 +125,11 @@ export function CreatorMyLists() {
                             </div>
                         </Link>
                     ))}
+
+                    <button onClick={() => setCreateSheetOpen(true)} className="flex border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl p-4 items-center justify-center gap-2 hover:bg-gray-50 dark:hover:bg-[#1C2128] transition-colors cursor-pointer text-gray-500 font-bold mt-2 h-[88px]">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
+                        New List
+                    </button>
                 </div>
             )}
 

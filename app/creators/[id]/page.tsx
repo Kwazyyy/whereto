@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { usePhotoUrl } from "@/lib/use-photo-url";
+import { useToast } from "@/components/Toast";
 import { SavedPlace } from "@/lib/saved-places";
 import { motion } from "framer-motion";
 
@@ -71,9 +71,11 @@ function RecentSaveCard({ save }: { save: CompactSave }) {
 export default function CreatorProfilePage() {
     const params = useParams();
     const router = useRouter();
-    const id = typeof params.id === "string" ? params.id : "";
+    const { id } = params as { id: string };
     const { status } = useSession();
+    const { showToast } = useToast();
 
+    // State
     const [loading, setLoading] = useState(true);
     const [creator, setCreator] = useState<{ id: string; name: string; image: string; creatorBio?: string; instagramHandle?: string | null; tiktokHandle?: string | null; savedCount?: number; visitedCount?: number; _count?: { followers: number; following: number; saves: number; vibeVotes: number } } | null>(null);
     const [boards, setBoards] = useState<Array<{ intent: string; items: CompactSave[] }>>([]);
@@ -102,7 +104,7 @@ export default function CreatorProfilePage() {
 
     const handleFollowToggle = async () => {
         if (status !== "authenticated") {
-            alert("Sign in to follow creators.");
+            showToast("Sign in to follow creators.");
             return;
         }
         if (isFollowLoading) return;

@@ -26,6 +26,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         return NextResponse.json({ error: "Place ID is required" }, { status: 400 });
     }
 
+    // Resolve the internal Place.id from the googlePlaceId provided from the Saves UI
+    const dbPlace = await prisma.place.findUnique({
+        where: { googlePlaceId: placeId },
+    });
+
+    if (!dbPlace) {
+        return NextResponse.json({ error: "Place not found in database" }, { status: 404 });
+    }
+
     // Get current max position
     const maxPosItem = await prisma.curatedListItem.findFirst({
         where: { listId: id },
@@ -38,20 +47,24 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         const item = await prisma.curatedListItem.create({
             data: {
                 listId: id,
-                placeId,
+                placeId: dbPlace.id,
                 note,
                 position: newPosition,
             },
-            include: {
-                place: true,
-            },
         });
 
-        return NextResponse.json({ item }, { status: 201 });
+        // Construct the full object to return (bypassing Prisma include)
+        const fullItem = {
+            ...item,
+            place: dbPlace,
+        };
+
+        return NextResponse.json({ item: fullItem }, { status: 201 });
     } catch (error: any) {
+        console.error("ADD ITEM ERROR:", error);
         if (error.code === "P2002") {
             return NextResponse.json({ error: "Place is already in this list" }, { status: 409 });
         }
-        return NextResponse.json({ error: "Failed to add item" }, { status: 500 });
+        return NextResponse.json({ error: `Failed to add item: ${error?.message || "Unknown error"}` }, { status: 500 });
     }
 }

@@ -468,10 +468,10 @@ export default function ProfilePage() {
         showToast("Profile updated!");
       } else {
         const data = await res.json();
-        alert(data.error || "Failed to update profile");
+        showToast(data.error || "Failed to update profile");
       }
     } catch {
-      alert("Network error");
+      showToast("Network error");
     } finally {
       setSavingProfile(false);
     }
@@ -483,7 +483,7 @@ export default function ProfilePage() {
 
   const handleSimulateVisit = async () => {
     if (saves.length === 0) {
-      alert("Please save at least one place first to simulate a visit.");
+      showToast("Please save at least one place first to simulate a visit.");
       return;
     }
     const randomPlace = saves[Math.floor(Math.random() * saves.length)];
@@ -515,7 +515,7 @@ export default function ProfilePage() {
       }
     } catch (e) {
       console.error(e);
-      alert("Simulation failed");
+      showToast("Simulation failed");
     }
   };
 
@@ -807,6 +807,17 @@ export default function ProfilePage() {
 
 
 
+          {/* Discovery Preferences (desktop right column) */}
+          <div className="hidden md:block mt-8 mb-4">
+            <SectionHeader title="Discovery Preferences" />
+            <SettingsCard>
+              <SelectRow label="Default Intent" options={INTENT_OPTIONS.map(o => ({ label: o.label, value: o.id }))} value={prefs.defaultIntent} onChange={v => updatePref("defaultIntent", v)} />
+              <SelectRow label="Default Distance" options={DISTANCE_OPTIONS} value={prefs.defaultDistance} onChange={v => updatePref("defaultDistance", Number(v))} />
+              <Row label="Auto-detect location"><Toggle checked={prefs.autoDetectLocation} onChange={v => updatePref("autoDetectLocation", v)} /></Row>
+              <SegmentedRow label="Theme" options={THEME_OPTIONS} value={prefs.theme} onChange={handleThemeChange} />
+            </SettingsCard>
+          </div>
+
           <p className="text-center md:text-left text-xs text-gray-400 dark:text-gray-500 mt-8 pb-2 px-1">
             Made with love in Toronto
           </p>
@@ -900,14 +911,16 @@ export default function ProfilePage() {
             </div>
 
             <div className="flex-1 overflow-y-auto hide-scrollbar pt-2 pb-10">
-              {/* Discovery Preferences */}
-              <SectionHeader title="Discovery Preferences" />
-              <SettingsCard>
-                <SelectRow label="Default Intent" options={INTENT_OPTIONS.map(o => ({ label: o.label, value: o.id }))} value={prefs.defaultIntent} onChange={v => updatePref("defaultIntent", v)} />
-                <SelectRow label="Default Distance" options={DISTANCE_OPTIONS} value={prefs.defaultDistance} onChange={v => updatePref("defaultDistance", Number(v))} />
-                <Row label="Auto-detect location"><Toggle checked={prefs.autoDetectLocation} onChange={v => updatePref("autoDetectLocation", v)} /></Row>
-                <SegmentedRow label="Theme" options={THEME_OPTIONS} value={prefs.theme} onChange={handleThemeChange} />
-              </SettingsCard>
+              {/* Discovery Preferences for Mobile Only */}
+              <div className="md:hidden">
+                <SectionHeader title="Discovery Preferences" />
+                <SettingsCard>
+                  <SelectRow label="Default Intent" options={INTENT_OPTIONS.map(o => ({ label: o.label, value: o.id }))} value={prefs.defaultIntent} onChange={v => updatePref("defaultIntent", v)} />
+                  <SelectRow label="Default Distance" options={DISTANCE_OPTIONS} value={prefs.defaultDistance} onChange={v => updatePref("defaultDistance", Number(v))} />
+                  <Row label="Auto-detect location"><Toggle checked={prefs.autoDetectLocation} onChange={v => updatePref("autoDetectLocation", v)} /></Row>
+                  <SegmentedRow label="Theme" options={THEME_OPTIONS} value={prefs.theme} onChange={handleThemeChange} />
+                </SettingsCard>
+              </div>
 
               {/* Account */}
               <SectionHeader title="Account" />

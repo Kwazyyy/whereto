@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePhotoUrl } from "@/lib/use-photo-url";
+import { useToast } from "@/components/Toast";
 
 type ListDetail = {
     id: string;
@@ -30,6 +31,7 @@ type ListDetail = {
         position: number;
         place: {
             id: string;
+            googlePlaceId: string;
             name: string;
             photoUrl: string | null;
             rating: number | null;
@@ -53,10 +55,10 @@ export default function ListDetailPage() {
     // Creator State
     const [saves, setSaves] = useState<any[]>([]);
     const [addSheetOpen, setAddSheetOpen] = useState(false);
-    const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
-    const [note, setNote] = useState("");
+    const [selectedPlaceIds, setSelectedPlaceIds] = useState<string[]>([]);
     const [isSubmittingPlace, setIsSubmittingPlace] = useState(false);
     const [isPublishing, setIsPublishing] = useState(false);
+    const { showToast } = useToast();
 
     useEffect(() => {
         fetch(`/api/curated-lists/${id}`)
@@ -112,11 +114,24 @@ export default function ListDetailPage() {
 
     const openAddSheet = async () => {
         setAddSheetOpen(true);
+        setSelectedPlaceIds([]);
         if (saves.length === 0) {
             try {
                 const res = await fetch("/api/saves");
                 const data = await res.json();
-                setSaves(Array.isArray(data) ? data : []);
+
+                const arr = Array.isArray(data) ? data : [];
+                const uniqueSavesMap = new Map();
+                for (const save of arr) {
+                    if (!uniqueSavesMap.has(save.placeId)) {
+                        uniqueSavesMap.set(save.placeId, save);
+                    }
+                }
+                const sortedSaves = Array.from(uniqueSavesMap.values()).sort((a, b) =>
+                    (a.name || "").localeCompare(b.name || "")
+                );
+
+                setSaves(sortedSaves);
             } catch (e) {
                 console.error(e);
             }
@@ -124,35 +139,42 @@ export default function ListDetailPage() {
     };
 
     const handleAddPlace = async () => {
-        if (!selectedPlaceId) return;
+        if (selectedPlaceIds.length === 0) return;
         setIsSubmittingPlace(true);
+        let addedCount = 0;
+        let newItems: any[] = [];
         try {
-            const res = await fetch(`/api/curated-lists/${id}/items`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ placeId: selectedPlaceId, note: note.trim() || undefined }),
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setList(prev => prev ? {
-                    ...prev,
-                    stats: { ...prev.stats, places: prev.stats.places + 1 },
-                    items: [...prev.items, {
+            for (const placeId of selectedPlaceIds) {
+                const res = await fetch(`/api/curated-lists/${id}/items`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ placeId }),
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    newItems.push({
                         id: data.item.id,
                         note: data.item.note,
                         position: data.item.position,
                         place: data.item.place,
-                    }]
-                } : null);
-                setAddSheetOpen(false);
-                setSelectedPlaceId(null);
-                setNote("");
-            } else {
-                const err = await res.json();
-                alert(err.error || "Failed to add place");
+                    });
+                    addedCount++;
+                } else {
+                    console.error("Failed to add place", placeId);
+                }
             }
+            if (newItems.length > 0) {
+                setList(prev => prev ? {
+                    ...prev,
+                    stats: { ...prev.stats, places: prev.stats.places + newItems.length },
+                    items: [...prev.items, ...newItems]
+                } : null);
+            }
+            setAddSheetOpen(false);
+            setSelectedPlaceIds([]);
+            if (addedCount > 0) showToast(`Added ${addedCount} place${addedCount > 1 ? 's' : ''} to your list`);
         } catch (e) {
-            alert("Network error");
+            showToast("Network error");
         } finally {
             setIsSubmittingPlace(false);
         }
@@ -169,17 +191,17 @@ export default function ListDetailPage() {
                     items: prev.items.filter(i => i.id !== itemId)
                 } : null);
             } else {
-                alert("Failed to remove place");
+                showToast("Failed to remove place");
             }
         } catch (e) {
-            alert("Network error");
+            showToast("Network error");
         }
     };
 
     const togglePublishStatus = async () => {
         if (!list) return;
         if (!list.isPublic && list.items.length < 3) {
-            alert("Your list needs at least 3 places to be published.");
+            showToast("Your list needs at least 3 places to be published.");
             return;
         }
 
@@ -193,10 +215,10 @@ export default function ListDetailPage() {
             if (res.ok) {
                 setList(prev => prev ? { ...prev, isPublic: !prev.isPublic } : null);
             } else {
-                alert("Failed to toggle status");
+                showToast("Failed to toggle status");
             }
         } catch (e) {
-            alert("Network error");
+            showToast("Network error");
         } finally {
             setIsPublishing(false);
         }
@@ -221,94 +243,144 @@ export default function ListDetailPage() {
 
     const isCreator = session?.user?.id === list.creator.id;
 
-    return (
-        <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24 relative lg:max-w-xl mx-auto border-x border-gray-100 dark:border-white/5">
+    // Derived cover photos
+    const coverPhotos = list.items.map(i => i.place.photoUrl).filter(Boolean) as string[];
+    const hasCollage = coverPhotos.length >= 4;
+    const singleCover = coverPhotos.length > 0 ? coverPhotos[0] : list.heroImage;
 
-            {/* Dynamic Nav Bar (Glass) */}
-            <div className="fixed top-0 left-0 right-0 lg:max-w-xl lg:mx-auto z-40 px-4 py-4 flex items-center justify-between">
-                <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center text-white border border-white/10">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6" /></svg>
+    return (
+        <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24 md:pb-12 relative w-full overflow-hidden">
+
+            {/* Transparent Header Nav Overlay */}
+            <div className="absolute top-0 left-0 right-0 z-40 px-4 py-4 md:py-6 flex flex-col md:flex-row items-center justify-between pointer-events-none w-full max-w-[900px] mx-auto">
+                <button onClick={() => router.push('/boards')} className="pointer-events-auto w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white border border-white/10 hover:bg-black/60 transition-colors self-start md:self-auto">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
                 </button>
-                <div className="flex gap-2">
-                    <button className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center text-white border border-white/10">
+                <div className="pointer-events-auto flex gap-2 absolute right-4 top-4 md:relative md:right-auto md:top-auto">
+                    <button className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white border border-white/10 hover:bg-black/60 transition-colors">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.59 13.51 6.83 3.98" /><path d="m15.41 6.51-6.82 3.98" /></svg>
                     </button>
                 </div>
             </div>
 
-            {/* Hero Header Block */}
-            <div className="relative w-full aspect-[4/5] sm:aspect-square md:aspect-video lg:aspect-[4/5] bg-[#161B22]">
-                {list.heroImage ? (
-                    <Image src={list.heroImage} alt="Hero" fill className="object-cover" unoptimized priority />
-                ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#0E1116]" />
-
-                <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-32 relative z-10 flex flex-col justify-end h-full">
-                    <div className="mb-3">
-                        <span className="inline-block px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-[11px] font-bold text-white uppercase tracking-wider">
-                            {list.category.replace("-", " ")}
-                        </span>
+            {/* Spotify-style Cover Photo / Collage */}
+            <div className="relative w-full h-[200px] md:h-[280px] bg-[#161B22]">
+                {hasCollage ? (
+                    <div className="w-full h-full grid grid-cols-2 grid-rows-2">
+                        {[0, 1, 2, 3].map((idx) => (
+                            <div key={idx} className="relative w-full h-full overflow-hidden border border-black/10">
+                                <CoverPhoto name={coverPhotos[idx]} />
+                            </div>
+                        ))}
                     </div>
-                    <h1 className="text-3xl md:text-4xl font-black text-white leading-tight mb-3 drop-shadow-xl">{list.title}</h1>
-                    <p className="text-gray-300 text-sm md:text-base leading-relaxed mb-6 max-w-sm drop-shadow-md">
-                        {list.description || "The ultimate guide curated just for you."}
-                    </p>
+                ) : singleCover ? (
+                    <div className="relative w-full h-full">
+                        <CoverPhoto name={singleCover} />
+                    </div>
+                ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1e] to-[#2a1711]" />
+                )}
 
-                    <div className="flex items-center justify-between">
-                        <Link href={`/creators/${list.creator.id}`} className="flex items-center gap-3">
-                            <div className="relative">
+                {/* Overlay gradient (Darker at bottom) */}
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/80 md:to-black/80" />
+
+                {/* Header Content Container */}
+                <div className="absolute inset-0 pt-20 px-4 md:px-8 pb-4 flex flex-col justify-end z-10 w-full md:max-w-[900px] mx-auto">
+                    <div className="flex items-center gap-2 mb-1.5 md:mb-3">
+                        <span className="inline-block px-2.5 py-0.5 bg-white/20 backdrop-blur-md border border-white/30 rounded font-bold text-[10px] md:text-xs text-white uppercase tracking-widest shadow-sm">
+                            {list.category.replace(/-/g, " ")}
+                        </span>
+                        {isCreator && (
+                            <button
+                                onClick={togglePublishStatus}
+                                disabled={isPublishing}
+                                className={`px-2.5 py-0.5 rounded font-bold text-[10px] md:text-xs tracking-widest uppercase transition-all border shadow-sm ${list.isPublic ? "bg-white/20 text-white border-white/20" : "bg-[#E85D2A] text-white border-[#E85D2A]"}`}
+                            >
+                                {list.isPublic ? "PUBLIC" : "DRAFT (Publish)"}
+                            </button>
+                        )}
+                    </div>
+
+                    <h1 className="text-2xl md:text-4xl font-black text-white leading-tight mb-1.5 md:mb-3 drop-shadow-lg tracking-tight">{list.title}</h1>
+
+                    {list.description && (
+                        <p className="text-gray-300 text-xs md:text-sm leading-relaxed mb-3 md:mb-5 max-w-2xl drop-shadow-md line-clamp-2">
+                            {list.description}
+                        </p>
+                    )}
+
+                    <div className="flex flex-row items-end md:items-center justify-between w-full">
+                        <Link href={`/creators/${list.creator.id}`} className="flex items-center gap-2.5 md:gap-3 hover:opacity-80 transition-opacity">
+                            <div className="relative shrink-0">
                                 {list.creator.image ? (
-                                    <img src={list.creator.image} alt={list.creator.name} width={40} height={40} className="w-10 h-10 rounded-full object-cover border-2 border-white/20" />
+                                    <img src={list.creator.image} alt={list.creator.name} className="w-8 h-8 md:w-11 md:h-11 rounded-full object-cover border border-white/30 shadow-sm" />
                                 ) : (
-                                    <div className="w-10 h-10 rounded-full bg-gray-600 border-2 border-white/20" />
+                                    <div className="w-8 h-8 md:w-11 md:h-11 rounded-full bg-gray-600 border border-white/30 shadow-sm" />
                                 )}
                                 {list.creator.isVerified && (
-                                    <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full p-0.5 border-2 border-[#0E1116]">
-                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z" /></svg>
+                                    <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full p-0.5 border-2 border-[#111]">
+                                        <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z" /></svg>
                                     </div>
                                 )}
                             </div>
-                            <div>
-                                <p className="text-sm font-bold text-white leading-none mb-1">{list.creator.name}</p>
-                                <div className="flex items-center gap-2 text-xs font-semibold text-gray-300">
-                                    <span className="flex items-center gap-1"><span className="text-white/70">📍</span> {list.stats.places} places</span>
-                                    <span className="flex items-center gap-1"><span className="text-white/70">❤️</span> {list.stats.saves} saves</span>
-                                </div>
+                            <div className="flex flex-col">
+                                <span className="text-xs md:text-sm font-bold text-white shadow-sm leading-tight">{list.creator.name}</span>
+                                <span className="text-[10px] md:text-xs font-semibold text-gray-300 shadow-sm mt-0.5">{list.stats.places} places · {list.stats.saves} saves</span>
                             </div>
                         </Link>
-
-                        {!isCreator && (
-                            <button
-                                onClick={toggleSaveList}
-                                disabled={isSaving}
-                                className={`px-5 py-2.5 rounded-full font-bold text-sm transition-all flex items-center gap-2 ${list.hasSaved
-                                    ? "bg-white/10 text-white border border-white/20"
-                                    : "bg-[#E85D2A] text-white shadow-lg shadow-[#E85D2A]/30"
-                                    }`}
-                            >
-                                {list.hasSaved ? "Saved" : "Save List"}
-                            </button>
-                        )}
                     </div>
                 </div>
             </div>
 
-            {/* List Items Render */}
-            <div className="px-5 pt-8 pb-32">
-                <h2 className="text-lg font-black text-[#0E1116] dark:text-[#e8edf4] mb-5">Places in this list</h2>
+            {/* Desktop Actions Row & List Items Render */}
+            <div className="w-full md:max-w-[900px] mx-auto px-4 pt-4 md:pt-6 pb-32 md:pb-12">
+                <div className="flex justify-between items-center mb-4 md:mb-6">
+                    <h2 className="text-base md:text-lg font-black text-[#0E1116] dark:text-[#e8edf4]">Places in this list</h2>
+
+                    {/* Top Right Buttons Area (Add Places / Save) */}
+                    <div className="flex gap-2 items-center">
+                        {!isCreator && (
+                            <button
+                                onClick={toggleSaveList}
+                                disabled={isSaving}
+                                className={`px-4 py-2 mt-[-6px] rounded-full font-bold text-xs md:text-sm transition-all flex items-center gap-1.5 shadow-sm ${list.hasSaved
+                                    ? "bg-gray-100 dark:bg-white/10 text-[#0E1116] dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:bg-gray-200 cursor-pointer"
+                                    : "bg-[#E85D2A] text-white hover:bg-[#d45222] cursor-pointer"
+                                    }`}
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill={list.hasSaved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.5"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg>
+                                {list.hasSaved ? "Saved" : "Save List"}
+                            </button>
+                        )}
+                        {isCreator && (
+                            <button onClick={openAddSheet} className="hidden md:flex mt-[-6px] bg-[#E85D2A] text-white rounded-full px-5 py-2 font-bold text-sm shadow-sm items-center gap-1.5 hover:bg-[#d45222] transition-colors cursor-pointer">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
+                                Add Places
+                            </button>
+                        )}
+                    </div>
+                </div>
 
                 {list.items.length === 0 ? (
-                    <div className="text-center py-10">
-                        <p className="text-gray-500 dark:text-gray-400">No places added yet.</p>
+                    <div className="text-center py-16 md:py-24 flex flex-col items-center justify-center">
+                        <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center mb-4 text-gray-300 dark:text-gray-600">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" /><circle cx="12" cy="10" r="3" /></svg>
+                        </div>
+                        <h3 className="text-xl font-bold text-[#0E1116] dark:text-[#e8edf4] mb-2">No places added yet</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-sm">Build out your curated list by adding places from your saves.</p>
+
+                        {isCreator && (
+                            <button onClick={openAddSheet} className="bg-[#E85D2A] text-white rounded-full px-6 py-3 font-bold text-sm shadow-md flex items-center gap-2 hover:bg-[#d45222] transition-colors cursor-pointer">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
+                                Add Places
+                            </button>
+                        )}
                     </div>
                 ) : (
-                    <div className="flex flex-col gap-6">
-                        {list.items.map((item, index) => (
+                    <div className="flex flex-col gap-0 border-t border-gray-100 dark:border-white/5 md:border-none">
+                        {list.items.map((item) => (
                             <PlaceRow
                                 key={item.id}
-                                position={index + 1}
                                 item={item}
                                 isCreator={isCreator}
                                 onRemove={() => handleRemovePlace(item.id)}
@@ -318,36 +390,29 @@ export default function ListDetailPage() {
                 )}
             </div>
 
-            {/* Floating Action Button for Creators */}
-            {isCreator && (
-                <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
-                    <button
-                        onClick={togglePublishStatus}
-                        disabled={isPublishing}
-                        className={`shadow-lg px-4 py-2.5 rounded-full font-bold text-sm transition-transform flex items-center gap-2 border ${list.isPublic ? "bg-white text-gray-900 border-gray-200" : "bg-[#161B22] text-white border-white/10"}`}
-                    >
-                        {list.isPublic ? "PUBLIC" : "DRAFT (Publish)"}
-                    </button>
-                    <button onClick={openAddSheet} className="bg-[#E85D2A] text-white rounded-full px-5 py-3 font-bold text-sm shadow-xl shadow-[#E85D2A]/30 flex items-center gap-2 hover:scale-105 transition-transform">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
+            {/* Mobile Sticky Action Button for Creators */}
+            {isCreator && list.items.length > 0 && (
+                <div className="md:hidden fixed bottom-[90px] left-0 right-0 z-30 flex justify-center px-4 pointer-events-none">
+                    <button onClick={openAddSheet} className="pointer-events-auto bg-[#E85D2A] text-white rounded-full px-6 py-3.5 font-bold text-sm shadow-xl shadow-[#E85D2A]/30 flex items-center gap-2 relative">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
                         Add Places
                     </button>
                 </div>
             )}
 
-            {/* Add Places Bottom Sheet */}
+            {/* Add Places Bottom Sheet / Modal */}
             {addSheetOpen && (
-                <div className="fixed inset-0 z-[100] flex justify-end flex-col">
+                <div className="fixed inset-0 z-[100] flex justify-end flex-col md:justify-center md:items-center md:p-4">
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setAddSheetOpen(false)} />
-                    <div className="relative bg-white dark:bg-[#161B22] rounded-t-3xl p-6 w-full max-w-xl mx-auto animate-slide-up pb-safe shadow-2xl h-[80vh] flex flex-col">
-                        <div className="flex items-center justify-between mb-4">
+                    <div className="relative bg-white dark:bg-[#161B22] rounded-t-3xl md:rounded-2xl p-6 w-full max-w-xl md:max-w-[560px] mx-auto animate-slide-up pb-safe md:pb-6 shadow-2xl h-[80vh] md:h-auto md:max-h-[85vh] flex flex-col">
+                        <div className="flex items-center justify-between mb-4 shrink-0">
                             <h2 className="text-2xl font-bold text-[#0E1116] dark:text-[#e8edf4]">Add to List</h2>
                             <button onClick={() => setAddSheetOpen(false)} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-600 dark:text-gray-400">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
                             </button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto hide-scrollbar pb-6 flex flex-col gap-5">
+                        <div className="flex-1 overflow-y-auto scrollbar-none pb-2 flex flex-col gap-5">
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Select a place from your saves</label>
                                 {saves.length === 0 ? (
@@ -355,18 +420,29 @@ export default function ListDetailPage() {
                                 ) : (
                                     <div className="grid grid-cols-2 gap-2">
                                         {saves.map((save: any) => {
-                                            const isAdded = list.items.some(i => i.place.id === save.placeId);
+                                            const isAdded = list.items.some(i => i.place.googlePlaceId === save.placeId || i.place.id === save.placeId);
                                             return (
                                                 <button
                                                     key={save.id}
                                                     disabled={isAdded}
-                                                    onClick={() => setSelectedPlaceId(save.placeId)}
-                                                    className={`p-3 rounded-xl border text-left flex flex-col gap-1 transition-all ${isAdded ? "opacity-50 grayscale bg-gray-50 dark:bg-transparent border-gray-100 dark:border-white/5 cursor-not-allowed" :
-                                                        selectedPlaceId === save.placeId ? "bg-orange-50 dark:bg-orange-500/10 border-orange-200 dark:border-orange-500/30 ring-1 ring-[#E85D2A]" :
+                                                    onClick={() => {
+                                                        setSelectedPlaceIds(prev =>
+                                                            prev.includes(save.placeId)
+                                                                ? prev.filter(p => p !== save.placeId)
+                                                                : [...prev, save.placeId]
+                                                        );
+                                                    }}
+                                                    className={`relative p-3 rounded-xl border text-left flex flex-col gap-1 transition-all ${isAdded ? "opacity-50 grayscale bg-gray-50 dark:bg-transparent border-gray-100 dark:border-white/5 cursor-not-allowed" :
+                                                        selectedPlaceIds.includes(save.placeId) ? "bg-orange-50 dark:bg-orange-500/10 border-orange-200 dark:border-orange-500/30 ring-1 ring-[#E85D2A]" :
                                                             "bg-white dark:bg-[#1C2128] border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20"
                                                         }`}
                                                 >
-                                                    <span className="font-bold text-sm text-[#0E1116] dark:text-[#e8edf4] truncate w-full">{save.name || "Unknown Place"}</span>
+                                                    {selectedPlaceIds.includes(save.placeId) && (
+                                                        <div className="absolute top-2 right-2 text-[#E85D2A] dark:text-[#E85D2A] rounded-full">
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" opacity="0.2" /><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" /></svg>
+                                                        </div>
+                                                    )}
+                                                    <span className={`font-bold text-sm text-[#0E1116] dark:text-[#e8edf4] truncate ${selectedPlaceIds.includes(save.placeId) ? 'pr-6' : 'w-full'}`}>{save.name || "Unknown Place"}</span>
                                                     <span className="text-[10px] text-gray-500 font-medium">
                                                         {isAdded ? "Already in list" : save.intent || "Uncategorized"}
                                                     </span>
@@ -376,26 +452,17 @@ export default function ListDetailPage() {
                                     </div>
                                 )}
                             </div>
+                        </div>
 
-                            {selectedPlaceId && (
-                                <div className="animate-fade-in">
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Add a personal note (Optional)</label>
-                                    <textarea
-                                        placeholder="What's great about this place?"
-                                        value={note}
-                                        onChange={(e) => setNote(e.target.value)}
-                                        className="w-full bg-gray-50 dark:bg-[#0E1116] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-[#0E1116] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E85D2A] resize-none h-24"
-                                    />
-
-                                    <button
-                                        onClick={handleAddPlace}
-                                        disabled={isSubmittingPlace}
-                                        className="w-full bg-[#E85D2A] disabled:opacity-50 text-white font-bold py-3.5 rounded-xl mt-4"
-                                    >
-                                        {isSubmittingPlace ? "Adding..." : "Add to List"}
-                                    </button>
-                                </div>
-                            )}
+                        {/* Sticky Bottom Note/Submit Section */}
+                        <div className="pt-4 mt-2 border-t border-gray-100 dark:border-white/5 shrink-0 bg-white dark:bg-[#161B22]">
+                            <button
+                                onClick={handleAddPlace}
+                                disabled={isSubmittingPlace || selectedPlaceIds.length === 0}
+                                className="w-full bg-[#E85D2A] disabled:opacity-50 disabled:pointer-events-none text-white font-bold py-3.5 rounded-xl transition-all"
+                            >
+                                {isSubmittingPlace ? "Adding..." : (selectedPlaceIds.length > 0 ? `Add ${selectedPlaceIds.length} Place${selectedPlaceIds.length > 1 ? 's' : ''}` : "Add to List")}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -404,71 +471,82 @@ export default function ListDetailPage() {
     );
 }
 
-function PlaceRow({ position, item, isCreator, onRemove }: { position: number, item: any, isCreator: boolean, onRemove: () => void }) {
+function CoverPhoto({ name }: { name: string }) {
+    const url = usePhotoUrl(name);
+    if (!url) return <div className="w-full h-full bg-[#1C2128]" />;
+    return <Image src={url} alt="Cover" fill className="object-cover" unoptimized priority />;
+}
+
+function PlaceRow({ item, isCreator, onRemove }: { item: any, isCreator: boolean, onRemove: () => void }) {
     const photoUrl = usePhotoUrl(item.place.photoUrl);
 
     const priceDots = () => {
         if (!item.place.priceLevel) return null;
         return (
-            <span className="text-gray-400 font-semibold tracking-widest text-xs">
+            <span className="text-gray-400 dark:text-gray-500 font-semibold tracking-widest text-[11px] md:text-xs">
                 {Array.from({ length: item.place.priceLevel }).map(() => "$").join("")}
             </span>
         );
     };
 
     return (
-        <div className="flex flex-col gap-3 group relative">
-            <div className="flex gap-4">
-                {/* Index Column */}
-                <div className="flex flex-col items-center pt-2">
-                    <div className="w-7 h-7 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center font-black text-sm text-[#0E1116] dark:text-gray-300">
-                        {position}
-                    </div>
-                    <div className="w-px h-full bg-gray-100 dark:bg-white/10 mt-2 rounded-full hidden" />
-                </div>
+        <div className="relative group flex items-start gap-3 md:gap-4 py-3.5 md:py-4 border-b border-gray-100 dark:border-white/5 md:hover:bg-gray-50 md:dark:hover:bg-white/[0.02] md:px-4 md:-mx-4 rounded-xl transition-colors cursor-pointer active:bg-gray-50 dark:active:bg-white/5">
 
-                {/* Content Column */}
-                <div className="flex-1 flex gap-4 bg-gray-50 dark:bg-[#161B22] p-3 rounded-2xl border border-gray-100 dark:border-white/5 active:scale-[0.98] transition-all cursor-pointer">
-                    <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-gray-200 dark:bg-[#1C2128] relative shadow-sm">
-                        {photoUrl ? (
-                            <Image src={photoUrl} alt={item.place.name} fill className="object-cover" unoptimized />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
-                        )}
+            {/* Thumbnail */}
+            <div className="w-[80px] h-[80px] md:w-[100px] md:h-[100px] rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-[#1C2128] relative shadow-sm border border-black/5 dark:border-white/5 block">
+                {photoUrl ? (
+                    <Image src={photoUrl} alt={item.place.name} fill className="object-cover" unoptimized />
+                ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 dark:text-gray-600 bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-800 dark:to-gray-900">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
                     </div>
-
-                    <div className="flex flex-col justify-center flex-1 min-w-0 pr-1">
-                        <h3 className="font-bold text-[#0E1116] dark:text-[#e8edf4] text-[15px] truncate pr-6">{item.place.name}</h3>
-                        <p className="text-[13px] text-gray-500 dark:text-gray-400 truncate mt-0.5">{item.place.address}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                            {item.place.rating && (
-                                <span className="flex items-center gap-1 text-[11px] font-bold text-[#0E1116] dark:text-[#e8edf4] bg-white dark:bg-[#0E1116] px-1.5 py-0.5 rounded shadow-sm border border-gray-100 dark:border-white/5">
-                                    <span className="text-yellow-400">★</span> {item.place.rating.toFixed(1)}
-                                </span>
-                            )}
-                            {priceDots() && <span className="bg-white dark:bg-[#0E1116] px-1.5 py-0.5 rounded shadow-sm border border-gray-100 dark:border-white/5">{priceDots()}</span>}
-                        </div>
-                    </div>
-                </div>
+                )}
             </div>
 
-            {/* Note Ribbon */}
-            {item.note && (
-                <div className="ml-11 bg-blue-50/50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 p-3 rounded-xl rounded-tl-sm relative">
-                    <div className="absolute -top-1.5 left-4 w-3 h-3 bg-blue-50/50 dark:bg-blue-500/10 border-l border-t border-blue-100 dark:border-blue-500/20 rotate-45" />
-                    <p className="text-[13px] text-blue-900 dark:text-blue-100 font-medium leading-relaxed italic relative z-10">"{item.note}"</p>
-                </div>
-            )}
+            {/* Content Mid */}
+            <div className="flex-1 min-w-0 pt-0.5 md:pt-1 pl-1">
+                <h3 className="font-bold text-[#0E1116] dark:text-[#e8edf4] text-[15px] md:text-lg leading-tight truncate pr-6 md:pr-8">{item.place.name}</h3>
 
-            {/* Creator Delete Block */}
-            {isCreator && (
-                <button
-                    onClick={(e) => { e.stopPropagation(); onRemove(); }}
-                    className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-white dark:bg-[#1C2128] rounded-full border border-gray-200 dark:border-white/10 text-red-500 hover:scale-110 transition-transform shadow-sm"
-                >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-                </button>
-            )}
+                {/* Note: In a real app the intent might be fetched, here using address as fallback placeholder */}
+                <p className="text-[11px] md:text-xs text-gray-500 dark:text-gray-400 font-medium mt-1 truncate max-w-[90%]">
+                    {item.place.address}
+                </p>
+
+                <div className="flex items-center gap-1.5 md:gap-2 mt-2 font-medium">
+                    {item.place.rating ? (
+                        <span className="text-[11px] md:text-[13px] text-[#0E1116] dark:text-gray-300 flex items-center gap-0.5 md:gap-1">
+                            <span className="text-yellow-400 text-[10px] md:text-[11px] pb-[-1px]">★</span> {item.place.rating.toFixed(1)}
+                        </span>
+                    ) : null}
+
+                    {item.place.rating && priceDots() && <span className="text-gray-300 dark:text-gray-700 text-[10px]">•</span>}
+                    {priceDots()}
+                </div>
+
+                {/* Personal Note (Optional) */}
+                {item.note && (
+                    <div className="mt-2 text-[12px] md:text-[13px] text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-white/5 py-2 px-3 rounded-md italic border-l-2 border-gray-300 dark:border-gray-600 leading-snug">
+                        "{item.note}"
+                    </div>
+                )}
+            </div>
+
+            {/* Actions */}
+            <div className="shrink-0 flex items-start h-full pt-1 md:pr-1">
+                {isCreator ? (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                        className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 rounded-full md:hover:bg-red-50 md:dark:hover:bg-red-500/10 transition-colors"
+                        title="Remove place"
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
+                    </button>
+                ) : (
+                    <button className="w-8 h-8 flex items-center justify-center text-gray-400 cursor-pointer hover:text-[#0E1116] dark:hover:text-white transition-colors" title="Options">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></svg>
+                    </button>
+                )}
+            </div>
         </div>
     );
 }
