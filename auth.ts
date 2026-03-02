@@ -1,24 +1,93 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   adapter: PrismaAdapter(prisma),
+  session: { strategy: "jwt" },
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       checks: [],
     }),
+    Credentials({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const email = credentials?.email;
+        const password = credentials?.password;
+
+        if (typeof email !== "string" || typeof password !== "string") {
+          return null;
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            image: true,
+            hashedPassword: true,
+            role: true,
+          },
+        });
+
+        if (!user) {
+          throw new Error("No account found with this email");
+        }
+
+        if (!user.hashedPassword) {
+          throw new Error("Please sign in with Google");
+        }
+
+        const isValid = await bcrypt.compare(password, user.hashedPassword);
+        if (!isValid) {
+          throw new Error("Invalid password");
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+          role: user.role,
+        };
+      },
+    }),
   ],
   pages: {
     signIn: "/profile",
   },
   callbacks: {
-    session({ session, user }) {
-      session.user.id = user.id;
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id as string;
+        token.role = (user as { role?: string }).role ?? "user";
+      }
+
+      // Fallback: if token has id but no role (e.g. old session before this change)
+      if (token.id && !token.role) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true },
+        });
+        token.role = dbUser?.role ?? "user";
+      }
+
+      return token;
+    },
+    session({ session, token }) {
+      session.user.id = token.id as string;
+      session.user.role = token.role as string;
       return session;
     },
   },
