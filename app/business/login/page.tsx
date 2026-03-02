@@ -101,7 +101,7 @@ export default function BusinessLoginPage() {
 
         <p className="text-center text-sm text-gray-500 mt-6">
           Don&apos;t have an account?{" "}
-          <Link href="/for-business" className="text-[#E85D2A] hover:underline">
+          <Link href="/business/register" className="text-[#E85D2A] hover:underline">
             Register
           </Link>
         </p>

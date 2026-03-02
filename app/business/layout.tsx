@@ -168,10 +168,10 @@ export default function BusinessLayout({
   const pathname = usePathname();
   const router = useRouter();
 
-  const isLoginPage = pathname === "/business/login";
+  const isPublicPage = pathname === "/business/login" || pathname === "/business/register";
 
-  // Login page: render without auth guard or top nav
-  if (isLoginPage) {
+  // Public pages: render without auth guard or top nav
+  if (isPublicPage) {
     return <>{children}</>;
   }
 
