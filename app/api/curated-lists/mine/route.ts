@@ -34,7 +34,7 @@ export async function GET() {
         },
     });
 
-    const formattedLists = lists.map((list: any) => ({
+    const formattedLists = lists.map((list) => ({
         id: list.id,
         title: list.title,
         description: list.description,

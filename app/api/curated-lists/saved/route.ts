@@ -44,7 +44,7 @@ export async function GET() {
         },
     });
 
-    const formattedLists = savedLists.map(({ list }: any) => ({
+    const formattedLists = savedLists.map(({ list }) => ({
         id: list.id,
         title: list.title,
         category: list.category,

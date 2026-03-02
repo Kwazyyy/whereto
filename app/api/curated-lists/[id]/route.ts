@@ -60,7 +60,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             places: list._count.items,
             saves: list._count.saves,
         },
-        items: list.items.map((i: any) => ({
+        items: list.items.map((i) => ({
             id: i.id,
             note: i.note,
             position: i.position,
@@ -112,7 +112,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         }
     }
 
-    const dataToUpdate: any = {};
+    const dataToUpdate: Record<string, unknown> = {};
     if (title !== undefined) dataToUpdate.title = title;
     if (description !== undefined) dataToUpdate.description = description;
     if (category !== undefined) dataToUpdate.category = category;

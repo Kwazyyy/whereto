@@ -24,9 +24,9 @@ export async function POST(
             },
         });
         return NextResponse.json({ success: true, save: listSave }, { status: 201 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         // Unique constraint violation
-        if (error.code === "P2002") {
+        if ((error as { code?: string }).code === "P2002") {
             return NextResponse.json({ error: "Already saved" }, { status: 409 });
         }
         return NextResponse.json({ error: "Failed to save list" }, { status: 500 });
@@ -57,8 +57,8 @@ export async function DELETE(
             },
         });
         return NextResponse.json({ success: true });
-    } catch (error: any) {
-        if (error.code === "P2025") {
+    } catch (error: unknown) {
+        if ((error as { code?: string }).code === "P2025") {
             return NextResponse.json({ error: "Not found or already unsaved" }, { status: 404 });
         }
         return NextResponse.json({ error: "Failed to unsave list" }, { status: 500 });

@@ -60,11 +60,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         };
 
         return NextResponse.json({ item: fullItem }, { status: 201 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("ADD ITEM ERROR:", error);
-        if (error.code === "P2002") {
+        const err = error as { code?: string; message?: string };
+        if (err.code === "P2002") {
             return NextResponse.json({ error: "Place is already in this list" }, { status: 409 });
         }
-        return NextResponse.json({ error: `Failed to add item: ${error?.message || "Unknown error"}` }, { status: 500 });
+        return NextResponse.json({ error: `Failed to add item: ${err?.message || "Unknown error"}` }, { status: 500 });
     }
 }

@@ -53,7 +53,7 @@ export default function ListDetailPage() {
     const [isSaving, setIsSaving] = useState(false);
 
     // Creator State
-    const [saves, setSaves] = useState<any[]>([]);
+    const [saves, setSaves] = useState<Array<{ id: string; placeId: string; name?: string; intent?: string }>>([]);
     const [addSheetOpen, setAddSheetOpen] = useState(false);
     const [selectedPlaceIds, setSelectedPlaceIds] = useState<string[]>([]);
     const [isSubmittingPlace, setIsSubmittingPlace] = useState(false);
@@ -142,7 +142,7 @@ export default function ListDetailPage() {
         if (selectedPlaceIds.length === 0) return;
         setIsSubmittingPlace(true);
         let addedCount = 0;
-        let newItems: any[] = [];
+        const newItems: ListDetail["items"] = [];
         try {
             for (const placeId of selectedPlaceIds) {
                 const res = await fetch(`/api/curated-lists/${id}/items`, {
@@ -419,7 +419,7 @@ export default function ListDetailPage() {
                                     <p className="text-sm text-gray-400 bg-gray-50 dark:bg-white/5 p-4 rounded-xl">You have no saved places yet.</p>
                                 ) : (
                                     <div className="grid grid-cols-2 gap-2">
-                                        {saves.map((save: any) => {
+                                        {saves.map((save) => {
                                             const isAdded = list.items.some(i => i.place.googlePlaceId === save.placeId || i.place.id === save.placeId);
                                             return (
                                                 <button
@@ -477,7 +477,7 @@ function CoverPhoto({ name }: { name: string }) {
     return <Image src={url} alt="Cover" fill className="object-cover" unoptimized priority />;
 }
 
-function PlaceRow({ item, isCreator, onRemove }: { item: any, isCreator: boolean, onRemove: () => void }) {
+function PlaceRow({ item, isCreator, onRemove }: { item: ListDetail["items"][0], isCreator: boolean, onRemove: () => void }) {
     const photoUrl = usePhotoUrl(item.place.photoUrl);
 
     const priceDots = () => {
@@ -526,7 +526,7 @@ function PlaceRow({ item, isCreator, onRemove }: { item: any, isCreator: boolean
                 {/* Personal Note (Optional) */}
                 {item.note && (
                     <div className="mt-2 text-[12px] md:text-[13px] text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-white/5 py-2 px-3 rounded-md italic border-l-2 border-gray-300 dark:border-gray-600 leading-snug">
-                        "{item.note}"
+                        &quot;{item.note}&quot;
                     </div>
                 )}
             </div>

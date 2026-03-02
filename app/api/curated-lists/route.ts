@@ -52,17 +52,14 @@ export async function GET(req: NextRequest) {
     const category = searchParams.get("category");
     const sort = searchParams.get("sort") || "recent";
 
-    const where: any = {
+    const where = {
         isPublic: true,
+        ...(category && category !== "All" ? { category } : {})
     };
 
-    if (category && category !== "All") {
-        where.category = category;
-    }
-
-    const orderBy: any = sort === "popular"
-        ? { saves: { _count: "desc" } }
-        : { createdAt: "desc" };
+    const orderBy = sort === "popular"
+        ? { saves: { _count: "desc" as const } }
+        : { createdAt: "desc" as const };
 
     const lists = await prisma.curatedList.findMany({
         where,
@@ -97,7 +94,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Map to a cleaner format
-    const formattedLists = lists.map((list: any) => ({
+    const formattedLists = lists.map((list) => ({
         id: list.id,
         title: list.title,
         category: list.category,
