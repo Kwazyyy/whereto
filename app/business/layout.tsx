@@ -23,6 +23,7 @@ function TopNav() {
 
   const navLinks = [
     { href: "/business/dashboard", label: "Dashboard" },
+    { href: "/business/pricing", label: "Pricing" },
     { href: "/business/settings", label: "Settings" },
   ];
 
