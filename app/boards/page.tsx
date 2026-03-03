@@ -39,7 +39,23 @@ interface CuratedListSummary {
   heroImage: string | null;
 }
 
-const CATEGORIES = ["All", "Date Night", "Study Spots", "Budget Eats", "Hidden Gems", "Brunch", "Patios", "Coffee", "Late Night", "Groups"];
+const CATEGORIES = [
+  { label: "All", value: "All" },
+  { label: "Date Night", value: "date_night" },
+  { label: "Study Spots", value: "study_spots" },
+  { label: "Budget Eats", value: "budget_eats" },
+  { label: "Hidden Gems", value: "hidden_gems" },
+  { label: "Brunch", value: "brunch" },
+  { label: "Patios", value: "patios" },
+  { label: "Coffee", value: "coffee" },
+  { label: "Late Night", value: "late_night" },
+  { label: "Groups", value: "groups" },
+];
+
+function formatCategory(cat: string | null): string {
+  if (!cat) return "";
+  return cat.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 function ChevronLeftIcon({ size = 24 }: { size?: number }) {
   return (
@@ -87,6 +103,58 @@ function BoardCard({ intent, label, items }: { intent: string; label: string; it
             <h3 className="font-bold text-lg text-white capitalize drop-shadow-md">{label}</h3>
             <p className="text-sm text-gray-200 drop-shadow-md">{items.length} place{items.length !== 1 ? "s" : ""}</p>
           </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function FeaturedListCard({ list }: { list: CuratedListSummary }) {
+  const photoUrl = usePhotoUrl(list.heroImage);
+
+  return (
+    <Link href={`/boards/list/${list.id}`} className="block group">
+      <div className="h-[220px] rounded-xl overflow-hidden relative bg-gray-100 dark:bg-[#1C2128] shadow-sm border border-white/5">
+        {photoUrl ? (
+          <Image
+            src={photoUrl}
+            alt={list.title}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            unoptimized
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1e] to-[#2a1711]" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+        {list.category && (
+          <div className="absolute top-3 left-3 bg-[#E85D2A]/80 backdrop-blur-sm rounded-full px-2 py-0.5 text-xs font-medium text-white">
+            {formatCategory(list.category)}
+          </div>
+        )}
+        <button
+          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors"
+          onClick={(e) => e.preventDefault()}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg>
+        </button>
+        <div className="absolute bottom-3 left-3 right-3">
+          <h3 className="text-white font-semibold text-lg mb-2 leading-tight line-clamp-2 drop-shadow-md">
+            {list.title}
+          </h3>
+          <div className="flex items-center gap-1.5 mb-1.5">
+            {list.creator.image ? (
+              <img src={list.creator.image} alt="Avatar" className="w-4 h-4 rounded-full shrink-0 object-cover" />
+            ) : (
+              <div className="w-4 h-4 rounded-full bg-gray-600 shrink-0" />
+            )}
+            <span className="text-[10px] font-semibold text-gray-200 truncate">
+              {list.creator.name} {list.creator.isVerified && "\u2713"}
+            </span>
+          </div>
+          <span className="text-[10px] font-medium text-gray-400">
+            {list.stats.places} place{list.stats.places !== 1 ? "s" : ""}
+          </span>
         </div>
       </div>
     </Link>
@@ -267,62 +335,34 @@ export default function BoardsPage() {
         <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-4 mb-2 -mx-5 px-5">
           {CATEGORIES.map((cat) => (
             <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${selectedCategory === cat
+              key={cat.value}
+              onClick={() => setSelectedCategory(cat.value)}
+              className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${selectedCategory === cat.value
                 ? "bg-[#0E1116] dark:bg-white text-white dark:text-[#0E1116]"
                 : "bg-gray-100 dark:bg-[#161B22] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10"
                 }`}
             >
-              {cat}
+              {cat.label}
             </button>
           ))}
         </div>
 
         {featuredLists.length === 0 ? (
           <div className="text-center py-12 px-6 bg-gray-50 dark:bg-[#161B22] rounded-3xl border border-gray-100 dark:border-white/5 mt-2">
-            <p className="text-gray-500 dark:text-gray-400 font-medium leading-relaxed">Lists from Toronto&apos;s best food creators are on the way! Check back soon. 📋</p>
+            <p className="text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
+              No lists in this category yet. Be the first to create one!
+            </p>
+            <Link
+              href="/profile"
+              className="inline-block mt-4 bg-[#E85D2A] text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-[#d45222] transition-colors"
+            >
+              Create List
+            </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
             {featuredLists.map((list) => (
-              <Link key={list.id} href={`/boards/list/${list.id}`} className="block group">
-                <div className="aspect-[4/5] rounded-2xl overflow-hidden relative bg-gray-100 dark:bg-[#1C2128] shadow-sm border border-gray-100 dark:border-white/5">
-                  {list.heroImage && (
-                    <Image
-                      src={list.heroImage}
-                      alt={list.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      unoptimized
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-                  <div className="absolute top-2 left-2 bg-black/40 backdrop-blur-md rounded-full px-2 py-0.5 text-[9px] font-bold text-white uppercase tracking-wider">
-                    {list.category.replace("-", " ")}
-                  </div>
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <h3 className="text-white font-bold text-sm mb-2 leading-tight line-clamp-2 drop-shadow-md">
-                      {list.title}
-                    </h3>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                        {list.creator.image ? (
-                          <Image src={list.creator.image} alt="Avatar" width={16} height={16} className="rounded-full shrink-0 object-cover" />
-                        ) : (
-                          <div className="w-4 h-4 rounded-full bg-gray-600 shrink-0" />
-                        )}
-                        <span className="text-[10px] font-semibold text-gray-200 truncate pr-1">
-                          {list.creator.name.split(" ")[0]} {list.creator.isVerified && '✓'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-white shrink-0 bg-black/20 px-1.5 py-0.5 rounded-md backdrop-blur-sm">
-                        <span className="flex items-center gap-0.5">❤️ {list.stats.saves}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Link>
+              <FeaturedListCard key={list.id} list={list} />
             ))}
           </div>
         )}

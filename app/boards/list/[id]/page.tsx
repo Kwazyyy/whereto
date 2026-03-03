@@ -12,7 +12,8 @@ type ListDetail = {
     id: string;
     title: string;
     description: string | null;
-    category: string;
+    category: string | null;
+    status: string;
     isPublic: boolean;
     createdAt: string;
     creator: {
@@ -43,6 +44,18 @@ type ListDetail = {
     heroImage: string | null;
 };
 
+const PUBLISH_CATEGORIES = [
+    { value: "date_night", label: "Date Night" },
+    { value: "study_spots", label: "Study Spots" },
+    { value: "budget_eats", label: "Budget Eats" },
+    { value: "hidden_gems", label: "Hidden Gems" },
+    { value: "brunch", label: "Brunch" },
+    { value: "patios", label: "Patios" },
+    { value: "coffee", label: "Coffee" },
+    { value: "late_night", label: "Late Night" },
+    { value: "groups", label: "Groups" },
+];
+
 export default function ListDetailPage() {
     const { id } = useParams() as { id: string };
     const router = useRouter();
@@ -58,6 +71,11 @@ export default function ListDetailPage() {
     const [selectedPlaceIds, setSelectedPlaceIds] = useState<string[]>([]);
     const [isSubmittingPlace, setIsSubmittingPlace] = useState(false);
     const [isPublishing, setIsPublishing] = useState(false);
+    const [publishModalOpen, setPublishModalOpen] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState("");
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const { showToast } = useToast();
 
     useEffect(() => {
@@ -198,29 +216,77 @@ export default function ListDetailPage() {
         }
     };
 
-    const togglePublishStatus = async () => {
-        if (!list) return;
-        if (!list.isPublic && list.items.length < 3) {
-            showToast("Your list needs at least 3 places to be published.");
-            return;
-        }
-
+    const handlePublish = async () => {
+        if (!list || !selectedCategory) return;
         setIsPublishing(true);
         try {
-            const res = await fetch(`/api/curated-lists/${id}`, {
+            const res = await fetch(`/api/curated-lists/${id}/publish`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ isPublic: !list.isPublic })
+                body: JSON.stringify({ category: selectedCategory }),
             });
             if (res.ok) {
-                setList(prev => prev ? { ...prev, isPublic: !prev.isPublic } : null);
+                setList(prev => prev ? { ...prev, status: "published", isPublic: true, category: selectedCategory } : null);
+                setPublishModalOpen(false);
+                setSelectedCategory("");
+                showToast("Your list is now live!");
             } else {
-                showToast("Failed to toggle status");
+                try {
+                    const data = await res.json();
+                    showToast(data.error || "Failed to publish");
+                } catch {
+                    showToast(`Failed to publish (${res.status})`);
+                }
             }
-        } catch (e) {
+        } catch {
             showToast("Network error");
         } finally {
             setIsPublishing(false);
+        }
+    };
+
+    const handleUnpublish = async () => {
+        if (!list) return;
+        setIsPublishing(true);
+        setMenuOpen(false);
+        try {
+            const res = await fetch(`/api/curated-lists/${id}/unpublish`, {
+                method: "PATCH",
+            });
+            if (res.ok) {
+                setList(prev => prev ? { ...prev, status: "draft", isPublic: false } : null);
+                showToast("List unpublished");
+            } else {
+                showToast("Failed to unpublish");
+            }
+        } catch {
+            showToast("Network error");
+        } finally {
+            setIsPublishing(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!list) return;
+        setIsDeleting(true);
+        try {
+            const res = await fetch(`/api/curated-lists/${id}`, { method: "DELETE" });
+            if (res.ok) {
+                showToast("List deleted");
+                router.push("/boards");
+            } else {
+                try {
+                    const data = await res.json();
+                    showToast(data.error || "Failed to delete list");
+                } catch {
+                    showToast(`Failed to delete list (${res.status})`);
+                }
+            }
+        } catch {
+            showToast("Network error");
+        } finally {
+            setIsDeleting(false);
+            setDeleteModalOpen(false);
         }
     };
 
@@ -260,6 +326,39 @@ export default function ListDetailPage() {
                     <button className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white border border-white/10 hover:bg-black/60 transition-colors">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.59 13.51 6.83 3.98" /><path d="m15.41 6.51-6.82 3.98" /></svg>
                     </button>
+                    {isCreator && (
+                        <div className="relative">
+                            <button
+                                onClick={() => setMenuOpen(!menuOpen)}
+                                className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white border border-white/10 hover:bg-black/60 transition-colors"
+                            >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="12" cy="19" r="2" /></svg>
+                            </button>
+                            {menuOpen && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                                    <div className="absolute right-0 top-12 bg-[#161B22] rounded-xl shadow-xl border border-white/10 py-1 min-w-[160px] z-50">
+                                        {list.status === "published" && (
+                                            <button
+                                                onClick={handleUnpublish}
+                                                disabled={isPublishing}
+                                                className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/5 transition-colors"
+                                            >
+                                                Unpublish
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => { setMenuOpen(false); setDeleteModalOpen(true); }}
+                                            className="w-full px-4 py-2.5 text-left text-sm text-red-500 hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                                        >
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
+                                            Delete List
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -286,18 +385,35 @@ export default function ListDetailPage() {
 
                 {/* Header Content Container */}
                 <div className="absolute inset-0 pt-20 px-4 md:px-8 pb-4 flex flex-col justify-end z-10 w-full md:max-w-[900px] mx-auto">
-                    <div className="flex items-center gap-2 mb-1.5 md:mb-3">
-                        <span className="inline-block px-2.5 py-0.5 bg-white/20 backdrop-blur-md border border-white/30 rounded font-bold text-[10px] md:text-xs text-white uppercase tracking-widest shadow-sm">
-                            {list.category.replace(/-/g, " ")}
-                        </span>
-                        {isCreator && (
+                    <div className="flex items-center gap-2 mb-1.5 md:mb-3 flex-wrap">
+                        {list.category && (
+                            <span className="inline-block px-2.5 py-0.5 bg-white/20 backdrop-blur-md border border-white/30 rounded font-bold text-[10px] md:text-xs text-white uppercase tracking-widest shadow-sm">
+                                {list.category.replace(/[-_]/g, " ")}
+                            </span>
+                        )}
+                        {isCreator && list.status !== "published" && (
+                            <span className="px-2.5 py-0.5 rounded font-bold text-[10px] md:text-xs tracking-widest uppercase bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 shadow-sm">
+                                DRAFT
+                            </span>
+                        )}
+                        {isCreator && list.status !== "published" && (
                             <button
-                                onClick={togglePublishStatus}
-                                disabled={isPublishing}
-                                className={`px-2.5 py-0.5 rounded font-bold text-[10px] md:text-xs tracking-widest uppercase transition-all border shadow-sm ${list.isPublic ? "bg-white/20 text-white border-white/20" : "bg-[#E85D2A] text-white border-[#E85D2A]"}`}
+                                onClick={() => setPublishModalOpen(true)}
+                                disabled={list.items.length < 3 || isPublishing}
+                                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all shadow-sm ${
+                                    list.items.length < 3
+                                        ? "bg-white/10 text-gray-500 cursor-not-allowed"
+                                        : "bg-[#E85D2A] text-white hover:bg-[#d4522a]"
+                                }`}
+                                title={list.items.length < 3 ? "Add at least 3 places to publish" : undefined}
                             >
-                                {list.isPublic ? "PUBLIC" : "DRAFT (Publish)"}
+                                Publish List
                             </button>
+                        )}
+                        {isCreator && list.status === "published" && (
+                            <span className="px-2.5 py-0.5 rounded font-bold text-[10px] md:text-xs tracking-widest uppercase bg-green-500/20 text-green-300 border border-green-500/30 shadow-sm">
+                                PUBLISHED
+                            </span>
                         )}
                     </div>
 
@@ -397,6 +513,76 @@ export default function ListDetailPage() {
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
                         Add Places
                     </button>
+                </div>
+            )}
+
+            {/* Publish Modal */}
+            {publishModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setPublishModalOpen(false); setSelectedCategory(""); }} />
+                    <div className="relative bg-white dark:bg-[#161B22] rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                        <h2 className="text-lg font-semibold text-[#0E1116] dark:text-white">Publish Your List</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Choose a category so people can discover your list</p>
+
+                        <div className="grid grid-cols-3 gap-2 mt-4">
+                            {PUBLISH_CATEGORIES.map((cat) => (
+                                <button
+                                    key={cat.value}
+                                    onClick={() => setSelectedCategory(cat.value)}
+                                    className={`px-3 py-2 rounded-lg text-sm text-center cursor-pointer border transition-all ${
+                                        selectedCategory === cat.value
+                                            ? "bg-[#E85D2A]/10 border-[#E85D2A] text-[#E85D2A]"
+                                            : "bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-white/20"
+                                    }`}
+                                >
+                                    {cat.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button
+                            onClick={handlePublish}
+                            disabled={!selectedCategory || isPublishing}
+                            className="w-full mt-4 bg-[#E85D2A] text-white py-2.5 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        >
+                            {isPublishing ? "Publishing..." : "Publish"}
+                        </button>
+
+                        <button
+                            onClick={() => { setPublishModalOpen(false); setSelectedCategory(""); }}
+                            className="w-full mt-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors py-1"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deleteModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDeleteModalOpen(false)} />
+                    <div className="relative bg-[#161B22] rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-white/10">
+                        <h2 className="text-lg font-semibold text-white">Delete this list?</h2>
+                        <p className="text-gray-400 text-sm mt-2">
+                            This will permanently delete &ldquo;{list.title}&rdquo; and remove all its places. This can&apos;t be undone.
+                        </p>
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                onClick={() => setDeleteModalOpen(false)}
+                                className="flex-1 bg-white/5 text-gray-300 px-5 py-2.5 rounded-lg hover:bg-white/10 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                disabled={isDeleting}
+                                className="flex-1 bg-red-600 text-white px-5 py-2.5 rounded-lg hover:bg-red-700 font-medium transition-colors disabled:opacity-50"
+                            >
+                                {isDeleting ? "Deleting..." : "Delete"}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 

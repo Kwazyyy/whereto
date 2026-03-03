@@ -49,6 +49,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         title: list.title,
         description: list.description,
         category: list.category,
+        status: list.isPublic ? "published" : (list.status || "draft"),
         isPublic: list.isPublic,
         createdAt: list.createdAt.toISOString(),
         creator: {
@@ -128,29 +129,32 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 // DELETE /api/curated-lists/[id]
 // Delete the list entirely (Creator only)
-export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-    const session = await auth();
-    if (!session?.user?.id) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    try {
+        const { id } = await params;
+        const session = await auth();
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const list = await prisma.curatedList.findUnique({
+            where: { id },
+            select: { creatorId: true },
+        });
+
+        if (!list || list.creatorId !== session.user.id) {
+            return NextResponse.json({ error: "List not found" }, { status: 404 });
+        }
+
+        // Delete items and saves first, then the list itself
+        await prisma.curatedListItem.deleteMany({ where: { listId: id } });
+        await prisma.curatedListSave.deleteMany({ where: { listId: id } });
+        await prisma.curatedList.delete({ where: { id } });
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error("Delete list error:", error);
+        const message = error instanceof Error ? error.message : "Failed to delete list";
+        return NextResponse.json({ error: message }, { status: 500 });
     }
-
-    const list = await prisma.curatedList.findUnique({
-        where: { id },
-        select: { creatorId: true },
-    });
-
-    if (!list) {
-        return NextResponse.json({ error: "List not found" }, { status: 404 });
-    }
-
-    if (list.creatorId !== session.user.id) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    await prisma.curatedList.delete({
-        where: { id },
-    });
-
-    return NextResponse.json({ success: true });
 }

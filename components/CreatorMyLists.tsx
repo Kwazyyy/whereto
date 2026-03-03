@@ -23,6 +23,8 @@ export function CreatorMyLists() {
     const [lists, setLists] = useState<ListSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [createSheetOpen, setCreateSheetOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<ListSummary | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const { showToast } = useToast();
 
     const [newTitle, setNewTitle] = useState("");
@@ -78,6 +80,30 @@ export function CreatorMyLists() {
         }
     };
 
+    const handleDelete = async () => {
+        if (!deleteTarget) return;
+        setIsDeleting(true);
+        try {
+            const res = await fetch(`/api/curated-lists/${deleteTarget.id}`, { method: "DELETE" });
+            if (res.ok) {
+                setLists(prev => prev.filter(l => l.id !== deleteTarget.id));
+                showToast("List deleted");
+            } else {
+                try {
+                    const data = await res.json();
+                    showToast(data.error || "Failed to delete list");
+                } catch {
+                    showToast(`Failed to delete list (${res.status})`);
+                }
+            }
+        } catch {
+            showToast("Network error");
+        } finally {
+            setIsDeleting(false);
+            setDeleteTarget(null);
+        }
+    };
+
     if (loading) return null; // or a tiny spinner
 
     return (
@@ -99,8 +125,8 @@ export function CreatorMyLists() {
             ) : (
                 <div className="flex flex-col gap-3">
                     {lists.map((list) => (
-                        <Link key={list.id} href={`/boards/list/${list.id}`}>
-                            <div className="flex bg-gray-50 dark:bg-[#161B22] border border-gray-100 dark:border-white/5 rounded-2xl p-3 items-center gap-4 hover:bg-gray-100 dark:hover:bg-[#1C2128] transition-colors cursor-pointer group">
+                        <div key={list.id} className="flex bg-gray-50 dark:bg-[#161B22] border border-gray-100 dark:border-white/5 rounded-2xl p-3 items-center gap-4 hover:bg-gray-100 dark:hover:bg-[#1C2128] transition-colors cursor-pointer group">
+                            <Link href={`/boards/list/${list.id}`} className="flex items-center gap-4 flex-1 min-w-0">
                                 <div className="w-16 h-16 rounded-xl bg-gray-200 dark:bg-[#0E1116] shrink-0 relative overflow-hidden">
                                     {list.heroImage ? (
                                         <Image src={list.heroImage} alt={list.title} fill className="object-cover" unoptimized />
@@ -119,17 +145,49 @@ export function CreatorMyLists() {
                                         <span className="text-[11px] text-gray-500 font-medium">{list.stats.places} places</span>
                                     </div>
                                 </div>
-                                <div className="text-gray-400 group-hover:text-[#E85D2A] transition-colors pr-2">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg>
-                                </div>
-                            </div>
-                        </Link>
+                            </Link>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setDeleteTarget(list); }}
+                                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors shrink-0"
+                                title="Delete list"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
+                            </button>
+                        </div>
                     ))}
 
                     <button onClick={() => setCreateSheetOpen(true)} className="flex border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl p-4 items-center justify-center gap-2 hover:bg-gray-50 dark:hover:bg-[#1C2128] transition-colors cursor-pointer text-gray-500 font-bold mt-2 h-[88px]">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
                         New List
                     </button>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deleteTarget && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDeleteTarget(null)} />
+                    <div className="relative bg-[#161B22] rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-white/10">
+                        <h2 className="text-lg font-semibold text-white">Delete this list?</h2>
+                        <p className="text-gray-400 text-sm mt-2">
+                            This will permanently delete &ldquo;{deleteTarget.title}&rdquo; and remove all its places. This can&apos;t be undone.
+                        </p>
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                onClick={() => setDeleteTarget(null)}
+                                className="flex-1 bg-white/5 text-gray-300 px-5 py-2.5 rounded-lg hover:bg-white/10 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                disabled={isDeleting}
+                                className="flex-1 bg-red-600 text-white px-5 py-2.5 rounded-lg hover:bg-red-700 font-medium transition-colors disabled:opacity-50"
+                            >
+                                {isDeleting ? "Deleting..." : "Delete"}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 

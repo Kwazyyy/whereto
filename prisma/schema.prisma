@@ -206,7 +206,9 @@ model CuratedList {
   creatorId   String
   title       String
   description String?
-  category    String
+  category    String?
+  status      String            @default("draft")
+  publishedAt DateTime?
   isPublic    Boolean           @default(false)
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
