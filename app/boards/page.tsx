@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { SavedPlace } from "@/lib/saved-places";
 import { usePhotoUrl } from "@/lib/use-photo-url";
+import { useToast } from "@/components/Toast";
 
 const INTENT_LABELS: Record<string, string> = {
   study: "Study / Work",
@@ -109,7 +110,7 @@ function BoardCard({ intent, label, items }: { intent: string; label: string; it
   );
 }
 
-function FeaturedListCard({ list }: { list: CuratedListSummary }) {
+function FeaturedListCard({ list, isSaved, onToggleSave }: { list: CuratedListSummary; isSaved: boolean; onToggleSave: (id: string) => void }) {
   const photoUrl = usePhotoUrl(list.heroImage);
 
   return (
@@ -133,10 +134,57 @@ function FeaturedListCard({ list }: { list: CuratedListSummary }) {
           </div>
         )}
         <button
-          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors"
-          onClick={(e) => e.preventDefault()}
+          className={`absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-colors ${isSaved ? "text-[#E85D2A]" : "text-white"}`}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleSave(list.id); }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill={isSaved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg>
+        </button>
+        <div className="absolute bottom-3 left-3 right-3">
+          <h3 className="text-white font-semibold text-lg mb-2 leading-tight line-clamp-2 drop-shadow-md">
+            {list.title}
+          </h3>
+          <div className="flex items-center gap-1.5 mb-1.5">
+            {list.creator.image ? (
+              <img src={list.creator.image} alt="Avatar" className="w-4 h-4 rounded-full shrink-0 object-cover" />
+            ) : (
+              <div className="w-4 h-4 rounded-full bg-gray-600 shrink-0" />
+            )}
+            <span className="text-[10px] font-semibold text-gray-200 truncate">
+              {list.creator.name} {list.creator.isVerified && "\u2713"}
+            </span>
+          </div>
+          <span className="text-[10px] font-medium text-gray-400">
+            {list.stats.places} place{list.stats.places !== 1 ? "s" : ""}
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function SavedListCard({ list, onUnsave }: { list: CuratedListSummary; onUnsave: (id: string) => void }) {
+  const photoUrl = usePhotoUrl(list.heroImage);
+
+  return (
+    <Link href={`/boards/list/${list.id}`} className="block group">
+      <div className="h-[220px] rounded-xl overflow-hidden relative bg-gray-100 dark:bg-[#1C2128] shadow-sm border border-white/5">
+        {photoUrl ? (
+          <Image
+            src={photoUrl}
+            alt={list.title}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            unoptimized
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-[#E85D2A]/30 to-[#161B22]" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+        <button
+          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-[#E85D2A] hover:bg-black/60 transition-colors"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onUnsave(list.id); }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg>
         </button>
         <div className="absolute bottom-3 left-3 right-3">
           <h3 className="text-white font-semibold text-lg mb-2 leading-tight line-clamp-2 drop-shadow-md">
@@ -163,10 +211,12 @@ function FeaturedListCard({ list }: { list: CuratedListSummary }) {
 
 export default function BoardsPage() {
   const { status } = useSession();
+  const { showToast } = useToast();
   const [saves, setSaves] = useState<SavedPlace[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [savedLists, setSavedLists] = useState<CuratedListSummary[]>([]);
+  const [savedListIds, setSavedListIds] = useState<Set<string>>(new Set());
   const [featuredLists, setFeaturedLists] = useState<CuratedListSummary[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
@@ -191,7 +241,11 @@ export default function BoardsPage() {
 
       fetch("/api/curated-lists/saved")
         .then((r) => r.json())
-        .then((d) => setSavedLists(d.lists || []))
+        .then((d) => {
+          const lists = d.lists || [];
+          setSavedLists(lists);
+          setSavedListIds(new Set(lists.map((l: CuratedListSummary) => l.id)));
+        })
         .catch(console.error);
 
       // Fetch featured
@@ -204,6 +258,60 @@ export default function BoardsPage() {
       setLoading(false);
     }
   }, [status, selectedCategory]);
+
+  const handleToggleSave = async (listId: string) => {
+    if (status !== "authenticated") {
+      signIn("google");
+      return;
+    }
+    const wasSaved = savedListIds.has(listId);
+    const method = wasSaved ? "DELETE" : "POST";
+
+    // Optimistic update
+    setSavedListIds((prev) => {
+      const next = new Set(prev);
+      if (wasSaved) next.delete(listId); else next.add(listId);
+      return next;
+    });
+    if (wasSaved) {
+      setSavedLists((prev) => prev.filter((l) => l.id !== listId));
+    } else {
+      const matched = featuredLists.find((l) => l.id === listId);
+      if (matched) setSavedLists((prev) => [matched, ...prev]);
+    }
+
+    try {
+      const res = await fetch(`/api/curated-lists/${listId}/save`, { method });
+      if (!res.ok) throw new Error();
+    } catch {
+      // Revert
+      setSavedListIds((prev) => {
+        const next = new Set(prev);
+        if (wasSaved) next.add(listId); else next.delete(listId);
+        return next;
+      });
+      if (!wasSaved) {
+        setSavedLists((prev) => prev.filter((l) => l.id !== listId));
+      }
+    }
+  };
+
+  const handleUnsave = async (listId: string) => {
+    // Optimistic removal
+    const removed = savedLists.find((l) => l.id === listId);
+    setSavedLists((prev) => prev.filter((l) => l.id !== listId));
+    setSavedListIds((prev) => { const next = new Set(prev); next.delete(listId); return next; });
+
+    try {
+      const res = await fetch(`/api/curated-lists/${listId}/save`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      showToast("List removed from saved");
+    } catch {
+      // Revert
+      if (removed) setSavedLists((prev) => [removed, ...prev]);
+      setSavedListIds((prev) => { const next = new Set(prev); next.add(listId); return next; });
+    }
+  };
 
   if (loading || status === "loading") {
     return (
@@ -303,24 +411,11 @@ export default function BoardsPage() {
 
       {/* SECTION 2: Saved Lists */}
       {savedLists.length > 0 && (
-        <div className="mt-12">
-          <h2 className="text-xl font-bold text-[#0E1116] dark:text-[#e8edf4] px-5 mb-4">Saved Lists</h2>
-          <div className="flex overflow-x-auto hide-scrollbar pl-5 pr-5 pb-4 gap-4">
+        <div className="mt-12 px-5">
+          <h2 className="text-xl font-bold text-[#0E1116] dark:text-[#e8edf4] mb-4">Saved Lists</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {savedLists.map((list) => (
-              <Link key={list.id} href={`/boards/list/${list.id}`} className="block shrink-0 w-[200px]">
-                <div className="h-[140px] w-full rounded-2xl overflow-hidden relative bg-gray-100 dark:bg-[#1C2128] shadow-sm border border-gray-100 dark:border-white/5">
-                  {list.heroImage && (
-                    <Image src={list.heroImage} alt={list.title} fill className="object-cover" unoptimized />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <h3 className="text-white font-bold text-sm leading-tight line-clamp-2">{list.title}</h3>
-                    <p className="text-[11px] font-medium text-gray-300 mt-1">
-                      {list.creator.name} {list.creator.isVerified && '✓'} · {list.stats.places} places
-                    </p>
-                  </div>
-                </div>
-              </Link>
+              <SavedListCard key={list.id} list={list} onUnsave={handleUnsave} />
             ))}
           </div>
         </div>
@@ -362,7 +457,7 @@ export default function BoardsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
             {featuredLists.map((list) => (
-              <FeaturedListCard key={list.id} list={list} />
+              <FeaturedListCard key={list.id} list={list} isSaved={savedListIds.has(list.id)} onToggleSave={handleToggleSave} />
             ))}
           </div>
         )}

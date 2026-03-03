@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 
 type PublicList = {
@@ -33,6 +35,7 @@ type PublicList = {
     }>;
     stats: {
         places: number;
+        saves: number;
         views: number;
     };
 };
@@ -95,9 +98,34 @@ function PlaceRow({ item }: { item: PublicList["items"][number] }) {
 
 /* ─── Main Public View ─── */
 export default function PublicListView({ id }: { id: string }) {
+    const { status } = useSession();
+    const router = useRouter();
     const [list, setList] = useState<PublicList | null>(null);
     const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
+    const [hasSaved, setHasSaved] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleSave = async () => {
+        if (status !== "authenticated") {
+            router.push("/profile");
+            return;
+        }
+        setIsSaving(true);
+        try {
+            const res = await fetch(`/api/curated-lists/${id}/save`, { method: "POST" });
+            if (res.ok) {
+                setHasSaved(true);
+                if (list) setList({ ...list, stats: { ...list.stats, saves: list.stats.saves + 1 } });
+            } else if (res.status === 409) {
+                setHasSaved(true);
+            }
+        } catch {
+            // silent
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     useEffect(() => {
         fetch(`/api/lists/${id}/public`)
@@ -196,23 +224,33 @@ export default function PublicListView({ id }: { id: string }) {
                         </p>
                     )}
 
-                    <div className="flex items-center gap-2.5">
-                        <div className="relative shrink-0">
-                            {list.creator.image ? (
-                                <img src={list.creator.image} alt={list.creator.name} className="w-8 h-8 rounded-full object-cover border border-white/30 shadow-sm" />
-                            ) : (
-                                <div className="w-8 h-8 rounded-full bg-gray-600 border border-white/30 shadow-sm" />
-                            )}
-                            {list.creator.isVerified && (
-                                <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full p-0.5 border-2 border-[#111]">
-                                    <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z" /></svg>
-                                </div>
-                            )}
+                    <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2.5">
+                            <div className="relative shrink-0">
+                                {list.creator.image ? (
+                                    <img src={list.creator.image} alt={list.creator.name} className="w-8 h-8 rounded-full object-cover border border-white/30 shadow-sm" />
+                                ) : (
+                                    <div className="w-8 h-8 rounded-full bg-gray-600 border border-white/30 shadow-sm" />
+                                )}
+                                {list.creator.isVerified && (
+                                    <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full p-0.5 border-2 border-[#111]">
+                                        <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z" /></svg>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-xs font-bold text-white leading-tight">{list.creator.name}</span>
+                                <span className="text-[10px] font-semibold text-gray-300 mt-0.5">{list.stats.places} places · {list.stats.saves} saves</span>
+                            </div>
                         </div>
-                        <div className="flex flex-col">
-                            <span className="text-xs font-bold text-white leading-tight">{list.creator.name}</span>
-                            <span className="text-[10px] font-semibold text-gray-300 mt-0.5">{list.stats.places} places</span>
-                        </div>
+                        <button
+                            onClick={handleSave}
+                            disabled={isSaving || hasSaved}
+                            className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-1.5 transition-all ${hasSaved ? "bg-white/10 text-gray-300 border border-white/10" : "bg-[#E85D2A] text-white hover:bg-[#d45222]"}`}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill={hasSaved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.5"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg>
+                            {hasSaved ? "Saved" : "Save List"}
+                        </button>
                     </div>
                 </div>
             </div>

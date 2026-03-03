@@ -29,7 +29,7 @@ export async function GET(
                     },
                 },
                 _count: {
-                    select: { items: true },
+                    select: { items: true, saves: true },
                 },
             },
         });
@@ -72,6 +72,7 @@ export async function GET(
             })),
             stats: {
                 places: list._count.items,
+                saves: list._count.saves,
                 views: list.viewCount + 1,
             },
         };
