@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
+import { Reorder } from "framer-motion";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useToast } from "@/components/Toast";
 
@@ -76,6 +77,11 @@ export default function ListDetailPage() {
     const [menuOpen, setMenuOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [editTitle, setEditTitle] = useState("");
+    const [editDescription, setEditDescription] = useState("");
+    const [isSavingEdit, setIsSavingEdit] = useState(false);
+    const [removingItemId, setRemovingItemId] = useState<string | null>(null);
     const { showToast } = useToast();
 
     useEffect(() => {
@@ -199,7 +205,6 @@ export default function ListDetailPage() {
     };
 
     const handleRemovePlace = async (itemId: string) => {
-        if (!confirm("Remove this place from your list?")) return;
         try {
             const res = await fetch(`/api/curated-lists/${id}/items/${itemId}`, { method: "DELETE" });
             if (res.ok) {
@@ -208,13 +213,54 @@ export default function ListDetailPage() {
                     stats: { ...prev.stats, places: prev.stats.places - 1 },
                     items: prev.items.filter(i => i.id !== itemId)
                 } : null);
+                setRemovingItemId(null);
             } else {
                 showToast("Failed to remove place");
             }
-        } catch (e) {
+        } catch {
             showToast("Network error");
         }
     };
+
+    const handleEditSave = async () => {
+        if (!list || !editTitle.trim()) return;
+        setIsSavingEdit(true);
+        try {
+            const res = await fetch(`/api/curated-lists/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title: editTitle.trim(), description: editDescription.trim() || null }),
+            });
+            if (res.ok) {
+                setList(prev => prev ? { ...prev, title: editTitle.trim(), description: editDescription.trim() || null } : null);
+                setEditModalOpen(false);
+                showToast("List updated");
+            } else {
+                try {
+                    const data = await res.json();
+                    showToast(data.error || "Failed to save");
+                } catch {
+                    showToast(`Failed to save (${res.status})`);
+                }
+            }
+        } catch {
+            showToast("Network error");
+        } finally {
+            setIsSavingEdit(false);
+        }
+    };
+
+    const handleReorder = useCallback((newItems: ListDetail["items"]) => {
+        if (!list) return;
+        setList(prev => prev ? { ...prev, items: newItems } : null);
+        // Debounce the API call
+        const itemIds = newItems.map(i => i.id);
+        fetch(`/api/curated-lists/${id}/reorder`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ itemIds }),
+        }).catch(() => showToast("Failed to save order"));
+    }, [list, id, showToast]);
 
     const handlePublish = async () => {
         if (!list || !selectedCategory) return;
@@ -338,6 +384,18 @@ export default function ListDetailPage() {
                                 <>
                                     <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
                                     <div className="absolute right-0 top-12 bg-[#161B22] rounded-xl shadow-xl border border-white/10 py-1 min-w-[160px] z-50">
+                                        <button
+                                            onClick={() => {
+                                                setMenuOpen(false);
+                                                setEditTitle(list.title);
+                                                setEditDescription(list.description || "");
+                                                setEditModalOpen(true);
+                                            }}
+                                            className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/5 transition-colors flex items-center gap-2"
+                                        >
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" /></svg>
+                                            Edit List
+                                        </button>
                                         {list.status === "published" && (
                                             <button
                                                 onClick={handleUnpublish}
@@ -492,14 +550,31 @@ export default function ListDetailPage() {
                             </button>
                         )}
                     </div>
+                ) : isCreator ? (
+                    <Reorder.Group axis="y" values={list.items} onReorder={handleReorder} className="flex flex-col gap-0 border-t border-gray-100 dark:border-white/5 md:border-none">
+                        {list.items.map((item) => (
+                            <PlaceRow
+                                key={item.id}
+                                item={item}
+                                isCreator
+                                isRemoving={removingItemId === item.id}
+                                onRequestRemove={() => setRemovingItemId(item.id)}
+                                onCancelRemove={() => setRemovingItemId(null)}
+                                onConfirmRemove={() => handleRemovePlace(item.id)}
+                            />
+                        ))}
+                    </Reorder.Group>
                 ) : (
                     <div className="flex flex-col gap-0 border-t border-gray-100 dark:border-white/5 md:border-none">
                         {list.items.map((item) => (
                             <PlaceRow
                                 key={item.id}
                                 item={item}
-                                isCreator={isCreator}
-                                onRemove={() => handleRemovePlace(item.id)}
+                                isCreator={false}
+                                isRemoving={false}
+                                onRequestRemove={() => {}}
+                                onCancelRemove={() => {}}
+                                onConfirmRemove={() => {}}
                             />
                         ))}
                     </div>
@@ -586,6 +661,58 @@ export default function ListDetailPage() {
                 </div>
             )}
 
+            {/* Edit List Modal */}
+            {editModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEditModalOpen(false)} />
+                    <div className="relative bg-[#161B22] rounded-2xl p-6 w-full max-w-md shadow-2xl border border-white/10">
+                        <h2 className="text-lg font-semibold text-white">Edit List</h2>
+
+                        <div className="mt-4 flex flex-col gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">List Name</label>
+                                <input
+                                    type="text"
+                                    value={editTitle}
+                                    onChange={(e) => setEditTitle(e.target.value)}
+                                    className="w-full bg-[#0E1116] border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-[#E85D2A] focus:outline-none transition-colors"
+                                    placeholder="List name"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                                    Description <span className="text-gray-600 normal-case font-normal">(Optional)</span>
+                                </label>
+                                <textarea
+                                    value={editDescription}
+                                    onChange={(e) => setEditDescription(e.target.value.slice(0, 200))}
+                                    rows={3}
+                                    className="w-full bg-[#0E1116] border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-[#E85D2A] focus:outline-none transition-colors resize-none"
+                                    placeholder="What makes this list special?"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">{editDescription.length}/200</p>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                onClick={() => setEditModalOpen(false)}
+                                className="flex-1 bg-white/5 text-gray-300 px-5 py-2.5 rounded-lg hover:bg-white/10 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleEditSave}
+                                disabled={isSavingEdit || !editTitle.trim()}
+                                className="flex-1 bg-[#E85D2A] text-white px-5 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 hover:bg-[#d45222]"
+                            >
+                                {isSavingEdit ? "Saving..." : "Save Changes"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Add Places Bottom Sheet / Modal */}
             {addSheetOpen && (
                 <div className="fixed inset-0 z-[100] flex justify-end flex-col md:justify-center md:items-center md:p-4">
@@ -663,7 +790,14 @@ function CoverPhoto({ name }: { name: string }) {
     return <Image src={url} alt="Cover" fill className="object-cover" unoptimized priority />;
 }
 
-function PlaceRow({ item, isCreator, onRemove }: { item: ListDetail["items"][0], isCreator: boolean, onRemove: () => void }) {
+function PlaceRow({ item, isCreator, isRemoving, onRequestRemove, onCancelRemove, onConfirmRemove }: {
+    item: ListDetail["items"][0];
+    isCreator: boolean;
+    isRemoving: boolean;
+    onRequestRemove: () => void;
+    onCancelRemove: () => void;
+    onConfirmRemove: () => void;
+}) {
     const photoUrl = usePhotoUrl(item.place.photoUrl);
 
     const priceDots = () => {
@@ -675,8 +809,22 @@ function PlaceRow({ item, isCreator, onRemove }: { item: ListDetail["items"][0],
         );
     };
 
-    return (
-        <div className="relative group flex items-start gap-3 md:gap-4 py-3.5 md:py-4 border-b border-gray-100 dark:border-white/5 md:hover:bg-gray-50 md:dark:hover:bg-white/[0.02] md:px-4 md:-mx-4 rounded-xl transition-colors cursor-pointer active:bg-gray-50 dark:active:bg-white/5">
+    // Auto-cancel inline remove after 3 seconds
+    useEffect(() => {
+        if (!isRemoving) return;
+        const timer = setTimeout(onCancelRemove, 3000);
+        return () => clearTimeout(timer);
+    }, [isRemoving, onCancelRemove]);
+
+    const content = (
+        <div className="relative group flex items-start gap-3 md:gap-4 py-3.5 md:py-4 border-b border-gray-100 dark:border-white/5 md:hover:bg-gray-50 md:dark:hover:bg-white/[0.02] md:px-4 md:-mx-4 rounded-xl transition-colors">
+
+            {/* Drag Handle (creators only) */}
+            {isCreator && (
+                <div className="shrink-0 flex items-center h-[80px] md:h-[100px] cursor-grab active:cursor-grabbing text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-400 transition-colors touch-none">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5" /><circle cx="15" cy="6" r="1.5" /><circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" /><circle cx="9" cy="18" r="1.5" /><circle cx="15" cy="18" r="1.5" /></svg>
+                </div>
+            )}
 
             {/* Thumbnail */}
             <div className="w-[80px] h-[80px] md:w-[100px] md:h-[100px] rounded-xl overflow-hidden shrink-0 bg-gray-100 dark:bg-[#1C2128] relative shadow-sm border border-black/5 dark:border-white/5 block">
@@ -691,48 +839,75 @@ function PlaceRow({ item, isCreator, onRemove }: { item: ListDetail["items"][0],
 
             {/* Content Mid */}
             <div className="flex-1 min-w-0 pt-0.5 md:pt-1 pl-1">
-                <h3 className="font-bold text-[#0E1116] dark:text-[#e8edf4] text-[15px] md:text-lg leading-tight truncate pr-6 md:pr-8">{item.place.name}</h3>
-
-                {/* Note: In a real app the intent might be fetched, here using address as fallback placeholder */}
-                <p className="text-[11px] md:text-xs text-gray-500 dark:text-gray-400 font-medium mt-1 truncate max-w-[90%]">
-                    {item.place.address}
-                </p>
-
-                <div className="flex items-center gap-1.5 md:gap-2 mt-2 font-medium">
-                    {item.place.rating ? (
-                        <span className="text-[11px] md:text-[13px] text-[#0E1116] dark:text-gray-300 flex items-center gap-0.5 md:gap-1">
-                            <span className="text-yellow-400 text-[10px] md:text-[11px] pb-[-1px]">★</span> {item.place.rating.toFixed(1)}
-                        </span>
-                    ) : null}
-
-                    {item.place.rating && priceDots() && <span className="text-gray-300 dark:text-gray-700 text-[10px]">•</span>}
-                    {priceDots()}
-                </div>
-
-                {/* Personal Note (Optional) */}
-                {item.note && (
-                    <div className="mt-2 text-[12px] md:text-[13px] text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-white/5 py-2 px-3 rounded-md italic border-l-2 border-gray-300 dark:border-gray-600 leading-snug">
-                        &quot;{item.note}&quot;
+                {isRemoving ? (
+                    <div className="flex items-center gap-3 h-[80px] md:h-[100px]">
+                        <span className="text-sm text-gray-300 font-medium">Remove?</span>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onConfirmRemove(); }}
+                            className="text-sm font-bold text-red-500 hover:text-red-400 transition-colors"
+                        >
+                            Yes
+                        </button>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onCancelRemove(); }}
+                            className="text-sm font-bold text-gray-400 hover:text-gray-300 transition-colors"
+                        >
+                            No
+                        </button>
                     </div>
+                ) : (
+                    <>
+                        <h3 className="font-bold text-[#0E1116] dark:text-[#e8edf4] text-[15px] md:text-lg leading-tight truncate pr-6 md:pr-8">{item.place.name}</h3>
+                        <p className="text-[11px] md:text-xs text-gray-500 dark:text-gray-400 font-medium mt-1 truncate max-w-[90%]">
+                            {item.place.address}
+                        </p>
+                        <div className="flex items-center gap-1.5 md:gap-2 mt-2 font-medium">
+                            {item.place.rating ? (
+                                <span className="text-[11px] md:text-[13px] text-[#0E1116] dark:text-gray-300 flex items-center gap-0.5 md:gap-1">
+                                    <span className="text-yellow-400 text-[10px] md:text-[11px]">★</span> {item.place.rating.toFixed(1)}
+                                </span>
+                            ) : null}
+                            {item.place.rating && priceDots() && <span className="text-gray-300 dark:text-gray-700 text-[10px]">•</span>}
+                            {priceDots()}
+                        </div>
+                        {item.note && (
+                            <div className="mt-2 text-[12px] md:text-[13px] text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-white/5 py-2 px-3 rounded-md italic border-l-2 border-gray-300 dark:border-gray-600 leading-snug">
+                                &quot;{item.note}&quot;
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
             {/* Actions */}
-            <div className="shrink-0 flex items-start h-full pt-1 md:pr-1">
-                {isCreator ? (
-                    <button
-                        onClick={(e) => { e.stopPropagation(); onRemove(); }}
-                        className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 rounded-full md:hover:bg-red-50 md:dark:hover:bg-red-500/10 transition-colors"
-                        title="Remove place"
-                    >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
-                    </button>
-                ) : (
-                    <button className="w-8 h-8 flex items-center justify-center text-gray-400 cursor-pointer hover:text-[#0E1116] dark:hover:text-white transition-colors" title="Options">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></svg>
-                    </button>
-                )}
-            </div>
+            {!isRemoving && (
+                <div className="shrink-0 flex items-start h-full pt-1 md:pr-1">
+                    {isCreator ? (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onRequestRemove(); }}
+                            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 rounded-full md:hover:bg-red-50 md:dark:hover:bg-red-500/10 transition-colors"
+                            title="Remove place"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
+                        </button>
+                    ) : (
+                        <button className="w-8 h-8 flex items-center justify-center text-gray-400 cursor-pointer hover:text-[#0E1116] dark:hover:text-white transition-colors" title="Options">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></svg>
+                        </button>
+                    )}
+                </div>
+            )}
         </div>
     );
+
+    // Wrap in Reorder.Item for creators
+    if (isCreator) {
+        return (
+            <Reorder.Item value={item} className="list-none">
+                {content}
+            </Reorder.Item>
+        );
+    }
+
+    return content;
 }

@@ -103,6 +103,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         isPublic?: boolean;
     };
 
+    if (title !== undefined && !title.trim()) {
+        return NextResponse.json({ error: "Title cannot be empty" }, { status: 400 });
+    }
+
+    if (description !== undefined && description.length > 200) {
+        return NextResponse.json({ error: "Description must be 200 characters or less" }, { status: 400 });
+    }
+
     // If making public, check restriction
     if (isPublic) {
         const itemCount = await prisma.curatedListItem.count({
