@@ -28,6 +28,7 @@ import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
 import { Theme } from "@/components/ThemeProvider";
 import Link from 'next/link';
 import VisitCelebration from "@/components/VisitCelebration";
+import PhotoUploadPrompt from "@/components/PhotoUploadPrompt";
 
 const categories = [
   { id: "study", emoji: "\u{1F4DA}", label: "Study / Work" },
@@ -86,7 +87,8 @@ export default function Home() {
   const [recommendations, setRecommendations] = useState<Place[]>([]);
   const [shareModalPlace, setShareModalPlace] = useState<{ placeId: string; name: string } | null>(null);
   const [visitedPlaceIds, setVisitedPlaceIds] = useState<Set<string>>(new Set());
-  const [celebrationPlace, setCelebrationPlace] = useState<string | null>(null);
+  const [celebrationPlace, setCelebrationPlace] = useState<{ placeId: string; name: string } | null>(null);
+  const [photoPromptPlace, setPhotoPromptPlace] = useState<{ placeId: string; name: string } | null>(null);
 
   const chipScrollRef = useRef<HTMLDivElement>(null);
   const locationResolved = useRef(false);
@@ -141,7 +143,7 @@ export default function Home() {
       if (result) {
         clearPendingVisit();
         setVisitedPlaceIds(prev => new Set([...prev, pending.placeId]));
-        setCelebrationPlace(result.name);
+        setCelebrationPlace({ placeId: pending.placeId, name: result.name });
 
         // Let the general celebration toast appear, then 1s later, pop the big overlay if it's a new hood
         setTimeout(async () => {
@@ -566,6 +568,7 @@ export default function Home() {
                   isVisited={visitedPlaceIds.has(place.placeId)}
                   onAction={(action) => handleCardFlipAction(place, action)}
                   onShare={() => setShareModalPlace({ placeId: place.placeId, name: place.name })}
+                  onAddPhotos={() => setPhotoPromptPlace({ placeId: place.placeId, name: place.name })}
                 />
               );
             })}
@@ -609,10 +612,19 @@ export default function Home() {
       {/* Visit Celebration */}
       {celebrationPlace && (
         <VisitCelebration
-          placeName={celebrationPlace}
+          placeName={celebrationPlace.name}
           onClose={() => setCelebrationPlace(null)}
+          onSharePhotos={() => setPhotoPromptPlace(celebrationPlace)}
         />
       )}
+
+      {/* Photo Upload Prompt */}
+      <PhotoUploadPrompt
+        placeId={photoPromptPlace?.placeId ?? ""}
+        placeName={photoPromptPlace?.name ?? ""}
+        isOpen={!!photoPromptPlace}
+        onClose={() => setPhotoPromptPlace(null)}
+      />
     </div>
   );
 }

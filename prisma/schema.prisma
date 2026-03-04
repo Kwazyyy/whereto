@@ -47,6 +47,10 @@ model User {
   // Curated Lists
   curatedLists            CuratedList[]
   savedLists              CuratedListSave[]
+
+  // Community Photos
+  photos                  PlacePhoto[]
+  photoLikes              PhotoLike[]
 }
 
 model Follow {
@@ -114,6 +118,7 @@ model Place {
   visits          Visit[]
   vibeVotes       VibeVote[]
   curatedListItems CuratedListItem[]
+  photos           PlacePhoto[]
 }
 
 model Save {
@@ -278,4 +283,33 @@ model BusinessAnalytics {
 
   @@unique([googlePlaceId, date])
   @@index([googlePlaceId])
+}
+
+model PlacePhoto {
+  id            String    @id @default(cuid())
+  userId        String
+  placeId       String
+  cloudinaryUrl String
+  publicId      String
+  category      String
+  caption       String?
+  status        String    @default("pending")
+  createdAt     DateTime  @default(now())
+  user          User      @relation(fields: [userId], references: [id])
+  place         Place     @relation(fields: [placeId], references: [id])
+  likes         PhotoLike[]
+
+  @@index([placeId, status, category])
+  @@index([userId])
+}
+
+model PhotoLike {
+  id        String     @id @default(cuid())
+  userId    String
+  photoId   String
+  createdAt DateTime   @default(now())
+  user      User       @relation(fields: [userId], references: [id])
+  photo     PlacePhoto @relation(fields: [photoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, photoId])
 }

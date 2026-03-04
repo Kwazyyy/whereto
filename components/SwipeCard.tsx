@@ -88,6 +88,7 @@ export function SwipeCard({
     isVisited,
     onAction,
     onShare,
+    onAddPhotos,
 }: {
     place: Place;
     fallbackGradient: string;
@@ -98,6 +99,7 @@ export function SwipeCard({
     isVisited?: boolean;
     onAction: (action: "save" | "go_now") => void;
     onShare?: () => void;
+    onAddPhotos?: () => void;
 }) {
     const x = useMotionValue(0);
     const y = useMotionValue(0);
@@ -593,6 +595,24 @@ export function SwipeCard({
                                     Share
                                 </button>
                             </div>
+                            {isVisited && onAddPhotos && (
+                                <div
+                                    className="mt-2 mb-16"
+                                    onPointerDown={(e) => e.stopPropagation()}
+                                    onPointerUp={(e) => e.stopPropagation()}
+                                >
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); onAddPhotos(); }}
+                                        className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/15 text-gray-500 dark:text-gray-400 font-semibold text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                                            <circle cx="12" cy="13" r="4" />
+                                        </svg>
+                                        Add Photos
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

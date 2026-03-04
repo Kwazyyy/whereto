@@ -23,6 +23,7 @@ import { useBadges } from "@/components/providers/BadgeProvider";
 import { useNeighborhoodReveal } from "@/components/providers/NeighborhoodRevealProvider";
 import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
 import VisitCelebration from "@/components/VisitCelebration";
+import PhotoUploadPrompt from "@/components/PhotoUploadPrompt";
 import { useToast } from "@/components/Toast";
 
 const DEFAULT_LAT = 43.6532;
@@ -422,7 +423,8 @@ export default function MapPage() {
   const { triggerBadgeCheck } = useBadges();
   const { triggerNeighborhoodReveal } = useNeighborhoodReveal();
   const { triggerVibeVoting } = useVibeVoting();
-  const [celebrationPlace, setCelebrationPlace] = useState<string | null>(null);
+  const [celebrationPlace, setCelebrationPlace] = useState<{ placeId: string; name: string } | null>(null);
+  const [photoPromptPlace, setPhotoPromptPlace] = useState<{ placeId: string; name: string } | null>(null);
 
   const [savingPlaceId, setSavingPlaceId] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{
@@ -510,7 +512,7 @@ export default function MapPage() {
     if (result) {
       setVisitedIds(prev => new Set([...prev, place.placeId]));
       setDetailPlace(null); // close sheet
-      setCelebrationPlace(result.name);
+      setCelebrationPlace({ placeId: place.placeId, name: result.name });
 
       setTimeout(async () => {
         let triggeredReveal = false;
@@ -752,11 +754,20 @@ export default function MapPage() {
       <AnimatePresence>
         {celebrationPlace && (
           <VisitCelebration
-            placeName={celebrationPlace}
+            placeName={celebrationPlace.name}
             onClose={() => setCelebrationPlace(null)}
+            onSharePhotos={() => setPhotoPromptPlace(celebrationPlace)}
           />
         )}
       </AnimatePresence>
+
+      {/* Photo Upload Prompt */}
+      <PhotoUploadPrompt
+        placeId={photoPromptPlace?.placeId ?? ""}
+        placeName={photoPromptPlace?.name ?? ""}
+        isOpen={!!photoPromptPlace}
+        onClose={() => setPhotoPromptPlace(null)}
+      />
     </div>
   );
 }

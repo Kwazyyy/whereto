@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 interface VisitCelebrationProps {
     placeName: string;
     onClose: () => void;
+    onSharePhotos?: () => void;
 }
 
 const CONFETTI_COLORS = ["#E85D2A", "#FBBF24", "#34D399", "#60A5FA", "#F472B6", "#A78BFA"];
@@ -44,7 +45,7 @@ function ConfettiPiece({ index }: { index: number }) {
     );
 }
 
-export default function VisitCelebration({ placeName, onClose }: VisitCelebrationProps) {
+export default function VisitCelebration({ placeName, onClose, onSharePhotos }: VisitCelebrationProps) {
     const [visible, setVisible] = useState(true);
 
     useEffect(() => {
@@ -55,6 +56,8 @@ export default function VisitCelebration({ placeName, onClose }: VisitCelebratio
         return () => clearTimeout(timer);
     }, [onClose]);
 
+    const dismiss = () => { setVisible(false); setTimeout(onClose, 300); };
+
     return (
         <AnimatePresence>
             {visible && (
@@ -64,7 +67,7 @@ export default function VisitCelebration({ placeName, onClose }: VisitCelebratio
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    onClick={() => { setVisible(false); setTimeout(onClose, 300); }}
+                    onClick={dismiss}
                 >
                     {/* Backdrop */}
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
@@ -83,6 +86,7 @@ export default function VisitCelebration({ placeName, onClose }: VisitCelebratio
                         animate={{ scale: 1, y: 0 }}
                         exit={{ scale: 0.8, opacity: 0 }}
                         transition={{ type: "spring", damping: 15, stiffness: 300 }}
+                        onClick={(e) => e.stopPropagation()}
                     >
                         <div className="text-6xl mb-4">🎉</div>
                         <h2 className="text-2xl font-bold text-[#0E1116] dark:text-[#e8edf4]">
@@ -94,12 +98,30 @@ export default function VisitCelebration({ placeName, onClose }: VisitCelebratio
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
                             Visit verified and added to your profile ✓
                         </p>
-                        <button
-                            onClick={() => { setVisible(false); setTimeout(onClose, 300); }}
-                            className="mt-6 px-8 py-3 rounded-2xl bg-[#E85D2A] text-white font-bold text-sm shadow-lg shadow-[#E85D2A]/30 active:scale-[0.97] transition-transform cursor-pointer"
-                        >
-                            Awesome!
-                        </button>
+                        <div className="flex flex-col gap-2 mt-6">
+                            {onSharePhotos && (
+                                <button
+                                    onClick={() => { dismiss(); setTimeout(onSharePhotos, 350); }}
+                                    className="w-full px-6 py-3 rounded-2xl bg-[#E85D2A] text-white font-bold text-sm shadow-lg shadow-[#E85D2A]/30 active:scale-[0.97] transition-transform cursor-pointer flex items-center justify-center gap-2"
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                                        <circle cx="12" cy="13" r="4" />
+                                    </svg>
+                                    Share Photos
+                                </button>
+                            )}
+                            <button
+                                onClick={dismiss}
+                                className={`w-full px-6 py-3 rounded-2xl font-bold text-sm active:scale-[0.97] transition-transform cursor-pointer ${
+                                    onSharePhotos
+                                        ? "bg-white/5 dark:bg-white/5 text-gray-500 dark:text-gray-400"
+                                        : "bg-[#E85D2A] text-white shadow-lg shadow-[#E85D2A]/30"
+                                }`}
+                            >
+                                Awesome!
+                            </button>
+                        </div>
                     </motion.div>
                 </motion.div>
             )}
