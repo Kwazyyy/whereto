@@ -220,8 +220,8 @@ export function SwipeCard({
 
                     <div className="absolute bottom-0 inset-x-0 h-[50%] bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none" />
 
-                    {/* Top Special Badges (Friends / Creators) */}
-                    {hasSpecialSignals && (
+                    {/* Top Special Badges (Friends / Creators) — hidden when Saved badge occupies top-left */}
+                    {hasSpecialSignals && !isSaved && (
                         <div className="absolute top-4 left-4 right-4 z-20 flex flex-col gap-2 pointer-events-none">
                             {place.creatorSignal && (
                                 <div className="self-start flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 dark:bg-[#161B22]/90 backdrop-blur-md shadow-lg border border-orange-100 dark:border-white/10">
@@ -326,16 +326,17 @@ export function SwipeCard({
                         </div>
                     </div>
 
-                    {/* Go Now tap button — fallback for mobile when swipe-up is hard */}
-                    {isTop && (
+                    {/* Menu button — bottom right (replaces Go Now) */}
+                    {isTop && place.menuUrl && (
                         <button
                             onPointerDown={(e) => e.stopPropagation()}
                             onPointerUp={(e) => e.stopPropagation()}
-                            onClick={(e) => { e.stopPropagation(); onAction("go_now"); }}
-                            className="absolute bottom-5 right-5 z-20 w-12 h-12 rounded-full bg-[#E85D2A] shadow-lg shadow-[#E85D2A]/40 flex items-center justify-center pointer-events-auto active:scale-90 transition-transform"
+                            onClick={(e) => { e.stopPropagation(); window.open(place.menuUrl, '_blank'); }}
+                            className="absolute bottom-5 right-5 z-20 w-12 h-12 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center pointer-events-auto active:scale-90 transition-transform"
+                            aria-label="View menu"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <polygon points="3 11 22 2 13 21 11 13 3 11" />
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
                             </svg>
                         </button>
                     )}
@@ -553,6 +554,33 @@ export function SwipeCard({
                                     </p>
                                 </div>
                             </div>
+                            {/* View Menu link */}
+                            {place.menuUrl && (
+                                <a
+                                    href={place.menuUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-4 flex items-center gap-3 p-3.5 rounded-xl bg-gray-50 dark:bg-[#1C2128] hover:bg-gray-100 dark:hover:bg-[#252D38] transition-colors"
+                                    onClick={(e) => e.stopPropagation()}
+                                    onPointerDown={(e) => e.stopPropagation()}
+                                    onPointerUp={(e) => e.stopPropagation()}
+                                >
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
+                                    </svg>
+                                    <span className="flex-1 text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">
+                                        {place.menuType === "direct" ? "View Menu" : "Search Menu"}
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" x2="21" y1="14" y2="3" />
+                                        </svg>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="m9 18 6-6-6-6" />
+                                        </svg>
+                                    </div>
+                                </a>
+                            )}
                             {/* Community Photos link */}
                             <Link
                                 href={`/places/${place.placeId}/photos`}

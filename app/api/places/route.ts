@@ -41,6 +41,7 @@ interface PlacesResult {
   };
   primaryTypeDisplayName?: { text: string };
   types?: string[];
+  websiteUri?: string;
 }
 
 function haversineKm(
@@ -204,6 +205,9 @@ function mapAndFilter(
         distKm,
         distance: distKm < 1 ? `${Math.round(distKm * 1000)}m` : `${distKm.toFixed(1)}km`,
         tags: generateTags(place, intent),
+        menuUrl: place.websiteUri
+          ?? `https://www.google.com/search?q=${encodeURIComponent((place.displayName?.text ?? "") + " " + (place.formattedAddress ?? "") + " menu")}`,
+        menuType: (place.websiteUri ? "direct" : "search") as "direct" | "search",
       };
     })
     .filter((p) => p.distKm <= radiusKm)
@@ -236,6 +240,7 @@ export async function GET(request: NextRequest) {
     "places.currentOpeningHours",
     "places.primaryTypeDisplayName",
     "places.types",
+    "places.websiteUri",
   ].join(",");
 
   try {

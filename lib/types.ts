@@ -28,4 +28,7 @@ export interface Place {
   creatorSignal?: { id: string; name: string; avatarUrl: string | null };
   // Community photos
   communityPhotoCount?: number;
+  // Menu
+  menuUrl?: string;
+  menuType?: "direct" | "search";
 }
