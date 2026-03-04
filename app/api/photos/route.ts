@@ -155,8 +155,8 @@ export async function POST(req: NextRequest) {
         }
 
         // Verify user has a verified visit for this place
-        const visit = await prisma.visit.findUnique({
-            where: { userId_placeId: { userId, placeId } },
+        const visit = await prisma.visit.findFirst({
+            where: { userId, placeId },
         });
 
         if (!visit) {

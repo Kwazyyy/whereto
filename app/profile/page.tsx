@@ -58,12 +58,12 @@ const THEME_OPTIONS: { label: string; value: Theme }[] = [
   { label: "System", value: "system" },
 ];
 
-export const PREFS_KEY = "whereto_prefs";
-export const BIO_KEY = "whereto_bio";
+const PREFS_KEY = "whereto_prefs";
+const BIO_KEY = "whereto_bio";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
-export interface Prefs {
+interface Prefs {
   defaultIntent: string;
   defaultDistance: number;
   autoDetectLocation: boolean;
@@ -79,7 +79,7 @@ const DEFAULT_PREFS: Prefs = {
   theme: "system",
 };
 
-export function loadPrefs(): Prefs {
+function loadPrefs(): Prefs {
   if (typeof window === "undefined") return DEFAULT_PREFS;
   try {
     const raw = localStorage.getItem(PREFS_KEY);
@@ -95,7 +95,7 @@ function savePrefsToStorage(prefs: Prefs) {
   }
 }
 
-export function loadBio(): string {
+function loadBio(): string {
   if (typeof window === "undefined") return "";
   try {
     return localStorage.getItem(BIO_KEY) || "";
