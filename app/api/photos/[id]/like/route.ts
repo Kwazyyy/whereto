@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { checkAndAwardBadges } from "@/lib/checkBadges";
 
 // POST /api/photos/[id]/like
 // Toggles a like on an approved photo
@@ -20,7 +21,7 @@ export async function POST(
         // Verify photo exists and is approved
         const photo = await prisma.placePhoto.findUnique({
             where: { id: photoId },
-            select: { id: true, status: true },
+            select: { id: true, status: true, userId: true },
         });
 
         if (!photo || photo.status !== "approved") {
@@ -47,6 +48,11 @@ export async function POST(
         const likeCount = await prisma.photoLike.count({
             where: { photoId },
         });
+
+        // Check crowd_favorite badge for the photo owner (non-blocking, only on like)
+        if (!existingLike) {
+            checkAndAwardBadges(photo.userId).catch(() => {});
+        }
 
         return NextResponse.json({
             liked: !existingLike,

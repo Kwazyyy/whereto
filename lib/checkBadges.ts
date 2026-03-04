@@ -10,6 +10,9 @@ export interface UserBadgeStats {
     savesCount: number;
     allIntentsCount: number;
     currentStreak: number;
+    approvedPhotosCount: number;
+    maxLikesOnSinglePhoto: number;
+    hasAllCategoriesForAnyPlace: boolean;
 }
 
 export async function getUserBadgeStats(userId: string): Promise<UserBadgeStats> {
@@ -79,6 +82,22 @@ export async function getUserBadgeStats(userId: string): Promise<UserBadgeStats>
         currentStreak = streak;
     }
 
+    // Photo stats
+    const approvedPhotos = await prisma.placePhoto.findMany({
+        where: { userId, status: "approved" },
+        select: { placeId: true, category: true, _count: { select: { likes: true } } },
+    });
+    const approvedPhotosCount = approvedPhotos.length;
+    const maxLikesOnSinglePhoto = approvedPhotos.reduce((max, p) => Math.max(max, p._count.likes), 0);
+
+    // Check if any single place has all 5 categories covered
+    const categoriesByPlace = new Map<string, Set<string>>();
+    for (const p of approvedPhotos) {
+        if (!categoriesByPlace.has(p.placeId)) categoriesByPlace.set(p.placeId, new Set());
+        categoriesByPlace.get(p.placeId)!.add(p.category);
+    }
+    const hasAllCategoriesForAnyPlace = Array.from(categoriesByPlace.values()).some(cats => cats.size >= 5);
+
     return {
         visitedPlacesCount,
         neighborhoodsExploredCount,
@@ -86,7 +105,10 @@ export async function getUserBadgeStats(userId: string): Promise<UserBadgeStats>
         recommendationsSentCount,
         savesCount,
         allIntentsCount,
-        currentStreak
+        currentStreak,
+        approvedPhotosCount,
+        maxLikesOnSinglePhoto,
+        hasAllCategoriesForAnyPlace,
     };
 }
 
@@ -108,7 +130,10 @@ export async function checkAndAwardBadges(userId: string): Promise<string[]> {
             recommendationsSentCount,
             savesCount,
             allIntentsCount,
-            currentStreak
+            currentStreak,
+            approvedPhotosCount,
+            maxLikesOnSinglePhoto,
+            hasAllCategoriesForAnyPlace,
         } = stats;
 
         // 3. Evaluate rules
@@ -144,6 +169,12 @@ export async function checkAndAwardBadges(userId: string): Promise<string[]> {
                 case "streak_3": meetsRequirement = currentStreak >= def.requirement; break;
                 case "streak_7": meetsRequirement = currentStreak >= def.requirement; break;
                 case "streak_30": meetsRequirement = currentStreak >= def.requirement; break;
+
+                case "first_snap": meetsRequirement = approvedPhotosCount >= def.requirement; break;
+                case "shutterbug": meetsRequirement = approvedPhotosCount >= def.requirement; break;
+                case "full_picture": meetsRequirement = hasAllCategoriesForAnyPlace; break;
+                case "crowd_favorite": meetsRequirement = maxLikesOnSinglePhoto >= def.requirement; break;
+                case "featured_contributor": meetsRequirement = approvedPhotosCount >= def.requirement; break;
             }
 
             if (meetsRequirement) {

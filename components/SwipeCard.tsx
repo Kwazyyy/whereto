@@ -9,6 +9,7 @@ import {
     PanInfo,
 } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 import { Place, FriendSignal } from "@/lib/types";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import CommunityVibes from "./CommunityVibes";
@@ -552,6 +553,31 @@ export function SwipeCard({
                                     </p>
                                 </div>
                             </div>
+                            {/* Community Photos link */}
+                            <Link
+                                href={`/places/${place.placeId}/photos`}
+                                className="mt-4 flex items-center gap-3 p-3.5 rounded-xl bg-gray-50 dark:bg-[#1C2128] hover:bg-gray-100 dark:hover:bg-[#252D38] transition-colors"
+                                onClick={(e) => e.stopPropagation()}
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onPointerUp={(e) => e.stopPropagation()}
+                            >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                                    <circle cx="12" cy="13" r="4" />
+                                </svg>
+                                <span className="flex-1 text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">
+                                    Community Photos
+                                    {place.communityPhotoCount != null && place.communityPhotoCount > 0 ? (
+                                        <span className="text-gray-400 dark:text-gray-500 font-normal"> ({place.communityPhotoCount})</span>
+                                    ) : (
+                                        <span className="text-gray-400 dark:text-gray-500 font-normal text-xs"> — Be the first!</span>
+                                    )}
+                                </span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="m9 18 6-6-6-6" />
+                                </svg>
+                            </Link>
+
                             {/* Action Buttons — in scroll flow, clear nav bar */}
                             {/* onPointerDown/Up stopPropagation prevents the scroll container's tap-to-flip-back handler from firing when buttons are tapped */}
                             <div

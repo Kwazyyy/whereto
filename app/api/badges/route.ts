@@ -33,7 +33,10 @@ export async function GET() {
                 saves: stats.savesCount,
                 recommendations: stats.recommendationsSentCount,
                 streak: stats.currentStreak,
-                uniqueIntents: stats.allIntentsCount
+                uniqueIntents: stats.allIntentsCount,
+                approvedPhotos: stats.approvedPhotosCount,
+                maxPhotoLikes: stats.maxLikesOnSinglePhoto,
+                hasAllCategories: stats.hasAllCategoriesForAnyPlace,
             }
         });
     } catch (e) {

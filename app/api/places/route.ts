@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 const INTENT_QUERIES: Record<string, { primary: string; fallback: string }> = {
   study: { primary: "cafe wifi", fallback: "cafe" },
@@ -265,6 +266,26 @@ export async function GET(request: NextRequest) {
         const { distKm, ...rest } = place;
         return rest;
       });
+
+    // Enrich with community photo counts (non-blocking — fallback to 0)
+    try {
+      const googleIds = final.map((p) => p.placeId);
+      const photoCounts = await prisma.place.findMany({
+        where: { googlePlaceId: { in: googleIds } },
+        select: {
+          googlePlaceId: true,
+          _count: { select: { photos: { where: { status: "approved" } } } },
+        },
+      });
+      const countMap = new Map(
+        photoCounts.map((p) => [p.googlePlaceId, p._count.photos])
+      );
+      for (const place of final) {
+        (place as Record<string, unknown>).communityPhotoCount = countMap.get(place.placeId) ?? 0;
+      }
+    } catch {
+      // Silently fallback — don't break places if photo count query fails
+    }
 
     return NextResponse.json({ places: final });
   } catch (err) {

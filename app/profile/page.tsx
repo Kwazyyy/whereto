@@ -307,6 +307,155 @@ function EditIcon({ size = 14 }: { size?: number }) {
   );
 }
 
+/* ─── My Photos Section ─── */
+type MyPhoto = {
+  id: string;
+  cloudinaryUrl: string;
+  caption: string | null;
+  category: string;
+  status: string;
+  place: { id: string; name: string };
+  likeCount: number;
+};
+
+type MyPhotosStats = { total: number; approved: number; pending: number; featured: number };
+
+const CATEGORY_ICONS: Record<string, string> = {
+  food_drink: "🍽️",
+  vibe_interior: "✨",
+  seating_workspace: "💺",
+  exterior_entrance: "🏠",
+  special_features: "⭐",
+};
+
+const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
+  pending: { bg: "bg-amber-400/80", text: "text-amber-950", label: "Pending" },
+  approved: { bg: "bg-[#E85D2A]/90", text: "text-white", label: "Approved" },
+  featured: { bg: "bg-[#E85D2A]/90", text: "text-white", label: "Featured" },
+  archived: { bg: "bg-gray-400/70", text: "text-white", label: "Archived" },
+  rejected: { bg: "bg-red-500/80", text: "text-white", label: "Rejected" },
+};
+
+function MyPhotosSection() {
+  const [photos, setPhotos] = useState<MyPhoto[]>([]);
+  const [stats, setStats] = useState<MyPhotosStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/photos/me")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.photos) setPhotos(data.photos);
+        if (data.stats) setStats(data.stats);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div>
+        <div className="flex items-center gap-2 px-1 mb-3">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+            <circle cx="12" cy="13" r="4" />
+          </svg>
+          <h3 className="text-sm font-bold text-[#0E1116] dark:text-gray-200">My Photos</h3>
+        </div>
+        <div className="flex gap-3 overflow-hidden">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="w-[120px] md:w-[150px] shrink-0">
+              <div className="w-[120px] h-[120px] md:w-[150px] md:h-[150px] rounded-lg bg-gray-100 dark:bg-[#1C2128] animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 px-1 mb-3">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+          <circle cx="12" cy="13" r="4" />
+        </svg>
+        <h3 className="text-sm font-bold text-[#0E1116] dark:text-gray-200">My Photos</h3>
+        {stats && stats.total > 0 && (
+          <span className="px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-[10px] font-bold text-gray-500 dark:text-gray-400">
+            {stats.total}
+          </span>
+        )}
+      </div>
+
+      {photos.length === 0 ? (
+        <p className="text-xs text-gray-400 dark:text-gray-500 px-1">
+          No photos yet. Visit a place and share your experience!
+        </p>
+      ) : (
+        <>
+          <div
+            className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {photos.map((photo) => {
+              const st = STATUS_STYLES[photo.status] || STATUS_STYLES.pending;
+              return (
+                <Link
+                  key={photo.id}
+                  href={`/places/${photo.place.id}/photos`}
+                  className="shrink-0 snap-start block"
+                >
+                  <div className="relative w-[120px] h-[120px] md:w-[150px] md:h-[150px] rounded-lg overflow-hidden bg-gray-100 dark:bg-[#161B22] group">
+                    <Image
+                      src={photo.cloudinaryUrl}
+                      alt={photo.caption || "My photo"}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      sizes="150px"
+                    />
+                    {/* Category icon */}
+                    <span className="absolute top-1.5 left-1.5 w-6 h-6 rounded-md bg-black/40 backdrop-blur-sm flex items-center justify-center text-xs">
+                      {CATEGORY_ICONS[photo.category] || "📷"}
+                    </span>
+                    {/* Status badge */}
+                    <span className={`absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold ${st.bg} ${st.text} backdrop-blur-sm`}>
+                      {photo.status === "approved" && "✓ "}
+                      {st.label}
+                    </span>
+                  </div>
+                  {/* Place name + likes */}
+                  <div className="mt-1.5 w-[120px] md:w-[150px]">
+                    <p className="text-xs font-medium text-[#0E1116] dark:text-gray-300 truncate">
+                      {photo.place.name}
+                    </p>
+                    {photo.likeCount > 0 && (
+                      <p className="flex items-center gap-0.5 text-[10px] text-gray-400 mt-0.5">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="text-[#E85D2A]">
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                        {photo.likeCount}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+          {/* Stats summary */}
+          {stats && (
+            <p className="text-[11px] text-gray-400 dark:text-gray-500 px-1 mt-1">
+              {stats.approved > 0 && `${stats.approved} approved`}
+              {stats.approved > 0 && stats.pending > 0 && " · "}
+              {stats.pending > 0 && `${stats.pending} pending`}
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function BoardCardMini({ intent, label, items }: { intent: string, label: string, items: SavedPlace[] }) {
   const previewItem = items[0];
   const photoUrl = usePhotoUrl(previewItem?.photoRef ?? null);
@@ -756,6 +905,7 @@ export default function ProfilePage() {
           {session?.user && (
             <div className="mt-8 w-full max-w-sm mx-auto flex flex-col gap-6">
               {isCreator && <CreatorMyLists />}
+              <MyPhotosSection />
               <BadgesStats />
               <ExplorationStats />
               {isCreator && <CreatorDashboard />}

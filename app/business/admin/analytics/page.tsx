@@ -122,6 +122,7 @@ function AdminSubNav() {
   const tabs = [
     { href: "/business/admin", label: "Claims" },
     { href: "/business/admin/analytics", label: "Analytics" },
+    { href: "/business/admin/photos", label: "Photos" },
   ];
 
   return (

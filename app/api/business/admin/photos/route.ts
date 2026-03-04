@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { MAX_PHOTOS_PER_CATEGORY, PHOTO_AGE_LIMIT_DAYS } from "@/lib/photo-categories";
+import { checkAndAwardBadges } from "@/lib/checkBadges";
 
 // GET /api/business/admin/photos
 // Fetches photos for admin moderation review
@@ -107,8 +108,12 @@ export async function PATCH(req: NextRequest) {
             return NextResponse.json({ error: "Photo not found" }, { status: 404 });
         }
 
-        if (photo.status !== "pending") {
-            return NextResponse.json({ error: "Photo is not pending review" }, { status: 400 });
+        // Allow transitions: pending/rejected → approve, pending/approved → reject
+        if (action === "approve" && photo.status !== "pending" && photo.status !== "rejected") {
+            return NextResponse.json({ error: "Photo cannot be approved from this state" }, { status: 400 });
+        }
+        if (action === "reject" && photo.status !== "pending" && photo.status !== "approved") {
+            return NextResponse.json({ error: "Photo cannot be rejected from this state" }, { status: 400 });
         }
 
         // --- REJECT ---
@@ -195,6 +200,9 @@ export async function PATCH(req: NextRequest) {
             where: { id: photoId },
             data: { status: "approved" },
         });
+
+        // Check photo badges for the uploader (non-blocking)
+        checkAndAwardBadges(photo.userId).catch(() => {});
 
         return NextResponse.json({
             approved: {

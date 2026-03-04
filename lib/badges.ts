@@ -1,4 +1,4 @@
-export type BadgeCategory = "exploration" | "social" | "streak" | "collector";
+export type BadgeCategory = "exploration" | "social" | "streak" | "collector" | "photos";
 
 export interface BadgeDefinition {
     type: string;
@@ -37,4 +37,11 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     { type: "streak_3", name: "Getting Hooked", description: "Use WhereTo 3 days in a row", icon: "🔥", category: "streak", requirement: 3 },
     { type: "streak_7", name: "Weekly Regular", description: "Use WhereTo 7 days in a row", icon: "⚡", category: "streak", requirement: 7 },
     { type: "streak_30", name: "Devoted Explorer", description: "Use WhereTo 30 days in a row", icon: "💎", category: "streak", requirement: 30 },
+
+    // PHOTOS
+    { type: "first_snap", name: "First Snap", description: "Upload your first photo", icon: "📸", category: "photos", requirement: 1 },
+    { type: "shutterbug", name: "Shutterbug", description: "Get 10 photos approved", icon: "📷", category: "photos", requirement: 10 },
+    { type: "full_picture", name: "Full Picture", description: "Upload all 5 categories for one place", icon: "🎨", category: "photos", requirement: 5 },
+    { type: "crowd_favorite", name: "Crowd Favorite", description: "Get 10 likes on a single photo", icon: "❤️", category: "photos", requirement: 10 },
+    { type: "featured_contributor", name: "Featured Contributor", description: "Have 5+ photos featured in galleries", icon: "🌟", category: "photos", requirement: 5 },
 ];

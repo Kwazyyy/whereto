@@ -2,12 +2,23 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import PhotoGallery from "./PhotoGallery";
 
+async function findPlace(id: string) {
+    // Try by internal UUID first, then by Google Place ID
+    return (
+        (await prisma.place.findUnique({
+            where: { id },
+            select: { id: true, name: true, googlePlaceId: true },
+        })) ??
+        (await prisma.place.findFirst({
+            where: { googlePlaceId: id },
+            select: { id: true, name: true, googlePlaceId: true },
+        }))
+    );
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-    const place = await prisma.place.findUnique({
-        where: { id },
-        select: { name: true },
-    });
+    const place = await findPlace(id);
 
     if (!place) return { title: "Photos — WhereTo" };
 
@@ -19,11 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function PlacePhotosPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-
-    const place = await prisma.place.findUnique({
-        where: { id },
-        select: { id: true, name: true, googlePlaceId: true },
-    });
+    const place = await findPlace(id);
 
     if (!place) notFound();
 

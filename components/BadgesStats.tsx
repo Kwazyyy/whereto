@@ -26,6 +26,9 @@ interface BadgeProgress {
     recommendations: number;
     streak: number;
     uniqueIntents: number;
+    approvedPhotos: number;
+    maxPhotoLikes: number;
+    hasAllCategories: boolean;
 }
 
 interface BadgeDisplay {
@@ -95,6 +98,14 @@ export function BadgesStats() {
                         case "streak_7":
                         case "streak_30":
                             return data.progress.streak;
+                        case "first_snap":
+                        case "shutterbug":
+                        case "featured_contributor":
+                            return data.progress.approvedPhotos;
+                        case "full_picture":
+                            return data.progress.hasAllCategories ? 5 : 0;
+                        case "crowd_favorite":
+                            return data.progress.maxPhotoLikes;
                         default:
                             return 0;
                     }
@@ -216,6 +227,9 @@ export function BadgesStats() {
         if (def.type.includes("save")) return "places saved";
         if (def.type === "all_intents") return "intent categories";
         if (def.type.includes("streak")) return "day streak";
+        if (def.type === "first_snap" || def.type === "shutterbug" || def.type === "featured_contributor") return "photos approved";
+        if (def.type === "full_picture") return "categories covered";
+        if (def.type === "crowd_favorite") return "likes on best photo";
         return "";
     };
 

@@ -26,4 +26,6 @@ export interface Place {
   recommenderNote?: string | null;
   // Creator Signal
   creatorSignal?: { id: string; name: string; avatarUrl: string | null };
+  // Community photos
+  communityPhotoCount?: number;
 }
