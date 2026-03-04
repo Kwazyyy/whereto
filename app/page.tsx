@@ -87,6 +87,7 @@ export default function Home() {
   const [recommendations, setRecommendations] = useState<Place[]>([]);
   const [shareModalPlace, setShareModalPlace] = useState<{ placeId: string; name: string } | null>(null);
   const [visitedPlaceIds, setVisitedPlaceIds] = useState<Set<string>>(new Set());
+  const [visitData, setVisitData] = useState<Map<string, { count: number; lastVisitedAt: string }>>(new Map());
   const [celebrationPlace, setCelebrationPlace] = useState<{ placeId: string; name: string } | null>(null);
   const [photoPromptPlace, setPhotoPromptPlace] = useState<{ placeId: string; name: string } | null>(null);
 
@@ -126,8 +127,13 @@ export default function Home() {
     if (status !== "authenticated") return;
     fetch("/api/visits")
       .then(r => r.ok ? r.json() : [])
-      .then((data: { placeId: string }[]) => {
+      .then((data: { placeId: string; visitCount?: number; verifiedAt?: string }[]) => {
         setVisitedPlaceIds(new Set(data.map(v => v.placeId)));
+        const vd = new Map<string, { count: number; lastVisitedAt: string }>();
+        for (const v of data) {
+          vd.set(v.placeId, { count: v.visitCount ?? 1, lastVisitedAt: v.verifiedAt ?? "" });
+        }
+        setVisitData(vd);
       })
       .catch(() => { });
   }, [status]);
@@ -566,6 +572,8 @@ export default function Home() {
                   isTop={isTop}
                   isSaved={isSaved}
                   isVisited={visitedPlaceIds.has(place.placeId)}
+                  visitCount={visitData.get(place.placeId)?.count}
+                  lastVisitedAt={visitData.get(place.placeId)?.lastVisitedAt}
                   onAction={(action) => handleCardFlipAction(place, action)}
                   onShare={() => setShareModalPlace({ placeId: place.placeId, name: place.name })}
                   onAddPhotos={() => setPhotoPromptPlace({ placeId: place.placeId, name: place.name })}

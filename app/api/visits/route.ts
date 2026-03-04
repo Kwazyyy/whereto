@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { haversineMeters } from "@/lib/haversine";
+import { checkAndAwardBadges } from "@/lib/checkBadges";
 
 const MAX_DISTANCE_METERS = 200;
 
@@ -23,19 +24,34 @@ export async function GET() {
         orderBy: { verifiedAt: "desc" },
     });
 
-    const formatted = visits.map((v) => ({
-        visitId: v.id,
-        placeId: v.place.googlePlaceId,
-        name: v.place.name,
-        address: v.place.address,
-        lat: v.place.lat,
-        lng: v.place.lng,
-        photoRef: v.place.photoUrl,
-        rating: v.place.rating ?? 0,
-        price: priceLevelToPrice(v.place.priceLevel),
-        method: v.method,
-        verifiedAt: v.verifiedAt.toISOString(),
-    }));
+    // Count visits per place
+    const visitCounts = new Map<string, number>();
+    for (const v of visits) {
+        visitCounts.set(v.placeId, (visitCounts.get(v.placeId) || 0) + 1);
+    }
+
+    // Deduplicate: show each place once (most recent visit), with visitCount
+    const seen = new Set<string>();
+    const formatted = visits
+        .filter((v) => {
+            if (seen.has(v.placeId)) return false;
+            seen.add(v.placeId);
+            return true;
+        })
+        .map((v) => ({
+            visitId: v.id,
+            placeId: v.place.googlePlaceId,
+            name: v.place.name,
+            address: v.place.address,
+            lat: v.place.lat,
+            lng: v.place.lng,
+            photoRef: v.place.photoUrl,
+            rating: v.place.rating ?? 0,
+            price: priceLevelToPrice(v.place.priceLevel),
+            method: v.method,
+            verifiedAt: v.verifiedAt.toISOString(),
+            visitCount: visitCounts.get(v.placeId) || 1,
+        }));
 
     return NextResponse.json(formatted);
 }
@@ -78,25 +94,43 @@ export async function POST(req: NextRequest) {
         );
     }
 
-    // Upsert visit (unique per user+place)
-    const visit = await prisma.visit.upsert({
+    // Check cooldown: no duplicate visit to the same place within 1 hour
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const recentVisit = await prisma.visit.findFirst({
         where: {
-            userId_placeId: {
-                userId: session.user.id,
-                placeId: place.id,
-            },
+            userId: session.user.id,
+            placeId: place.id,
+            createdAt: { gt: oneHourAgo },
         },
-        update: { verifiedAt: new Date(), method },
-        create: {
+        orderBy: { createdAt: "desc" },
+    });
+
+    if (recentVisit) {
+        return NextResponse.json(
+            { error: "Already checked in within the last hour", nextAllowedAt: new Date(recentVisit.createdAt.getTime() + 60 * 60 * 1000).toISOString() },
+            { status: 429 }
+        );
+    }
+
+    const visit = await prisma.visit.create({
+        data: {
             userId: session.user.id,
             placeId: place.id,
             method,
         },
     });
 
+    const visitCount = await prisma.visit.count({
+        where: { userId: session.user.id, placeId: place.id },
+    });
+
+    // Check badges (non-blocking)
+    checkAndAwardBadges(session.user.id).catch(() => {});
+
     return NextResponse.json({
         visitId: visit.id,
         name: place.name,
         verifiedAt: visit.verifiedAt.toISOString(),
+        visitCount,
     });
 }

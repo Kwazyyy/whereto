@@ -13,6 +13,7 @@ export interface UserBadgeStats {
     approvedPhotosCount: number;
     maxLikesOnSinglePhoto: number;
     hasAllCategoriesForAnyPlace: boolean;
+    maxVisitsToSinglePlace: number;
 }
 
 export async function getUserBadgeStats(userId: string): Promise<UserBadgeStats> {
@@ -23,6 +24,15 @@ export async function getUserBadgeStats(userId: string): Promise<UserBadgeStats>
 
     const uniqueVisitedPlaceIds = new Set(visits.map(v => v.placeId));
     const visitedPlacesCount = uniqueVisitedPlaceIds.size;
+
+    // Count visits per place for "regular" badge
+    const visitsPerPlace = new Map<string, number>();
+    for (const v of visits) {
+        visitsPerPlace.set(v.placeId, (visitsPerPlace.get(v.placeId) || 0) + 1);
+    }
+    const maxVisitsToSinglePlace = visitsPerPlace.size > 0
+        ? Math.max(...visitsPerPlace.values())
+        : 0;
 
     const uniqueNeighborhoods = new Set<string>();
     visits.forEach(v => {
@@ -109,6 +119,7 @@ export async function getUserBadgeStats(userId: string): Promise<UserBadgeStats>
         approvedPhotosCount,
         maxLikesOnSinglePhoto,
         hasAllCategoriesForAnyPlace,
+        maxVisitsToSinglePlace,
     };
 }
 
@@ -134,6 +145,7 @@ export async function checkAndAwardBadges(userId: string): Promise<string[]> {
             approvedPhotosCount,
             maxLikesOnSinglePhoto,
             hasAllCategoriesForAnyPlace,
+            maxVisitsToSinglePlace,
         } = stats;
 
         // 3. Evaluate rules
@@ -175,6 +187,8 @@ export async function checkAndAwardBadges(userId: string): Promise<string[]> {
                 case "full_picture": meetsRequirement = hasAllCategoriesForAnyPlace; break;
                 case "crowd_favorite": meetsRequirement = maxLikesOnSinglePhoto >= def.requirement; break;
                 case "featured_contributor": meetsRequirement = approvedPhotosCount >= def.requirement; break;
+
+                case "regular": meetsRequirement = maxVisitsToSinglePlace >= def.requirement; break;
             }
 
             if (meetsRequirement) {

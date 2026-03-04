@@ -44,4 +44,7 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     { type: "full_picture", name: "Full Picture", description: "Upload all 5 categories for one place", icon: "🎨", category: "photos", requirement: 5 },
     { type: "crowd_favorite", name: "Crowd Favorite", description: "Get 10 likes on a single photo", icon: "❤️", category: "photos", requirement: 10 },
     { type: "featured_contributor", name: "Featured Contributor", description: "Have 5+ photos featured in galleries", icon: "🌟", category: "photos", requirement: 5 },
+
+    // LOYALTY
+    { type: "regular", name: "Regular", description: "Visit the same place 5 times", icon: "🏠", category: "exploration", requirement: 5 },
 ];

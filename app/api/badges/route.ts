@@ -37,6 +37,7 @@ export async function GET() {
                 approvedPhotos: stats.approvedPhotosCount,
                 maxPhotoLikes: stats.maxLikesOnSinglePhoto,
                 hasAllCategories: stats.hasAllCategoriesForAnyPlace,
+                maxVisitsToPlace: stats.maxVisitsToSinglePlace,
             }
         });
     } catch (e) {

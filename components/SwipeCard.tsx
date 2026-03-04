@@ -87,6 +87,8 @@ export function SwipeCard({
     isTop,
     isSaved,
     isVisited,
+    visitCount,
+    lastVisitedAt,
     onAction,
     onShare,
     onAddPhotos,
@@ -98,6 +100,8 @@ export function SwipeCard({
     isTop: boolean;
     isSaved: boolean;
     isVisited?: boolean;
+    visitCount?: number;
+    lastVisitedAt?: string;
     onAction: (action: "save" | "go_now") => void;
     onShare?: () => void;
     onAddPhotos?: () => void;
@@ -274,9 +278,17 @@ export function SwipeCard({
                     )}
 
                     {isVisited && (
-                        <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-green-600/90 backdrop-blur-sm pointer-events-none shadow-lg">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-                            <span className="text-white text-[11px] font-semibold leading-none">Visited</span>
+                        <div className="absolute top-4 right-4 z-20 flex flex-col items-end gap-1.5 pointer-events-none">
+                            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-green-600/90 backdrop-blur-sm shadow-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                                <span className="text-white text-[11px] font-semibold leading-none">Visited</span>
+                            </div>
+                            {visitCount != null && visitCount >= 2 && (
+                                <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-black/50 backdrop-blur-sm">
+                                    <span className="text-[10px]">🏠</span>
+                                    <span className="text-white text-[10px] font-bold leading-none">x{visitCount}</span>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -482,6 +494,23 @@ export function SwipeCard({
 
                             {place.address && (
                                 <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">{place.address}</p>
+                            )}
+
+                            {/* Visit history */}
+                            {visitCount != null && visitCount >= 1 && (
+                                <div className="mt-4 flex items-center gap-3 p-3.5 rounded-xl bg-gray-50 dark:bg-[#1C2128]">
+                                    <span className="text-lg">🏠</span>
+                                    <div>
+                                        <p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">
+                                            You&apos;ve visited {visitCount} {visitCount === 1 ? "time" : "times"}
+                                        </p>
+                                        {lastVisitedAt && (
+                                            <p className="text-xs text-gray-400 dark:text-gray-500">
+                                                Last visit: {new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(lastVisitedAt))}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
                             )}
 
                             <CommunityVibes placeId={place.placeId} limit={5} />

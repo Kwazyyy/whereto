@@ -17,6 +17,7 @@ import { CreatorDashboard } from "@/components/CreatorDashboard";
 import { type Friend } from "@/components/CompatibilityDrawer";
 import { FriendsListModal } from "@/components/FriendsListModal";
 import { CreatorMyLists } from "@/components/CreatorMyLists";
+import { VisitStatsSection } from "@/components/VisitStatsSection";
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const INTENT_OPTIONS = [
@@ -906,6 +907,7 @@ export default function ProfilePage() {
             <div className="mt-8 w-full max-w-sm mx-auto flex flex-col gap-6">
               {isCreator && <CreatorMyLists />}
               <MyPhotosSection />
+              <VisitStatsSection />
               <BadgesStats />
               <ExplorationStats />
               {isCreator && <CreatorDashboard />}

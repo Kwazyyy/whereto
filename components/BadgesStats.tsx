@@ -29,6 +29,7 @@ interface BadgeProgress {
     approvedPhotos: number;
     maxPhotoLikes: number;
     hasAllCategories: boolean;
+    maxVisitsToPlace: number;
 }
 
 interface BadgeDisplay {
@@ -106,6 +107,8 @@ export function BadgesStats() {
                             return data.progress.hasAllCategories ? 5 : 0;
                         case "crowd_favorite":
                             return data.progress.maxPhotoLikes;
+                        case "regular":
+                            return data.progress.maxVisitsToPlace;
                         default:
                             return 0;
                     }
@@ -230,6 +233,7 @@ export function BadgesStats() {
         if (def.type === "first_snap" || def.type === "shutterbug" || def.type === "featured_contributor") return "photos approved";
         if (def.type === "full_picture") return "categories covered";
         if (def.type === "crowd_favorite") return "likes on best photo";
+        if (def.type === "regular") return "visits to one place";
         return "";
     };
 
