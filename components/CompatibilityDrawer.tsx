@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { motion } from "framer-motion";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import type { CompatibilityResult, SharedPlace } from "@/lib/tasteScore";
 
@@ -86,15 +87,32 @@ export function CompatibilityDrawer({
     onCompare: () => void;
 }) {
     return (
-        <div
-            className="fixed inset-0 z-40 flex items-end justify-center bg-black/40 backdrop-blur-[2px]"
+        <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             onClick={onClose}
         >
-            <div
-                className="w-full max-w-lg bg-white dark:bg-[#161B22] rounded-t-3xl px-6 pt-4 pb-28 max-h-[85dvh] overflow-y-auto"
+            <motion.div
+                className="w-[90%] max-w-[480px] bg-[#161B22] rounded-2xl p-6 border border-[#30363D] relative max-h-[85vh] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-5" />
+                {/* Close button */}
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 text-[#8B949E] hover:text-white transition-colors duration-200 cursor-pointer z-10"
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                    </svg>
+                </button>
 
                 <div className="flex items-center gap-3 mb-6">
                     <Avatar image={friend.image} name={friend.name} size={48} />
@@ -121,11 +139,11 @@ export function CompatibilityDrawer({
                         <div className="flex justify-center mb-6">
                             <div className="relative flex items-center justify-center w-28 h-28">
                                 <svg className="absolute inset-0" viewBox="0 0 110 110">
-                                    <circle cx="55" cy="55" r="48" fill="none" stroke="#F3F4F6" strokeWidth="8" className="dark:stroke-white/10" />
+                                    <circle cx="55" cy="55" r="48" fill="none" stroke="#30363D" strokeWidth="8" />
                                     <circle
                                         cx="55" cy="55" r="48"
                                         fill="none"
-                                        stroke={compat.score >= 80 ? "#22c55e" : compat.score >= 50 ? "#E85D2A" : "#9CA3AF"}
+                                        stroke="#E85D2A"
                                         strokeWidth="8"
                                         strokeLinecap="round"
                                         strokeDasharray={`${(compat.score / 100) * 301.6} 301.6`}
@@ -192,7 +210,7 @@ export function CompatibilityDrawer({
                         <span className="text-gray-400">→</span>
                     </button>
                 )}
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 }

@@ -6,14 +6,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePhotoUrl } from "@/lib/use-photo-url";
+import { useRouter } from "next/navigation";
 import { useSavePlace } from "@/lib/use-save-place";
 import PlaceDetailSheet from "@/components/PlaceDetailSheet";
-import { FriendCompareModal, CompareData } from "@/components/FriendCompareModal";
 import type { CompatibilityResult } from "@/lib/tasteScore";
 import type { Place } from "@/lib/types";
 import { Avatar, CompatibilityDrawer, scoreBadgeClass, type Friend } from "@/components/CompatibilityDrawer";
 import { AddFriendModal } from "@/components/AddFriendModal";
 import { FriendsListModal } from "@/components/FriendsListModal";
+import { useToast } from "@/components/Toast";
 import { relativeTime } from "@/lib/utils/time";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -95,7 +96,7 @@ interface MatchItem {
 function ActivityPlaceThumbnail({ photoRef }: { photoRef?: string | null }) {
   const url = usePhotoUrl(photoRef ?? null);
   return (
-    <div className="w-[60px] h-[60px] rounded-lg overflow-hidden shrink-0 bg-gray-100 dark:bg-[#1C2128] relative">
+    <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-gray-100 dark:bg-[#1C2128] relative">
       {url ? (
         <Image src={url} alt="" fill className="object-cover" unoptimized />
       ) : (
@@ -133,16 +134,16 @@ function ActivityCard({ item, onTap, index }: { item: ActivityItem; onTap: (p: P
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.05 }}
-        className="bg-white dark:bg-[#161B22] rounded-xl p-4 border border-gray-100 dark:border-gray-800 cursor-pointer hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
+        className="bg-white dark:bg-[#161B22] rounded-xl p-4 border border-gray-100 dark:border-[#30363D] cursor-pointer hover:border-gray-300 dark:hover:border-gray-500 transition-colors mb-3"
         onClick={() => (isSingle ? onTap(p) : setExpanded((e) => !e))}
       >
         <div className="flex items-start gap-3">
-          <Avatar image={item.actorImage} name={item.actorName} size={32} />
+          <Avatar image={item.actorImage} name={item.actorName} size={40} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap leading-none mb-1">
               <span className="font-bold text-[#0E1116] dark:text-[#e8edf4] text-sm">{item.actorName}</span>
               {username && <span className="text-xs text-gray-400 dark:text-gray-500">{username}</span>}
-              <span className="text-[11px] text-gray-300 dark:text-gray-600 ml-1">{relativeTime(item.createdAt)}</span>
+              <span className="text-xs text-[#8B949E] ml-1">{relativeTime(item.createdAt)}</span>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 flex items-center gap-1.5 line-clamp-1">
               <span className="text-base leading-none">🔖</span> {firstName} saved {isSingle ? p.name : `${count} places`}
@@ -179,7 +180,7 @@ function ActivityCard({ item, onTap, index }: { item: ActivityItem; onTap: (p: P
         </div>
 
         {expanded && !isSingle && (
-          <div className="mt-3 ml-11 border-l-2 border-gray-100 dark:border-gray-800 pl-3 space-y-3">
+          <div className="mt-3 ml-[52px] border-l-2 border-gray-100 dark:border-[#30363D] pl-3 space-y-3">
             {item.places.map((place) => (
               <div key={place.placeId} onClick={(e) => { e.stopPropagation(); onTap(place); }} className="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-white/5 p-1.5 -ml-1.5 rounded-lg cursor-pointer transition-colors">
                 <ActivityPlaceThumbnail photoRef={place.photoRef} />
@@ -203,16 +204,16 @@ function ActivityCard({ item, onTap, index }: { item: ActivityItem; onTap: (p: P
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.05 }}
-        className="bg-white dark:bg-[#161B22] rounded-xl p-4 border border-gray-100 dark:border-gray-800 cursor-pointer hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
+        className="bg-white dark:bg-[#161B22] rounded-xl p-4 border border-gray-100 dark:border-[#30363D] cursor-pointer hover:border-gray-300 dark:hover:border-gray-500 transition-colors mb-3"
         onClick={() => onTap(p)}
       >
         <div className="flex items-start gap-3">
-          <Avatar image={item.actorImage} name={item.actorName} size={32} />
+          <Avatar image={item.actorImage} name={item.actorName} size={40} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap leading-none mb-1">
               <span className="font-bold text-[#0E1116] dark:text-[#e8edf4] text-sm">{item.actorName}</span>
               {username && <span className="text-xs text-gray-400 dark:text-gray-500">{username}</span>}
-              <span className="text-[11px] text-gray-300 dark:text-gray-600 ml-1">{relativeTime(item.createdAt)}</span>
+              <span className="text-xs text-[#8B949E] ml-1">{relativeTime(item.createdAt)}</span>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 flex items-center gap-1.5 line-clamp-1">
               <span className="text-base leading-none">💌</span> {firstName} sent a recommendation
@@ -243,7 +244,8 @@ function ActivityCard({ item, onTap, index }: { item: ActivityItem; onTap: (p: P
 
 export default function SocialPage() {
   const { data: session, status } = useSession();
-  const [tab, setTab] = useState<"feed" | "inbox">("feed");
+  const router = useRouter();
+  const [tab, setTab] = useState<"feed" | "friends" | "inbox">("feed");
   const [friends, setFriends] = useState<Friend[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [recs, setRecs] = useState<MissedRec[]>([]);
@@ -254,10 +256,9 @@ export default function SocialPage() {
   const [addFriendOpen, setAddFriendOpen] = useState(false);
   const [friendsListOpen, setFriendsListOpen] = useState(false);
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
-  const [selectedCompareFriend, setSelectedCompareFriend] = useState<string | null>(null);
-  const [compareData, setCompareData] = useState<CompareData | null>(null);
   const [detailPlace, setDetailPlace] = useState<PlaceShape | null>(null);
   const { handleSave } = useSavePlace();
+  const { showToast } = useToast();
 
   const fetchData = useCallback(async () => {
     try {
@@ -316,18 +317,6 @@ export default function SocialPage() {
     else if (status === "unauthenticated") setLoading(false);
   }, [status, fetchData]);
 
-  // Comparison Detail Fetcher
-  useEffect(() => {
-    if (!selectedCompareFriend) {
-      setCompareData(null);
-      return;
-    }
-    fetch(`/api/friends/${selectedCompareFriend}/exploration-compare`)
-      .then(res => res.ok ? res.json() : null)
-      .then(data => setCompareData(data))
-      .catch(() => { });
-  }, [selectedCompareFriend]);
-
   async function handleDismissRec(rec: MissedRec) {
     await fetch(`/api/recommendations/${rec.recommendationId}`, { method: "DELETE" });
     setRecs((prev) => prev.filter((r) => r.recommendationId !== rec.recommendationId));
@@ -336,6 +325,26 @@ export default function SocialPage() {
   async function handleSaveRec(rec: MissedRec) {
     await handleSave(rec.place, "trending", "save", rec.recommendationId);
     setRecs((prev) => prev.filter((r) => r.recommendationId !== rec.recommendationId));
+  }
+
+  const inviteUrl = `https://whereto-nu.vercel.app/invite?ref=${session?.user?.id ?? ""}`;
+  const inviteShareText = "Check out WhereTo \u2014 discover the best caf\u00e9s and restaurants near you!";
+
+  async function handleCopyInviteLink() {
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      showToast("Link copied!");
+    } catch {
+      showToast("Failed to copy");
+    }
+  }
+
+  function handleInviteWhatsApp() {
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${inviteShareText} ${inviteUrl}`)}`, "_blank");
+  }
+
+  function handleInviteTwitter() {
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${inviteShareText} ${inviteUrl}`)}`, "_blank");
   }
 
   const detailAsPlace: Place | null = detailPlace ? {
@@ -377,14 +386,14 @@ export default function SocialPage() {
 
   // Common UI Sections 
   const SidebarInbox = (
-    <div className="bg-white dark:bg-[#161B22] rounded-2xl border border-gray-100 dark:border-gray-800 p-5 mb-5 shadow-sm">
-      <div className="flex items-center gap-2 mb-4">
-        <h2 className="font-bold text-base text-[#0E1116] dark:text-[#e8edf4]">📬 Inbox</h2>
+    <div className="bg-white dark:bg-[#161B22] rounded-xl border border-gray-100 dark:border-[#30363D] p-4 mb-4">
+      <div className="flex items-center gap-2 mb-3">
+        <h2 className="font-semibold text-base text-[#0E1116] dark:text-[#e8edf4]">📬 Inbox</h2>
         {recs.length > 0 && <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{recs.length}</span>}
       </div>
 
       {recs.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400">No recommendations yet. Your friends can send you places they think you&apos;d love!</p>
+        <p className="text-sm text-[#8B949E]">No recommendations yet. Your friends can send you places they think you&apos;d love!</p>
       ) : (
         <div className="flex flex-col gap-4">
           {recs.slice(0, 5).map(rec => (
@@ -408,14 +417,14 @@ export default function SocialPage() {
   );
 
   const SidebarMatches = (
-    <div className="bg-white dark:bg-[#161B22] rounded-2xl border border-gray-100 dark:border-gray-800 p-5 mb-5 shadow-sm">
-      <div className="mb-4">
-        <h2 className="font-bold text-base text-[#0E1116] dark:text-[#e8edf4] flex items-center gap-1.5">🎯 It&apos;s a Match!</h2>
-        <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-0.5">Places you and your friends both saved</p>
+    <div className="bg-white dark:bg-[#161B22] rounded-xl border border-gray-100 dark:border-[#30363D] p-4 mb-4">
+      <div className="mb-3">
+        <h2 className="font-semibold text-base text-[#0E1116] dark:text-[#e8edf4] flex items-center gap-1.5">🎯 It&apos;s a Match!</h2>
+        <p className="text-sm text-[#8B949E] mt-0.5">Places you and your friends both saved</p>
       </div>
 
       {matches.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400">Save more places to discover matches with friends!</p>
+        <p className="text-sm text-[#8B949E]">Save more places to discover matches with friends!</p>
       ) : (
         <div className="flex flex-col gap-4">
           {matches.slice(0, 5).map(m => {
@@ -449,28 +458,39 @@ export default function SocialPage() {
   );
 
   const SidebarFriends = (
-    <div className="bg-white dark:bg-[#161B22] rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-bold text-base text-[#0E1116] dark:text-[#e8edf4]">Friends <span className="text-gray-400 text-sm ml-1">{friends.length}</span></h2>
-        {friends.length > 0 && (
-          <button onClick={() => setFriendsListOpen(true)} className="text-xs font-semibold text-[#E85D2A] hover:underline">See all</button>
-        )}
+    <div className="bg-white dark:bg-[#161B22] rounded-xl border border-gray-100 dark:border-[#30363D] p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="font-semibold text-base text-[#0E1116] dark:text-[#e8edf4]">Friends <span className="text-[#8B949E] text-sm ml-1">{friends.length}</span></h2>
+        <div className="flex items-center gap-3">
+          {friends.length > 0 && (
+            <button onClick={() => setFriendsListOpen(true)} className="text-sm font-medium text-[#8B949E] cursor-pointer hover:text-[#E85D2A] transition-colors duration-200">See all</button>
+          )}
+          <button onClick={() => setAddFriendOpen(true)} className="text-sm font-medium text-[#8B949E] cursor-pointer hover:text-[#E85D2A] transition-colors duration-200">Add</button>
+        </div>
       </div>
 
       {friends.length === 0 ? (
         <button onClick={() => setAddFriendOpen(true)} className="w-full py-2 bg-gray-100 dark:bg-white/10 rounded-lg text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">Add Friend</button>
       ) : (
-        <div className="flex -space-x-3 overflow-visible">
-          {friends.slice(0, 7).map(f => (
-            <div key={f.userId} onClick={() => setSelectedFriend(f)} className="relative ring-2 ring-white dark:ring-[#161B22] rounded-full cursor-pointer hover:z-10 hover:-translate-y-1 transition-transform">
-              <Avatar image={f.image} name={f.name} size={36} />
-            </div>
-          ))}
-          {friends.length > 7 && (
-            <div onClick={() => setFriendsListOpen(true)} className="relative w-9 h-9 rounded-full ring-2 ring-white dark:ring-[#161B22] bg-gray-100 dark:bg-white/10 flex items-center justify-center text-xs font-bold cursor-pointer z-0">
-              +{friends.length - 7}
-            </div>
-          )}
+        <div className="flex flex-col">
+          {friends.slice(0, 5).map(f => {
+            const score = f.compatibility?.score;
+            return (
+              <div
+                key={f.userId}
+                onClick={() => setSelectedFriend(f)}
+                className="flex items-center gap-3 py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1C2128] rounded-lg px-2 transition-colors"
+              >
+                <Avatar image={f.image} name={f.name} size={40} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-[#0E1116] dark:text-[#C9D1D9] truncate">{f.name ?? f.email}</p>
+                </div>
+                {score != null && (
+                  <span className="text-xs text-[#E85D2A] font-semibold shrink-0">{score}% match</span>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -480,11 +500,8 @@ export default function SocialPage() {
     <div className="min-h-dvh bg-gray-50 dark:bg-[#0E1116] pb-24">
       {/* ── DESKTOP LAYOUT (>=1024px) ── */}
       <div className="hidden lg:block max-w-6xl mx-auto px-6 pt-5">
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6">
           <h1 className="text-2xl font-extrabold tracking-tight text-[#E85D2A]">Social</h1>
-          <button onClick={() => setAddFriendOpen(true)} className="bg-[#E85D2A] text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-[#d65222] transition-colors shadow-sm">
-            Add Friend
-          </button>
         </div>
 
         <div className="flex gap-8 items-start">
@@ -492,7 +509,7 @@ export default function SocialPage() {
           <div className="w-[65%] flex flex-col gap-3 pb-10">
             <AnimatePresence mode="popLayout">
               {activity.length === 0 ? (
-                <div className="bg-white dark:bg-[#161B22] border border-gray-100 dark:border-gray-800 rounded-2xl p-12 text-center">
+                <div className="bg-white dark:bg-[#161B22] border border-gray-100 dark:border-[#30363D] rounded-xl p-12 text-center">
                   <div className="text-4xl mb-4">🌍</div>
                   <h3 className="text-lg font-bold text-[#0E1116] dark:text-[#e8edf4]">No activity yet</h3>
                   <p className="text-sm text-gray-500 mt-2">Add friends to see what places they are discovering!</p>
@@ -514,34 +531,26 @@ export default function SocialPage() {
 
       {/* ── MOBILE LAYOUT (<1024px) ── */}
       <div className="lg:hidden">
-        <header className="px-5 pt-5 pb-3 flex items-center justify-between">
+        <header className="px-5 pt-5 pb-3">
           <h1 className="text-2xl font-extrabold tracking-tight text-[#E85D2A]">Social</h1>
-          {tab === "feed" && (
-            <button onClick={() => setAddFriendOpen(true)} className="text-sm font-semibold text-[#E85D2A] bg-[#E85D2A]/10 px-4 py-2 rounded-full">
-              Add Friend
-            </button>
-          )}
         </header>
 
-        <div className="px-5 mb-4 flex gap-1">
-          <button
-            onClick={() => setTab("feed")}
-            className={`flex-1 py-2.5 text-sm font-semibold rounded-xl transition-colors ${tab === "feed" ? "bg-[#E85D2A] text-white shadow-sm" : "bg-gray-200/50 dark:bg-white/10 text-gray-500 dark:text-gray-400"}`}
-          >
-            Feed
-          </button>
-          <button
-            onClick={() => setTab("inbox")}
-            className={`flex-1 py-2.5 text-sm font-semibold rounded-xl transition-colors relative ${tab === "inbox" ? "bg-[#E85D2A] text-white shadow-sm" : "bg-gray-200/50 dark:bg-white/10 text-gray-500 dark:text-gray-400"}`}
-          >
-            Inbox
-            {recs.length > 0 && <span className="absolute top-2 right-4 w-2 h-2 rounded-full bg-red-500" />}
-          </button>
+        <div className="px-4 mb-4 flex gap-2">
+          {(["feed", "friends", "inbox"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`flex-1 py-2.5 text-sm rounded-full cursor-pointer transition-colors relative ${tab === t ? "bg-[#E85D2A] text-white font-semibold" : "bg-[#161B22] text-[#8B949E] border border-[#30363D] font-medium"}`}
+            >
+              {t === "feed" ? "Feed" : t === "friends" ? "Friends" : "Inbox"}
+              {t === "inbox" && recs.length > 0 && <span className="absolute top-2 right-3 w-2 h-2 rounded-full bg-red-500" />}
+            </button>
+          ))}
         </div>
 
         <div className="px-5 pb-10">
           <AnimatePresence mode="wait">
-            {tab === "feed" ? (
+            {tab === "feed" && (
               <motion.div key="feed" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="flex flex-col gap-3">
                 {activity.length === 0 ? (
                   <div className="text-center py-20 px-4">
@@ -553,11 +562,92 @@ export default function SocialPage() {
                   activity.map((item, idx) => <ActivityCard key={item.id} item={item} onTap={setDetailPlace} index={idx} />)
                 )}
               </motion.div>
-            ) : (
+            )}
+
+            {tab === "friends" && (
+              <motion.div key="friends" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} className="flex flex-col gap-4">
+                {/* Add Friend button */}
+                <button
+                  onClick={() => setAddFriendOpen(true)}
+                  className="w-full border border-[#E85D2A] text-[#E85D2A] rounded-xl px-4 py-2.5 font-semibold text-sm cursor-pointer hover:bg-[#E85D2A]/10 transition-colors"
+                >
+                  Add Friend
+                </button>
+
+                {/* Friends List */}
+                <div className="bg-white dark:bg-[#161B22] rounded-xl border border-gray-100 dark:border-[#30363D] p-4">
+                  <h2 className="font-semibold text-base text-[#0E1116] dark:text-[#e8edf4] mb-3">
+                    Friends <span className="text-[#8B949E] text-sm ml-1">{friends.length}</span>
+                  </h2>
+                  {friends.length === 0 ? (
+                    <p className="text-sm text-[#8B949E]">No friends yet. Add friends to see what they&apos;re saving!</p>
+                  ) : (
+                    <div className="flex flex-col">
+                      {friends.map(f => {
+                        const score = f.compatibility?.score;
+                        return (
+                          <div
+                            key={f.userId}
+                            onClick={() => setSelectedFriend(f)}
+                            className="flex items-center gap-3 py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1C2128] rounded-lg px-2 transition-colors"
+                          >
+                            <Avatar image={f.image} name={f.name} size={40} />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-[#0E1116] dark:text-[#C9D1D9] truncate">{f.name ?? f.email}</p>
+                            </div>
+                            {score != null && (
+                              <span className="text-xs text-[#E85D2A] font-semibold shrink-0">{score}% match</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* It's a Match! */}
+                {SidebarMatches}
+
+                {/* Invite Friends */}
+                <div className="bg-white dark:bg-[#161B22] rounded-xl border border-gray-100 dark:border-[#30363D] p-4">
+                  <p className="text-sm font-semibold text-[#0E1116] dark:text-[#C9D1D9] mb-3">Invite Friends</p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleCopyInviteLink}
+                      className="flex-1 flex flex-col items-center gap-2 py-3 rounded-xl border border-gray-200 dark:border-[#30363D] hover:border-[#E85D2A] cursor-pointer transition-colors duration-200"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#8B949E]">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                      </svg>
+                      <span className="text-xs text-[#8B949E]">Copy Link</span>
+                    </button>
+                    <button
+                      onClick={handleInviteWhatsApp}
+                      className="flex-1 flex flex-col items-center gap-2 py-3 rounded-xl border border-gray-200 dark:border-[#30363D] hover:border-[#E85D2A] cursor-pointer transition-colors duration-200"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-[#8B949E]">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                      </svg>
+                      <span className="text-xs text-[#8B949E]">WhatsApp</span>
+                    </button>
+                    <button
+                      onClick={handleInviteTwitter}
+                      className="flex-1 flex flex-col items-center gap-2 py-3 rounded-xl border border-gray-200 dark:border-[#30363D] hover:border-[#E85D2A] cursor-pointer transition-colors duration-200"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-[#8B949E]">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                      </svg>
+                      <span className="text-xs text-[#8B949E]">X / Twitter</span>
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {tab === "inbox" && (
               <motion.div key="inbox" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
                 {SidebarInbox}
-                {SidebarMatches}
-                {SidebarFriends}
               </motion.div>
             )}
           </AnimatePresence>
@@ -582,12 +672,8 @@ export default function SocialPage() {
           friend={selectedFriend}
           compat={selectedFriend.compatibility}
           onClose={() => setSelectedFriend(null)}
-          onCompare={() => { setSelectedFriend(null); setSelectedCompareFriend(selectedFriend.userId); }}
+          onCompare={() => { setSelectedFriend(null); router.push(`/social/compare/${selectedFriend.userId}`); }}
         />
-      )}
-
-      {selectedCompareFriend && compareData && (
-        <FriendCompareModal data={compareData} onClose={() => { setSelectedCompareFriend(null); setCompareData(null); }} />
       )}
 
       {addFriendOpen && <AddFriendModal onClose={() => setAddFriendOpen(false)} onSent={fetchData} />}
