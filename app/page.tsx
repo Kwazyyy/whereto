@@ -440,7 +440,7 @@ export default function Home() {
     <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-16 lg:pb-0">
       {/* Counter */}
       {!loading && !allDone && visiblePlaces.length > 0 && (
-        <div className="shrink-0 px-5 pt-3 pb-1 flex justify-end">
+        <div className="shrink-0 px-5 pt-3 pb-1 flex justify-end lg:max-w-[540px] lg:mx-auto lg:w-full">
           <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">
             {visiblePlaces.length} left
           </span>
@@ -451,7 +451,7 @@ export default function Home() {
       <div className="shrink-0 px-5 py-3 pt-1">
         <div
           ref={chipScrollRef}
-          className="flex gap-2 overflow-x-auto scrollbar-none pb-2 snap-x snap-mandatory"
+          className="flex gap-2 overflow-x-auto scrollbar-none pb-2 snap-x snap-mandatory lg:justify-center lg:flex-wrap"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
         >
           {categories.map((cat) => (
@@ -476,7 +476,7 @@ export default function Home() {
 
       {/* Loading State */}
       {(loading || !userLocation) ? (
-        <div className="flex-1 relative px-4 pb-4">
+        <div className="flex-1 relative px-4 pb-4 lg:max-w-[540px] lg:mx-auto lg:w-full">
           <div className="w-full h-full rounded-3xl bg-gray-100 dark:bg-[#161B22]/60 animate-pulse shadow-xl flex flex-col justify-end p-6 border border-gray-200/50 dark:border-white/5">
             <div className="w-2/3 h-8 bg-gray-200 dark:bg-white/10 rounded-xl mb-3"></div>
             <div className="w-1/2 h-4 bg-gray-200 dark:bg-white/10 rounded-lg mb-4"></div>
@@ -550,7 +550,7 @@ export default function Home() {
           )}
         </motion.div>
       ) : (
-        <div className="flex-1 relative">
+        <div className="flex-1 relative lg:max-w-[540px] lg:mx-auto lg:w-full lg:max-h-[calc(100vh-100px)]">
           <AnimatePresence>
             {visiblePlaces.slice(0, 3).reverse().map((place, i, arr) => {
               const isTop = i === arr.length - 1;

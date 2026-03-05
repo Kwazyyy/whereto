@@ -644,9 +644,9 @@ export function SwipeCard({
                             >
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onAction("save"); }}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 font-semibold text-sm transition-colors cursor-pointer ${isSaved
-                                        ? "border-[#E85D2A] text-[#E85D2A] bg-orange-50 dark:bg-[#E85D2A]/10"
-                                        : "border-gray-200 dark:border-white/15 text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-white/5"
+                                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-colors cursor-pointer ${isSaved
+                                        ? "border border-[#E85D2A] bg-[#E85D2A]/10 text-[#E85D2A]"
+                                        : "border border-[#30363D] bg-transparent text-[#C9D1D9] hover:border-[#E85D2A]"
                                         }`}
                                 >
                                     <svg
@@ -666,14 +666,14 @@ export function SwipeCard({
                                 </button>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onAction("go_now"); }}
-                                    className="flex-[2] flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-[#E85D2A] text-white font-bold text-sm shadow-lg shadow-[#E85D2A]/30 hover:bg-[#d04e1f] active:scale-[0.98] transition-all cursor-pointer"
+                                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#E85D2A] hover:bg-[#D14E1F] text-white font-semibold text-sm transition-colors cursor-pointer"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11" /></svg>
                                     Go Now
                                 </button>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); if (onShare) onShare(); }}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-gray-200 dark:border-white/15 text-[#0E1116] dark:text-[#e8edf4] font-semibold text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer">
+                                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-[#30363D] bg-transparent text-[#C9D1D9] hover:border-[#E85D2A] font-semibold text-sm transition-colors cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" x2="12" y1="2" y2="15" /></svg>
                                     Share
                                 </button>
