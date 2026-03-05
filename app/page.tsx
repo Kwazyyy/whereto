@@ -437,20 +437,15 @@ export default function Home() {
   }
 
   return (
-    <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-16">
-      {/* Header */}
-      <header className="shrink-0 px-5 pt-5 pb-2">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: "#E85D2A" }}>
-            WhereTo
-          </h1>
-          {!loading && !allDone && visiblePlaces.length > 0 && (
-            <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">
-              {visiblePlaces.length} left
-            </span>
-          )}
+    <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-16 lg:pb-0">
+      {/* Counter */}
+      {!loading && !allDone && visiblePlaces.length > 0 && (
+        <div className="shrink-0 px-5 pt-3 pb-1 flex justify-end">
+          <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">
+            {visiblePlaces.length} left
+          </span>
         </div>
-      </header>
+      )}
 
       {/* Intent Chips */}
       <div className="shrink-0 px-5 py-3 pt-1">

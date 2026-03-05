@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
+import AppShell from "@/components/layout/AppShell";
 import Providers from "@/components/Providers";
 import { ToastProvider } from "@/components/Toast";
 import ThemeProvider from "@/components/ThemeProvider";
@@ -47,7 +48,9 @@ export default function RootLayout({
               <NeighborhoodRevealProvider>
                 <BadgeProvider>
                   <VibeVotingProvider>
-                    {children}
+                    <AppShell>
+                      {children}
+                    </AppShell>
                     <BottomNav />
                   </VibeVotingProvider>
                 </BadgeProvider>

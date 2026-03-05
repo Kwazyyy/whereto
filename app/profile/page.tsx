@@ -765,7 +765,7 @@ export default function ProfilePage() {
 
   if (status === "loading") {
     return (
-      <div className="h-dvh bg-white dark:bg-[#0E1116] flex items-center justify-center pb-16">
+      <div className="h-dvh bg-white dark:bg-[#0E1116] flex items-center justify-center pb-16 lg:pb-0">
         <div
           className="w-8 h-8 rounded-full border-3 border-t-transparent animate-spin"
           style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}

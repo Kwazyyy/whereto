@@ -592,7 +592,7 @@ export default function MapPage() {
   );
 
   return (
-    <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-16">
+    <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-16 lg:pb-0">
       {/* Intent chips */}
       <div
         className="shrink-0 px-5 py-3 border-b border-gray-100 dark:border-white/10"
