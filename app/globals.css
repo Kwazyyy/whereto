@@ -36,11 +36,13 @@ body {
 }
 
 /* Utilities */
-.scrollbar-none::-webkit-scrollbar {
+.scrollbar-none::-webkit-scrollbar,
+.hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
 
-.scrollbar-none {
+.scrollbar-none,
+.hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }

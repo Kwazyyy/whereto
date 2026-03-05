@@ -113,11 +113,11 @@ export function CreatorMyLists() {
             </div>
 
             {lists.length === 0 ? (
-                <div className="bg-gray-50 dark:bg-[#161B22] border border-gray-100 dark:border-white/5 rounded-2xl p-6 text-center">
-                    <p className="text-sm text-gray-500 font-medium mb-3">You haven&apos;t created any lists yet.</p>
+                <div className="bg-gray-50 dark:bg-[#161B22] border border-gray-100 dark:border-white/5 rounded-xl p-4 text-center">
+                    <p className="text-sm text-gray-500 font-medium mb-2">You haven&apos;t created any lists yet.</p>
                     <button
                         onClick={() => setCreateSheetOpen(true)}
-                        className="bg-[#0E1116] dark:bg-white text-white dark:text-[#0E1116] px-4 py-2 rounded-lg text-sm font-bold"
+                        className="bg-[#E85D2A] hover:bg-[#D14E1F] text-white font-semibold px-6 py-2.5 rounded-lg transition-colors duration-200 cursor-pointer text-sm"
                     >
                         Create your first list
                     </button>
@@ -156,9 +156,8 @@ export function CreatorMyLists() {
                         </div>
                     ))}
 
-                    <button onClick={() => setCreateSheetOpen(true)} className="flex border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl p-4 items-center justify-center gap-2 hover:bg-gray-50 dark:hover:bg-[#1C2128] transition-colors cursor-pointer text-gray-500 font-bold mt-2 h-[88px]">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
-                        New List
+                    <button onClick={() => setCreateSheetOpen(true)} className="border border-dashed border-gray-200 dark:border-[#30363D] hover:border-[#E85D2A] rounded-lg py-3 px-4 text-sm text-[#8B949E] hover:text-[#E85D2A] transition-colors duration-200 cursor-pointer w-full text-center mt-2">
+                        + New List
                     </button>
                 </div>
             )}

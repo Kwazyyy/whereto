@@ -361,7 +361,7 @@ function MyPhotosSection() {
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
             <circle cx="12" cy="13" r="4" />
           </svg>
-          <h3 className="text-sm font-bold text-[#0E1116] dark:text-gray-200">My Photos</h3>
+          <h3 className="text-lg font-semibold text-[#0E1116] dark:text-gray-200">My Photos</h3>
         </div>
         <div className="flex gap-3 overflow-hidden">
           {[0, 1, 2].map((i) => (
@@ -381,7 +381,7 @@ function MyPhotosSection() {
           <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
           <circle cx="12" cy="13" r="4" />
         </svg>
-        <h3 className="text-sm font-bold text-[#0E1116] dark:text-gray-200">My Photos</h3>
+        <h3 className="text-lg font-semibold text-[#0E1116] dark:text-gray-200">My Photos</h3>
         {stats && stats.total > 0 && (
           <span className="px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-[10px] font-bold text-gray-500 dark:text-gray-400">
             {stats.total}
@@ -391,7 +391,7 @@ function MyPhotosSection() {
 
       {photos.length === 0 ? (
         <p className="text-xs text-gray-400 dark:text-gray-500 px-1">
-          No photos yet. Visit a place and share your experience!
+          Share photos of places you&apos;ve visited
         </p>
       ) : (
         <>
@@ -453,6 +453,73 @@ function MyPhotosSection() {
           )}
         </>
       )}
+    </div>
+  );
+}
+
+/* ─── Taste Score Card ─── */
+type TasteScoreData = {
+  score: number;
+  topIntents: { id: string; name: string; percentage: number }[];
+  totalSaves: number;
+  totalCategories: number;
+};
+
+const SCORE_LABELS: [number, string, string][] = [
+  [80, "Eclectic Explorer", "\u{1F30D}"],
+  [60, "Adventurous Taster", "\u{1F525}"],
+  [40, "Curious Diner", "\u{2728}"],
+  [20, "Finding Your Vibe", "\u{1F331}"],
+  [0, "Just Getting Started", "\u{1F44B}"],
+];
+
+function getScoreLabel(score: number): { label: string; emoji: string } {
+  for (const [threshold, label, emoji] of SCORE_LABELS) {
+    if (score >= threshold) return { label, emoji };
+  }
+  return { label: "Just Getting Started", emoji: "\u{1F44B}" };
+}
+
+function TasteScoreCard() {
+  const [data, setData] = useState<TasteScoreData | null>(null);
+
+  useEffect(() => {
+    fetch("/api/profile/taste-score")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: TasteScoreData | null) => { if (d) setData(d); })
+      .catch(() => {});
+  }, []);
+
+  if (!data || data.totalSaves === 0) return null;
+
+  const { label, emoji } = getScoreLabel(data.score);
+
+  return (
+    <div className="bg-white dark:bg-[#161B22] rounded-xl p-5 border border-[#D0D7DE] dark:border-[#30363D] h-full">
+      <div className="flex gap-5">
+        {/* Left: Score */}
+        <div className="flex flex-col items-center justify-center min-w-[90px]">
+          <span className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider">Taste Score</span>
+          <span className="text-4xl font-bold text-[#E85D2A] mt-1">{data.score}</span>
+          <span className="text-sm text-[#8B949E] mt-0.5">{emoji} {label}</span>
+        </div>
+
+        {/* Right: Intent breakdown bars */}
+        <div className="flex-1 min-w-0 flex flex-col gap-2.5 justify-center">
+          {data.topIntents.map((intent) => (
+            <div key={intent.id} className="flex items-center gap-2">
+              <span className="text-sm text-[#0E1116] dark:text-[#e8edf4] truncate w-32 shrink-0">{intent.name}</span>
+              <div className="flex-1 h-2 bg-gray-100 dark:bg-[#30363D] rounded-full overflow-hidden">
+                <div className="h-full bg-[#E85D2A] rounded-full transition-all duration-500" style={{ width: `${intent.percentage}%` }} />
+              </div>
+              <span className="text-sm text-[#8B949E] w-10 text-right shrink-0">{intent.percentage}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <p className="text-sm text-[#8B949E] mt-3 pt-3 border-t border-gray-100 dark:border-[#30363D]">
+        You&apos;ve saved {data.totalSaves} place{data.totalSaves !== 1 ? "s" : ""} across {data.totalCategories} categor{data.totalCategories !== 1 ? "ies" : "y"}
+      </p>
     </div>
   );
 }
@@ -775,23 +842,26 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24 md:pb-12 relative">
-      <div className="absolute top-6 right-6 z-20 hidden md:block">
+    <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24 lg:pb-6 relative">
+      {/* Gear icon — desktop lg:+ (hidden on xl: where settings column is visible) */}
+      <div className="absolute top-6 right-6 z-20 hidden lg:block xl:hidden">
         <button onClick={() => setSettingsOpen(true)} className="p-2 text-gray-400 hover:text-[#E85D2A] transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
         </button>
       </div>
-      <header className="px-5 pt-5 pb-1 h-16 md:hidden flex justify-end items-center">
+      {/* Gear icon — mobile header */}
+      <header className="px-5 pt-5 pb-1 h-16 lg:hidden flex justify-end items-center">
         <button onClick={() => setSettingsOpen(true)} className="p-2 -mr-2 text-gray-400 hover:text-[#E85D2A] transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
         </button>
       </header>
 
-      {/* Main Responsive Grid Layout */}
-      <div className="px-5 md:px-8 md:pt-12 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 w-full">
+      {/* Main Flex Layout: 1-col mobile, 2-col lg:, 3-col xl: */}
+      <div className="px-5 lg:px-6 lg:py-6 max-w-[1400px] mx-auto flex flex-col lg:flex-row gap-6 lg:gap-8">
 
-        {/* ── LEFT COLUMN (User Profile) ── */}
-        <div className="md:col-span-5 flex flex-col items-center text-center pt-2 pb-6 px-1">
+        {/* ── LEFT COLUMN: Profile Card ── */}
+        <div className="lg:w-[280px] lg:flex-shrink-0 lg:sticky lg:top-6 lg:self-start">
+          <div className="flex flex-col items-center text-center pt-2 pb-6 px-1">
           <div className="relative mb-4">
             {customAvatar || session?.user?.image ? (
               <Image
@@ -903,20 +973,16 @@ export default function ProfilePage() {
             </button>
           </div>
 
+          {/* Creator Dashboard — visible in left column on lg:+ only */}
           {session?.user && (
-            <div className="mt-8 w-full max-w-sm mx-auto flex flex-col gap-6">
-              {isCreator && <CreatorMyLists />}
-              <MyPhotosSection />
-              <VisitStatsSection />
-              <BadgesStats />
-              <ExplorationStats />
+            <div className="hidden lg:block mt-6 w-full">
               {isCreator && <CreatorDashboard />}
               {!isCreator && <ApplyCreatorForm />}
             </div>
           )}
 
           {!session?.user && (
-            <div className="mt-8 w-full max-w-sm mx-auto">
+            <div className="mt-8 w-full max-w-sm mx-auto lg:max-w-none">
               <button
                 onClick={() => signIn("google")}
                 className="flex items-center justify-center gap-3 w-full py-3.5 rounded-2xl bg-white dark:bg-[#161B22] border border-gray-200 dark:border-white/10 font-semibold text-sm text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#1C2128] transition-colors cursor-pointer shadow-sm"
@@ -931,18 +997,16 @@ export default function ProfilePage() {
               </button>
             </div>
           )}
+          </div>
         </div>
 
-        {/* ── RIGHT COLUMN (Settings & Content) ── */}
-        <div className="md:col-span-7 flex flex-col pb-8">
+        {/* ── MIDDLE COLUMN: Content ── */}
+        <div className="flex-1 min-w-0 flex flex-col gap-6">
 
-          {/* Recent Boards (Visible prominently here) */}
+          {/* Recent Boards — last on mobile, first on lg:+ */}
           {recentBoards.length > 0 && (
-            <div className="mb-8">
-              <div className="flex items-center justify-between px-1 mb-3">
-                <h3 className="text-sm font-bold text-[#0E1116] dark:text-gray-200">Recent Boards</h3>
-                <Link href="/boards" className="text-xs font-semibold text-[#E85D2A] hover:underline">See all</Link>
-              </div>
+            <div className="order-last lg:order-first">
+              <h3 className="text-lg font-semibold text-[#0E1116] dark:text-white mb-4">Recent Boards</h3>
               <div className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                 {recentBoards.map((board) => (
                   <BoardCardMini
@@ -956,24 +1020,111 @@ export default function ProfilePage() {
             </div>
           )}
 
+          {session?.user && (
+            <>
+              {/* Row 2: Badges (full width) */}
+              <div>
+                <BadgesStats />
+              </div>
 
+              {/* Row 3: Exploration + Taste Score — side by side */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="h-full"><ExplorationStats compact /></div>
+                <div className="h-full"><TasteScoreCard /></div>
+              </div>
 
+              {/* Row 4: My Lists (creator only) */}
+              {isCreator && (
+                <div>
+                  <CreatorMyLists />
+                </div>
+              )}
 
-          {/* Discovery Preferences (desktop right column) */}
-          <div className="hidden md:block mt-8 mb-4">
-            <SectionHeader title="Discovery Preferences" />
-            <SettingsCard>
-              <SelectRow label="Default Intent" options={INTENT_OPTIONS.map(o => ({ label: o.label, value: o.id }))} value={prefs.defaultIntent} onChange={v => updatePref("defaultIntent", v)} />
-              <SelectRow label="Default Distance" options={DISTANCE_OPTIONS} value={prefs.defaultDistance} onChange={v => updatePref("defaultDistance", Number(v))} />
-              <Row label="Auto-detect location"><Toggle checked={prefs.autoDetectLocation} onChange={v => updatePref("autoDetectLocation", v)} /></Row>
-              <SegmentedRow label="Theme" options={THEME_OPTIONS} value={prefs.theme} onChange={handleThemeChange} />
-            </SettingsCard>
+              {/* Row 5: My Photos + My Regular Spots — side by side */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div>
+                  <MyPhotosSection />
+                </div>
+                <div>
+                  <VisitStatsSection />
+                </div>
+              </div>
+
+              {/* Creator Dashboard — mobile only (shown in left column on lg:+) */}
+              <div className="lg:hidden">
+                {isCreator && <CreatorDashboard />}
+                {!isCreator && <ApplyCreatorForm />}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* ── RIGHT COLUMN: Settings (xl: only) ── */}
+        <div className="hidden xl:block w-[300px] flex-shrink-0 sticky top-6 self-start">
+          <div className="bg-white dark:bg-[#161B22] rounded-xl p-5 border border-[#D0D7DE] dark:border-[#30363D]">
+            {/* Discovery Preferences */}
+            <div className="border-b border-[#D0D7DE] dark:border-[#30363D] pb-4 mb-4">
+              <h4 className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider mb-3">Discovery Preferences</h4>
+              <SettingsCard>
+                <SelectRow label="Default Intent" options={INTENT_OPTIONS.map(o => ({ label: o.label, value: o.id }))} value={prefs.defaultIntent} onChange={v => updatePref("defaultIntent", v)} />
+                <SelectRow label="Default Distance" options={DISTANCE_OPTIONS} value={prefs.defaultDistance} onChange={v => updatePref("defaultDistance", Number(v))} />
+                <Row label="Auto-detect location"><Toggle checked={prefs.autoDetectLocation} onChange={v => updatePref("autoDetectLocation", v)} /></Row>
+                <SegmentedRow label="Theme" options={THEME_OPTIONS} value={prefs.theme} onChange={handleThemeChange} />
+              </SettingsCard>
+            </div>
+
+            {/* Account */}
+            <div className="border-b border-[#D0D7DE] dark:border-[#30363D] pb-4 mb-4">
+              <h4 className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider mb-3">Account</h4>
+              <div className="space-y-1">
+                {session?.user?.email && (
+                  <div className="flex items-center justify-between px-1 py-2">
+                    <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Email</span>
+                    <span className="text-sm text-[#8B949E] truncate max-w-[160px]">{session.user.email}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between px-1 py-2">
+                  <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Joined</span>
+                  <span className="text-sm text-[#8B949E]">{joinedDate ?? "—"}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* About */}
+            <div className="border-b border-[#D0D7DE] dark:border-[#30363D] pb-4 mb-4">
+              <h4 className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider mb-3">About</h4>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between px-1 py-2">
+                  <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">App Version</span>
+                  <span className="text-sm text-[#8B949E]">1.0.0 (Beta)</span>
+                </div>
+                <a href="mailto:hello@whereto.app?subject=WhereTo%20Feedback" className="flex items-center justify-between px-1 py-2 text-sm font-medium text-[#0E1116] dark:text-[#e8edf4] hover:bg-[#F6F8FA] dark:hover:bg-[#1C2128] rounded-lg transition-colors cursor-pointer">Send Feedback <ChevronRight /></a>
+                <Link href="/privacy" className="flex items-center justify-between px-1 py-2 text-sm font-medium text-[#0E1116] dark:text-[#e8edf4] hover:bg-[#F6F8FA] dark:hover:bg-[#1C2128] rounded-lg transition-colors cursor-pointer">Privacy Policy <ChevronRight /></Link>
+                <Link href="/terms" className="flex items-center justify-between px-1 py-2 text-sm font-medium text-[#0E1116] dark:text-[#e8edf4] hover:bg-[#F6F8FA] dark:hover:bg-[#1C2128] rounded-lg transition-colors cursor-pointer">Terms of Service <ChevronRight /></Link>
+              </div>
+            </div>
+
+            {/* Sign Out */}
+            {session?.user && (
+              <button onClick={() => signOut()} className="text-[#F85149] hover:bg-[#F85149]/10 w-full py-2 rounded-lg transition-colors text-sm font-semibold cursor-pointer">
+                Sign Out
+              </button>
+            )}
+
+            {/* Dev Tools — development only */}
+            {process.env.NODE_ENV === "development" && (
+              <div className="border-t border-[#D0D7DE] dark:border-[#30363D] pt-4 mt-4">
+                <h4 className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider mb-3">Dev Tools</h4>
+                <div className="space-y-1">
+                  <button onClick={() => triggerVibeVoting("dummy_place_id", "Test Cafe")} className="flex items-center justify-between px-1 py-2 w-full text-left text-sm font-medium text-blue-500 hover:bg-[#F6F8FA] dark:hover:bg-[#1C2128] rounded-lg transition-colors cursor-pointer">Test Vibe Voting <ChevronRight /></button>
+                  <button onClick={handleSimulateVisit} className="flex items-center justify-between px-1 py-2 w-full text-left text-sm font-medium text-amber-500 hover:bg-[#F6F8FA] dark:hover:bg-[#1C2128] rounded-lg transition-colors cursor-pointer">Simulate Visit <ChevronRight /></button>
+                  <button onClick={async () => { try { await fetch('/api/creators/dev-toggle', { method: 'POST' }); setIsCreator(!isCreator); window.location.reload(); } catch { } }} className="flex items-center justify-between px-1 py-2 w-full text-left text-sm font-medium text-purple-500 hover:bg-[#F6F8FA] dark:hover:bg-[#1C2128] rounded-lg transition-colors cursor-pointer">Toggle Creator {isCreator ? "(On)" : "(Off)"} <ChevronRight /></button>
+                </div>
+              </div>
+            )}
+
+            <p className="text-xs text-[#8B949E] text-center mt-4">Made with love in Toronto</p>
           </div>
-
-          <p className="text-center md:text-left text-xs text-gray-400 dark:text-gray-500 mt-8 pb-2 px-1">
-            Made with love in Toronto
-          </p>
-
         </div>
       </div>
 
@@ -1063,16 +1214,14 @@ export default function ProfilePage() {
             </div>
 
             <div className="flex-1 overflow-y-auto hide-scrollbar pt-2 pb-10">
-              {/* Discovery Preferences for Mobile Only */}
-              <div className="md:hidden">
-                <SectionHeader title="Discovery Preferences" />
-                <SettingsCard>
-                  <SelectRow label="Default Intent" options={INTENT_OPTIONS.map(o => ({ label: o.label, value: o.id }))} value={prefs.defaultIntent} onChange={v => updatePref("defaultIntent", v)} />
-                  <SelectRow label="Default Distance" options={DISTANCE_OPTIONS} value={prefs.defaultDistance} onChange={v => updatePref("defaultDistance", Number(v))} />
-                  <Row label="Auto-detect location"><Toggle checked={prefs.autoDetectLocation} onChange={v => updatePref("autoDetectLocation", v)} /></Row>
-                  <SegmentedRow label="Theme" options={THEME_OPTIONS} value={prefs.theme} onChange={handleThemeChange} />
-                </SettingsCard>
-              </div>
+              {/* Discovery Preferences — always shown in modal (modal only accessible on < xl:) */}
+              <SectionHeader title="Discovery Preferences" />
+              <SettingsCard>
+                <SelectRow label="Default Intent" options={INTENT_OPTIONS.map(o => ({ label: o.label, value: o.id }))} value={prefs.defaultIntent} onChange={v => updatePref("defaultIntent", v)} />
+                <SelectRow label="Default Distance" options={DISTANCE_OPTIONS} value={prefs.defaultDistance} onChange={v => updatePref("defaultDistance", Number(v))} />
+                <Row label="Auto-detect location"><Toggle checked={prefs.autoDetectLocation} onChange={v => updatePref("autoDetectLocation", v)} /></Row>
+                <SegmentedRow label="Theme" options={THEME_OPTIONS} value={prefs.theme} onChange={handleThemeChange} />
+              </SettingsCard>
 
               {/* Account */}
               <SectionHeader title="Account" />

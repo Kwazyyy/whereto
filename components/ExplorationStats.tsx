@@ -23,7 +23,7 @@ interface ExplorationData {
     neighborhoods: NeighborhoodStat[];
 }
 
-export default function ExplorationStats() {
+export default function ExplorationStats({ compact = false }: { compact?: boolean }) {
     const [data, setData] = useState<ExplorationData | null>(null);
     const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState(false);
@@ -169,6 +169,61 @@ export default function ExplorationStats() {
     }
 
     if (!data) return null;
+
+    // Compact mode: progress bar + top 3 recent discoveries + link to map
+    if (compact) {
+        const recentUnlocked = data.neighborhoods
+            .filter((n) => n.explored && n.firstVisitDate)
+            .sort((a, b) => new Date(b.firstVisitDate!).getTime() - new Date(a.firstVisitDate!).getTime())
+            .slice(0, 3);
+
+        return (
+            <div className="bg-white dark:bg-[#161B22] rounded-xl p-5 border border-[#D0D7DE] dark:border-[#30363D] h-full">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-[#0E1116] dark:text-white">Exploration</h2>
+                    <Link
+                        href="/map"
+                        className="text-sm font-semibold text-[#E85D2A] hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                        Explore on Map <span>→</span>
+                    </Link>
+                </div>
+                <div className="mb-1">
+                    <div className="flex items-end justify-between mb-2">
+                        <span className="text-sm font-semibold text-[#0E1116] dark:text-white">
+                            {data.percentage}% Explored
+                        </span>
+                        <span className="text-xs font-medium text-[#8B949E]">
+                            {data.exploredCount} / {data.totalNeighborhoods} neighborhoods
+                        </span>
+                    </div>
+                    <div className="w-full h-3 bg-gray-200 dark:bg-[#1C2128] rounded-full overflow-hidden">
+                        <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${data.percentage}%` }}
+                            transition={{ duration: 0.8, ease: "easeOut" }}
+                            className="h-full bg-[#E85D2A] rounded-full"
+                        />
+                    </div>
+                </div>
+                {recentUnlocked.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                        {recentUnlocked.map((hood) => {
+                            const d = new Date(hood.firstVisitDate!);
+                            const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                            return (
+                                <div key={hood.name} className="flex items-center gap-3 p-2.5 bg-[#F6F8FA] dark:bg-[#1C2128] rounded-lg">
+                                    <CheckCircle2 className="w-4 h-4 text-[#E85D2A] shrink-0" />
+                                    <span className="text-sm text-[#0E1116] dark:text-white font-medium flex-1">{hood.name}</span>
+                                    <span className="text-xs text-[#8B949E]">{dateStr}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+        );
+    }
 
     const filteredNeighborhoods = data.neighborhoods.filter(
         (n) => selectedArea === "All Toronto" || n.area === selectedArea

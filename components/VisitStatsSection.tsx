@@ -49,7 +49,7 @@ export function VisitStatsSection() {
             <div>
                 <div className="flex items-center gap-2 px-1 mb-3">
                     <span className="text-base">🏠</span>
-                    <h3 className="text-sm font-bold text-[#0E1116] dark:text-gray-200">My Regular Spots</h3>
+                    <h3 className="text-lg font-semibold text-[#0E1116] dark:text-gray-200">My Regular Spots</h3>
                 </div>
                 <div className="flex gap-3 overflow-hidden">
                     {[0, 1, 2].map((i) => (
@@ -77,7 +77,7 @@ export function VisitStatsSection() {
             <div>
                 <div className="flex items-center gap-2 px-1 mb-3">
                     <span className="text-base">🏠</span>
-                    <h3 className="text-sm font-bold text-[#0E1116] dark:text-gray-200">My Regular Spots</h3>
+                    <h3 className="text-lg font-semibold text-[#0E1116] dark:text-gray-200">My Regular Spots</h3>
                     {regularSpots.length > 0 && (
                         <span className="px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-[10px] font-bold text-gray-500 dark:text-gray-400">
                             {regularSpots.length}
