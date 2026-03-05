@@ -10,6 +10,7 @@ import {
 } from "@vis.gl/react-google-maps";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
+import { BookOpen, Heart, Flame, Coffee, Laptop, Users, DollarSign, MessageCircle, Sun } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { Place } from "@/lib/types";
 import { SavedPlace, getSavedPlaces } from "@/lib/saved-places";
@@ -89,15 +90,15 @@ const FALLBACK_GRADIENTS = [
 ];
 
 const categories = [
-  { id: "study", emoji: "\u{1F4DA}", label: "Study / Work" },
-  { id: "date", emoji: "\u2764\uFE0F", label: "Date / Chill" },
-  { id: "trending", emoji: "\u{1F525}", label: "Trending Now" },
-  { id: "quiet", emoji: "\u{1F92B}", label: "Quiet Caf\u00E9s" },
-  { id: "laptop", emoji: "\u{1F50C}", label: "Laptop-Friendly" },
-  { id: "group", emoji: "\u{1F46F}", label: "Group Hangouts" },
-  { id: "budget", emoji: "\u{1F354}", label: "Budget Eats" },
-  { id: "coffee", emoji: "\u2615", label: "Coffee & Catch-Up" },
-  { id: "outdoor", emoji: "\u{1F305}", label: "Outdoor / Patio" },
+  { id: "study", icon: BookOpen, label: "Study / Work" },
+  { id: "date", icon: Heart, label: "Date / Chill" },
+  { id: "trending", icon: Flame, label: "Trending Now" },
+  { id: "quiet", icon: Coffee, label: "Quiet Caf\u00E9s" },
+  { id: "laptop", icon: Laptop, label: "Laptop-Friendly" },
+  { id: "group", icon: Users, label: "Group Hangouts" },
+  { id: "budget", icon: DollarSign, label: "Budget Eats" },
+  { id: "coffee", icon: MessageCircle, label: "Coffee & Catch-Up" },
+  { id: "outdoor", icon: Sun, label: "Outdoor / Patio" },
 ];
 
 // SVG teardrop pin as a data-URL icon for standard Marker (no mapId needed).
@@ -155,12 +156,15 @@ function crackedPinUrl(color: string): string {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
-const ORANGE_PIN = pinUrl("#E85D2A");
-const ORANGE_CRACKED_PIN = crackedPinUrl("#DB8E74"); // Duller, faded orange
-const BLUE_PIN = pinUrl("#3B82F6");
-const BLUE_CRACKED_PIN = crackedPinUrl("#6B9AE5"); // Duller, lighter blue per request
-const GREEN_PIN = pinUrl("#22C55E");
-const GREEN_CRACKED_PIN = crackedPinUrl("#86EFAC"); // Duller green if ever used in fog
+// Saved = Blue, Visited = Orange, Nearby = theme-aware grey
+const SAVED_PIN = pinUrl("#3B82F6");
+const SAVED_CRACKED_PIN = crackedPinUrl("#6B9AE5");
+const VISITED_PIN = pinUrl("#E85D2A");
+const VISITED_CRACKED_PIN = crackedPinUrl("#DB8E74");
+const NEARBY_PIN_LIGHT = pinUrl("#8B949E");
+const NEARBY_CRACKED_PIN_LIGHT = crackedPinUrl("#6B7280");
+const NEARBY_PIN_DARK = pinUrl("#C9D1D9");
+const NEARBY_CRACKED_PIN_DARK = crackedPinUrl("#A0AAB8");
 
 // --- Thumbnail photo inside the info card ---
 function InfoPhoto({ photoRef }: { photoRef: string | null }) {
@@ -184,92 +188,124 @@ function InfoCard({
   place,
   isSaved,
   onViewDetails,
+  onClose,
 }: {
   place: Place | SavedPlace;
   isSaved: boolean;
   onViewDetails: () => void;
+  onClose: () => void;
 }) {
-  const meta = [
-    place.distance,
-    place.price,
-    place.rating > 0 ? `\u2605 ${place.rating.toFixed(1)}` : null,
-  ]
-    .filter(Boolean)
-    .join("  \u00B7  ");
-
   return (
-    <div style={{ width: 210, fontFamily: "inherit" }}>
-      {/* Thumbnail */}
-      <div
+    <div
+      style={{
+        width: 260,
+        fontFamily: "inherit",
+        background: "#161B22",
+        border: "1px solid #30363D",
+        borderRadius: 12,
+        padding: 12,
+        boxShadow: "0 10px 15px -3px rgba(0,0,0,0.3), 0 4px 6px -4px rgba(0,0,0,0.2)",
+        position: "relative",
+      }}
+    >
+      {/* Close button */}
+      <button
+        onClick={onClose}
         style={{
-          position: "relative",
-          width: "100%",
-          height: 108,
-          borderRadius: 8,
-          overflow: "hidden",
-          marginBottom: 10,
-          background: "var(--color-surface-card)",
+          position: "absolute",
+          top: 8,
+          right: 8,
+          background: "none",
+          border: "none",
+          color: "#8B949E",
+          cursor: "pointer",
+          padding: 4,
+          lineHeight: 1,
+          fontSize: 16,
+          zIndex: 2,
         }}
+        onMouseEnter={(e) => { e.currentTarget.style.color = "#FFFFFF"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.color = "#8B949E"; }}
       >
-        <InfoPhoto photoRef={place.photoRef} />
-        {isSaved && (
-          <div
+        &#x2715;
+      </button>
+
+      <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+        {/* Photo thumbnail */}
+        <div
+          style={{
+            position: "relative",
+            width: 48,
+            height: 48,
+            borderRadius: 8,
+            overflow: "hidden",
+            flexShrink: 0,
+            background: "#1C2128",
+          }}
+        >
+          <InfoPhoto photoRef={place.photoRef} />
+        </div>
+
+        {/* Text content */}
+        <div style={{ flex: 1, minWidth: 0, paddingRight: 16 }}>
+          {/* Name */}
+          <p
             style={{
-              position: "absolute",
-              top: 6,
-              right: 6,
-              background: "#E85D2A",
-              color: "white",
-              fontSize: 10,
-              fontWeight: 700,
-              padding: "2px 8px",
-              borderRadius: 20,
+              margin: 0,
+              fontWeight: 600,
+              fontSize: 15,
+              color: "#FFFFFF",
+              lineHeight: 1.3,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
             }}
           >
-            Saved
-          </div>
-        )}
+            {place.name}
+          </p>
+
+          {/* Rating */}
+          {place.rating > 0 && (
+            <p style={{ margin: "2px 0 0", fontSize: 13, color: "#E85D2A", fontWeight: 600 }}>
+              &#x2605; {place.rating.toFixed(1)}
+              {place.price && <span style={{ color: "#8B949E", fontWeight: 400, marginLeft: 6 }}>{place.price}</span>}
+            </p>
+          )}
+
+          {/* Address / distance */}
+          {place.distance && (
+            <p style={{ margin: "2px 0 0", fontSize: 13, color: "#8B949E" }}>
+              {place.distance}
+            </p>
+          )}
+        </div>
       </div>
 
-      {/* Name */}
-      <p
-        style={{
-          margin: 0,
-          fontWeight: 700,
-          fontSize: 14,
-          color: "var(--color-navy)",
-          lineHeight: 1.3,
-          marginBottom: 3,
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-        }}
-      >
-        {place.name}
-      </p>
-
-      {/* Meta: distance · price · rating */}
-      <p style={{ margin: 0, fontSize: 12, color: "#9CA3AF", marginBottom: 10 }}>
-        {meta}
-      </p>
-
-      {/* View Details */}
-      <button
-        onClick={onViewDetails}
-        style={{
-          width: "100%",
-          padding: "9px 0",
-          background: "#E85D2A",
-          color: "white",
-          border: "none",
-          borderRadius: 10,
-          fontWeight: 700,
-          fontSize: 13,
-          cursor: "pointer",
-        }}
-      >
-        View Details
-      </button>
+      {/* Saved badge + View Details */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10 }}>
+        {isSaved ? (
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#3B82F6", background: "#3B82F6" + "1A", padding: "2px 8px", borderRadius: 20 }}>
+            Saved
+          </span>
+        ) : <span />}
+        <button
+          onClick={onViewDetails}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#8B949E",
+            fontSize: 13,
+            fontWeight: 500,
+            cursor: "pointer",
+            padding: 0,
+            transition: "color 200ms",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = "#E85D2A"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = "#8B949E"; }}
+        >
+          View Details &rarr;
+        </button>
+      </div>
     </div>
   );
 }
@@ -336,12 +372,14 @@ function MapMarkers({
   nearbyPlaces,
   visitedIds,
   fogEnabled,
+  isDarkMode,
   onSelectPlace,
 }: {
   savedPlaces: SavedPlace[];
   nearbyPlaces: Place[];
   visitedIds: Set<string>;
   fogEnabled: boolean;
+  isDarkMode: boolean;
   onSelectPlace: (place: Place) => void;
 }) {
   const [selected, setSelected] = useState<{
@@ -353,38 +391,38 @@ function MapMarkers({
 
   return (
     <>
-      {/* Blue "Cracked" markers — nearby unvisited places, rendered first */}
+      {/* Grey markers — nearby unvisited places, rendered first */}
       {nearbyPlaces
         .filter((p) => !savedIds.has(p.placeId) && !visitedIds.has(p.placeId))
         .map((place) => (
           <Marker
             key={`nearby-${place.placeId}`}
             position={place.location}
-            icon={fogEnabled ? BLUE_CRACKED_PIN : BLUE_PIN}
-            zIndex={9999}
+            icon={fogEnabled ? (isDarkMode ? NEARBY_CRACKED_PIN_DARK : NEARBY_CRACKED_PIN_LIGHT) : (isDarkMode ? NEARBY_PIN_DARK : NEARBY_PIN_LIGHT)}
+            zIndex={9998}
             onClick={() => setSelected({ place, isSaved: false })}
           />
         ))}
 
-      {/* Green markers — visited places */}
+      {/* Orange markers — visited places, prominent */}
       {nearbyPlaces
         .filter((p) => visitedIds.has(p.placeId) && !savedIds.has(p.placeId))
         .map((place) => (
           <Marker
             key={`visited-${place.placeId}`}
             position={place.location}
-            icon={fogEnabled ? GREEN_CRACKED_PIN : GREEN_PIN}
-            zIndex={9999}
+            icon={fogEnabled ? VISITED_CRACKED_PIN : VISITED_PIN}
+            zIndex={10000}
             onClick={() => setSelected({ place, isSaved: false })}
           />
         ))}
 
-      {/* Orange markers — saved places, always on top */}
+      {/* Blue markers — saved places */}
       {savedPlaces.map((place) => (
         <Marker
           key={`saved-${place.placeId}`}
           position={place.location}
-          icon={fogEnabled ? ORANGE_CRACKED_PIN : ORANGE_PIN}
+          icon={fogEnabled ? SAVED_CRACKED_PIN : SAVED_PIN}
           zIndex={9999}
           onClick={() => setSelected({ place, isSaved: true })}
         />
@@ -395,10 +433,14 @@ function MapMarkers({
         <InfoWindow
           position={selected.place.location}
           onCloseClick={() => setSelected(null)}
+          headerDisabled
+          pixelOffset={[0, -8]}
+          maxWidth={300}
         >
           <InfoCard
             place={selected.place}
             isSaved={selected.isSaved}
+            onClose={() => setSelected(null)}
             onViewDetails={() => {
               onSelectPlace(selected.place as Place);
               setSelected(null);
@@ -594,23 +636,20 @@ export default function MapPage() {
   return (
     <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-16 lg:pb-0">
       {/* Intent chips */}
-      <div
-        className="shrink-0 px-5 py-3 border-b border-gray-100 dark:border-white/10"
-      >
+      <div className="shrink-0 px-5 py-3 border-b border-gray-100 dark:border-[#30363D]">
         <div
-          className="flex gap-2 overflow-x-auto pb-1"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          className="flex justify-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-1"
         >
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setIntent(cat.id)}
               className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap ${intent === cat.id
-                ? "bg-[#E85D2A] text-white shadow-sm"
-                : "bg-gray-100 dark:bg-white/10 text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-200 dark:hover:bg-white/15"
+                ? "bg-[#E85D2A] text-white border border-transparent"
+                : "bg-[#161B22] text-[#8B949E] border border-[#30363D] hover:border-[#8B949E]"
                 }`}
             >
-              {cat.emoji} {cat.label}
+              <cat.icon size={14} className="mr-1 inline-block" />{cat.label}
             </button>
           ))}
         </div>
@@ -646,6 +685,7 @@ export default function MapPage() {
                   nearbyPlaces={nearbyPlaces}
                   visitedIds={visitedIds}
                   fogEnabled={fogEnabled && status === "authenticated"}
+                  isDarkMode={isDarkMode}
                   onSelectPlace={setDetailPlace}
                 />
                 <RecenterButton userLocation={userLocation} />
@@ -680,17 +720,17 @@ export default function MapPage() {
 
         {/* Legend */}
         {userLocation && (
-          <div className="absolute top-3 left-3 z-30 flex flex-col gap-2 bg-white/95 dark:bg-[#161B22]/95 backdrop-blur-sm rounded-xl px-3 py-2.5 shadow-md border border-gray-100 dark:border-white/10">
+          <div className="absolute top-3 left-3 z-30 flex flex-col gap-2 bg-white/95 dark:bg-[#161B22]/95 backdrop-blur-sm rounded-xl px-3 py-2.5 shadow-md border border-gray-100 dark:border-[#30363D]">
             <div className="flex items-center gap-2">
               <div className="w-3.5 h-3.5 rounded-full bg-[#E85D2A] shadow-sm shrink-0" />
-              <span className="text-[11px] font-semibold text-[#0E1116] dark:text-[#e8edf4]">Saved</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3.5 h-3.5 rounded-full bg-[#22C55E] shadow-sm shrink-0" />
               <span className="text-[11px] font-semibold text-[#0E1116] dark:text-[#e8edf4]">Visited</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3.5 h-3.5 rounded-full bg-[#3B82F6] shadow-sm shrink-0" />
+              <span className="text-[11px] font-semibold text-[#0E1116] dark:text-[#e8edf4]">Saved</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3.5 h-3.5 rounded-full bg-[#8B949E] shadow-sm shrink-0" />
               <span className="text-[11px] font-semibold text-[#0E1116] dark:text-[#e8edf4]">Nearby</span>
             </div>
           </div>

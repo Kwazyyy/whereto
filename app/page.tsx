@@ -27,19 +27,20 @@ import { useNeighborhoodReveal } from "@/components/providers/NeighborhoodReveal
 import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
 import { Theme } from "@/components/ThemeProvider";
 import Link from 'next/link';
+import { BookOpen, Heart, Flame, Coffee, Laptop, Users, DollarSign, MessageCircle, Sun } from "lucide-react";
 import VisitCelebration from "@/components/VisitCelebration";
 import PhotoUploadPrompt from "@/components/PhotoUploadPrompt";
 
 const categories = [
-  { id: "study", emoji: "\u{1F4DA}", label: "Study / Work" },
-  { id: "date", emoji: "\u{2764}\u{FE0F}", label: "Date / Chill" },
-  { id: "trending", emoji: "\u{1F525}", label: "Trending Now" },
-  { id: "quiet", emoji: "\u{1F92B}", label: "Quiet Cafés" },
-  { id: "laptop", emoji: "\u{1F50C}", label: "Laptop-Friendly" },
-  { id: "group", emoji: "\u{1F46F}", label: "Group Hangouts" },
-  { id: "budget", emoji: "\u{1F354}", label: "Budget Eats" },
-  { id: "coffee", emoji: "\u{2615}", label: "Coffee & Catch-Up" },
-  { id: "outdoor", emoji: "\u{1F305}", label: "Outdoor / Patio" },
+  { id: "study", icon: BookOpen, label: "Study / Work" },
+  { id: "date", icon: Heart, label: "Date / Chill" },
+  { id: "trending", icon: Flame, label: "Trending Now" },
+  { id: "quiet", icon: Coffee, label: "Quiet Cafés" },
+  { id: "laptop", icon: Laptop, label: "Laptop-Friendly" },
+  { id: "group", icon: Users, label: "Group Hangouts" },
+  { id: "budget", icon: DollarSign, label: "Budget Eats" },
+  { id: "coffee", icon: MessageCircle, label: "Coffee & Catch-Up" },
+  { id: "outdoor", icon: Sun, label: "Outdoor / Patio" },
 ];
 
 const FALLBACK_GRADIENTS = [
@@ -468,7 +469,7 @@ export default function Home() {
                 }
               `}
             >
-              {cat.emoji} {cat.label}
+              <cat.icon size={14} className="mr-1 inline-block" />{cat.label}
             </motion.button>
           ))}
         </div>

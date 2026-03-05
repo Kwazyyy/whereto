@@ -66,6 +66,29 @@ body {
   z-index: 30 !important;
 }
 
+/* Strip Google Maps InfoWindow default white styling */
+.gm-style .gm-style-iw-d {
+  overflow: visible !important;
+  padding: 0 !important;
+}
+
+.gm-style .gm-style-iw-c {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+
+.gm-style .gm-style-iw-tc,
+.gm-style .gm-style-iw-tc::after {
+  display: none !important;
+}
+
+/* Hide Google's default close button — we use our own */
+.gm-style .gm-style-iw-chr {
+  display: none !important;
+}
+
 /* User location blue dot */
 .gm-style div[title="My location"] {
   z-index: 20 !important;
