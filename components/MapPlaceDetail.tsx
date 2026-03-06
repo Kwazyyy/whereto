@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, PanInfo } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { Camera, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
@@ -500,7 +500,7 @@ export default function MapPlaceDetail({
   const { handleSave, handleUnsave } = useSavePlace();
   const { status } = useSession();
   const [localSaved, setLocalSaved] = useState(savedPlaceIds.has(place.placeId));
-  const [detailsExpanded, setDetailsExpanded] = useState(false);
+  const [sheetExpanded, setSheetExpanded] = useState(false);
 
   // Sync if savedPlaceIds changes
   useEffect(() => {
@@ -577,7 +577,7 @@ export default function MapPlaceDetail({
       <div className="lg:hidden">
         {/* Backdrop */}
         <motion.div
-          className="fixed inset-0 bg-black/40 z-40"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -586,27 +586,43 @@ export default function MapPlaceDetail({
         />
         {/* Sheet */}
         <motion.div
-          className={`fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#161B22] rounded-t-2xl border-t border-[#D0D7DE] dark:border-[#30363D] overflow-y-auto scrollbar-none transition-[max-height] duration-300 ease-out ${detailsExpanded ? "max-h-[90vh]" : "max-h-[55vh]"}`}
+          className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#161B22] rounded-t-2xl border-t border-[#D0D7DE] dark:border-[#30363D] flex flex-col"
+          style={{ height: sheetExpanded ? "95dvh" : "80dvh" }}
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          drag="y"
+          dragConstraints={{ top: 0, bottom: 0 }}
+          dragElastic={{ top: 0.1, bottom: 0.5 }}
+          onDragEnd={(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+            if (info.offset.y < -100 && !sheetExpanded) {
+              setSheetExpanded(true);
+            } else if (info.offset.y > 100) {
+              if (sheetExpanded) {
+                setSheetExpanded(false);
+              } else {
+                onClose();
+              }
+            }
+          }}
         >
-          {/* Handle bar */}
-          <div className="flex justify-center pt-3 pb-2 sticky top-0 z-10 bg-white dark:bg-[#161B22] rounded-t-2xl">
-            <div className="w-10 h-1 rounded-full bg-[#D0D7DE] dark:bg-[#30363D]" />
+          {/* Drag handle */}
+          <div className="flex justify-center pt-3 pb-2 shrink-0 cursor-grab active:cursor-grabbing">
+            <div className="w-10 h-1 rounded-full bg-[#8B949E]/50" />
           </div>
 
-          <DetailContent
-            place={place}
-            isSaved={localSaved}
-            onSave={doSave}
-            onUnsave={doUnsave}
-            onClose={onClose}
-            intent={intent}
-            userLocation={userLocation}
-            onDetailsToggle={setDetailsExpanded}
-          />
+          <div className="flex-1 overflow-y-auto scrollbar-none">
+            <DetailContent
+              place={place}
+              isSaved={localSaved}
+              onSave={doSave}
+              onUnsave={doUnsave}
+              onClose={onClose}
+              intent={intent}
+              userLocation={userLocation}
+            />
+          </div>
         </motion.div>
       </div>
     </>
