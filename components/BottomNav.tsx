@@ -102,7 +102,7 @@ function UnseenBadge() {
 export default function BottomNav() {
   const pathname = usePathname();
 
-  if (pathname === "/landing" || pathname.startsWith("/business") || pathname === "/for-business" || pathname.startsWith("/lists") || (pathname.startsWith("/places/") && pathname.endsWith("/photos"))) {
+  if (pathname === "/landing" || pathname.startsWith("/business") || pathname === "/for-business" || pathname.startsWith("/lists") || pathname === "/pro" || (pathname.startsWith("/places/") && pathname.endsWith("/photos"))) {
     return null;
   }
 

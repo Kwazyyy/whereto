@@ -1,31 +1,120 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/components/Toast";
+import {
+    Crown,
+    ChevronDown,
+    Check,
+    X,
+    Infinity,
+    Users,
+    ListPlus,
+    Camera,
+    Sparkles,
+} from "lucide-react";
 
-const PRO_FEATURES = [
-    { emoji: "🎛️", title: "Advanced filters", desc: "Noise level, outlets, cuisine type — find exactly what you need." },
-    { emoji: "📋", title: "Unlimited boards", desc: "Organize by neighborhood, mood, season, or whatever you want." },
-    { emoji: "✨", title: "Ad-free deck", desc: "No promoted places. Just pure, uninterrupted swiping." },
-    { emoji: "📤", title: "Export saved places", desc: "Download your spots as CSV. Your data, your way." },
-    { emoji: "📝", title: "Unlimited curated lists", desc: "Create and publish as many lists as you like." },
-    { emoji: "🚀", title: "Early access", desc: "Be the first to try new features before anyone else." },
-];
+/* ── Data ─────────────────────────────────────────────────────── */
 
 const FREE_FEATURES = [
-    "5 boards",
-    "Basic intent filters",
-    "Friend recommendations",
-    "Exploration badges",
-    "Verified visits",
-    "3 curated lists",
+    { text: "Discover & swipe places", included: true },
+    { text: "Save up to 50 places", included: true },
+    { text: "Connect with 10 friends", included: true },
+    { text: "Browse curated lists", included: true },
+    { text: "3 photos per visit", included: true },
+    { text: "Fog-of-war map", included: true },
+    { text: "Advanced filters", included: false },
+    { text: "Priority in new cities", included: false },
+    { text: "PRO badge", included: false },
+];
+
+const PRO_FEATURES_LIST = [
+    { text: "Discover & swipe places", gold: false },
+    { text: "Unlimited saves", gold: true },
+    { text: "Unlimited friends", gold: true },
+    { text: "Create & publish lists", gold: true },
+    { text: "10 photos per visit", gold: true },
+    { text: "Fog-of-war map", gold: false },
+    { text: "Advanced filters", gold: true },
+    { text: "Priority in new cities", gold: true },
+    { text: "PRO badge on profile", gold: true },
+    { text: "Early access to features", gold: true },
+];
+
+const FEATURE_CARDS = [
+    { Icon: Infinity, title: "Unlimited Saves", desc: "Keep every spot you love" },
+    { Icon: Users, title: "Unlimited Friends", desc: "No caps on connections" },
+    { Icon: ListPlus, title: "Create Lists", desc: "Share with the community" },
+    { Icon: Camera, title: "More Photos", desc: "10 uploads per visit" },
+    { Icon: Sparkles, title: "Advanced Filters", desc: "Filter by vibe & more" },
+    { Icon: Crown, title: "PRO Badge", desc: "Gold badge on your profile" },
 ];
 
 const FAQS = [
-    { q: "Can I cancel anytime?", a: "Yes. Cancel whenever you want — you'll keep Pro until the end of your billing period." },
-    { q: "Will I lose my data if I downgrade?", a: "Nope. Your saved places, boards, and lists stay safe. You just lose access to Pro features." },
-    { q: "Is there a free trial?", a: "Every Pro subscription starts with a 7-day free trial. You won't be charged until it ends." },
+    { q: "When is WhereTo Pro launching?", a: "We're putting the finishing touches on Pro right now. Join the waitlist to be the first to know when it's available!" },
+    { q: "Can I cancel anytime?", a: "Absolutely. Cancel your subscription at any time with no fees or penalties." },
+    { q: "Will I lose my saved places if I downgrade?", a: "No — your saves are always yours. If you exceed Free tier limits, your oldest saves will be archived but never deleted." },
+    { q: "Is there a free trial?", a: "We're planning a 7-day free trial for Pro. Stay tuned!" },
+    { q: "What payment methods do you accept?", a: "We'll support all major credit cards and Apple Pay through Stripe." },
 ];
+
+/* ── Animation variants ───────────────────────────────────────── */
+
+const sectionVariants = {
+    hidden: { opacity: 0, y: 24 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0, 0, 0.2, 1] as const } },
+};
+
+const staggerContainer = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.06 } },
+};
+
+const cardVariants = {
+    hidden: { opacity: 0, y: 16 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0, 0, 0.2, 1] as const } },
+};
+
+/* ── CSS for animations (injected via style tag) ──────────────── */
+
+const PRO_STYLES = `
+@keyframes pro-glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(202,138,4,0.15), 0 0 40px rgba(202,138,4,0.05); }
+  50% { box-shadow: 0 0 30px rgba(202,138,4,0.25), 0 0 60px rgba(202,138,4,0.1); }
+}
+@keyframes pro-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.pro-card-glow {
+  animation: pro-glow-pulse 3s ease-in-out infinite;
+}
+.pro-popular-badge {
+  overflow: hidden;
+  position: relative;
+}
+.pro-popular-badge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+  animation: pro-shimmer 3s ease-in-out infinite;
+}
+.pro-feature-card {
+  transition: background 200ms ease;
+}
+.pro-feature-card:hover {
+  background: linear-gradient(180deg, rgba(232,93,42,0.05) 0%, transparent 100%),
+              var(--card-bg);
+}
+`;
+
+/* ── Page ──────────────────────────────────────────────────────── */
 
 export default function ProPage() {
     const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
@@ -33,133 +122,337 @@ export default function ProPage() {
     const { showToast } = useToast();
 
     const handleCta = () => {
-        showToast("Coming soon! We'll let you know when Pro launches.");
+        showToast("Coming soon! We'll notify you when Pro launches.");
     };
 
     return (
-        <div className="min-h-dvh bg-[#0E1116] pb-28">
+        <div className="min-h-dvh bg-white dark:bg-[#0E1116] overflow-x-hidden">
+            <style dangerouslySetInnerHTML={{ __html: PRO_STYLES }} />
 
-            {/* Hero — compact */}
-            <section className="pt-16 pb-8 px-5">
-                <div className="max-w-xl mx-auto text-center">
-                    <span className="inline-block bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-widest uppercase">
-                        Pro
-                    </span>
-                    <h1 className="text-3xl md:text-4xl font-black text-white mt-5 leading-tight tracking-tight">
-                        WhereTo, but better
+            {/* ═══ TOP NAV ═══ */}
+            <nav className="fixed top-0 left-0 right-0 z-50 h-16 px-6 flex items-center justify-between bg-white/80 dark:bg-[#0E1116]/80 backdrop-blur-md border-b border-[#D0D7DE] dark:border-[#30363D]">
+                <Link href="/" className="text-xl font-bold text-[#E85D2A]">
+                    WhereTo
+                </Link>
+                <Link href="/" className="text-sm text-[#656D76] dark:text-[#8B949E] hover:text-[#0E1116] dark:hover:text-white transition-colors duration-200">
+                    Back to app
+                </Link>
+            </nav>
+
+            {/* ═══ SECTION 1: HEADER ═══ */}
+            <section className="relative overflow-hidden pt-24">
+                {/* Dramatic gradient orbs */}
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-[#E85D2A]/15 blur-[120px]" />
+                    <div className="absolute top-20 left-1/2 translate-x-[10%] w-[400px] h-[400px] rounded-full bg-[#CA8A04]/10 blur-[100px]" />
+                </div>
+                {/* Grid pattern overlay */}
+                <div
+                    className="absolute inset-0 pointer-events-none opacity-100 dark:opacity-100"
+                    style={{
+                        backgroundImage: `repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 60px),
+                                          repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 60px)`,
+                    }}
+                />
+
+                <motion.div
+                    className="relative z-10 text-center px-6"
+                    initial="hidden"
+                    animate="visible"
+                    variants={sectionVariants}
+                >
+                    {/* PRO badge */}
+                    <div className="inline-flex items-center gap-1.5 bg-[#CA8A04] text-white text-sm font-bold px-4 py-1.5 rounded-full shadow-[0_0_16px_rgba(202,138,4,0.3)]">
+                        <Crown className="w-4 h-4" />
+                        PRO
+                    </div>
+
+                    {/* Headline */}
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#0E1116] dark:text-white mt-6 leading-tight tracking-tight max-w-3xl mx-auto">
+                        Unlock the Full WhereTo Experience
                     </h1>
-                    <p className="text-base text-gray-400 mt-3 max-w-md mx-auto leading-relaxed">
-                        Unlock advanced filters, unlimited boards, ad-free swiping, and more.
+
+                    {/* Subtitle */}
+                    <p className="text-lg md:text-xl text-[#656D76] dark:text-[#8B949E] mt-4 max-w-xl mx-auto">
+                        Starting from only $5.99 CAD/month — Cancel anytime.
                     </p>
-                </div>
-            </section>
-
-            {/* Feature cards */}
-            <section className="max-w-2xl mx-auto px-5 mt-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {PRO_FEATURES.map((f) => (
-                        <div key={f.title} className="bg-[#161B22] rounded-xl p-4 border border-white/5 hover:border-white/10 transition-colors">
-                            <span className="text-2xl">{f.emoji}</span>
-                            <h3 className="text-sm font-bold text-white mt-2">{f.title}</h3>
-                            <p className="text-xs text-gray-400 mt-1 leading-relaxed">{f.desc}</p>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            {/* Already free */}
-            <section className="max-w-2xl mx-auto px-5 mt-12">
-                <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest text-center">Already included for free</h2>
-                <div className="flex flex-wrap justify-center gap-2 mt-4">
-                    {FREE_FEATURES.map((f) => (
-                        <span key={f} className="px-3 py-1.5 bg-white/5 rounded-full text-xs text-gray-400 border border-white/5">
-                            {f}
-                        </span>
-                    ))}
-                </div>
-            </section>
-
-            {/* Pricing card */}
-            <section className="max-w-md mx-auto px-5 mt-14">
-                <div className="bg-[#161B22] rounded-2xl border border-white/5 p-6">
 
                     {/* Billing toggle */}
-                    <div className="flex items-center justify-center gap-1 bg-white/5 rounded-lg p-1 w-fit mx-auto">
-                        <button
-                            onClick={() => setBilling("monthly")}
-                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${billing === "monthly" ? "bg-white/10 text-white" : "text-gray-400 hover:text-gray-300"}`}
-                        >
-                            Monthly
-                        </button>
-                        <button
-                            onClick={() => setBilling("yearly")}
-                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${billing === "yearly" ? "bg-white/10 text-white" : "text-gray-400 hover:text-gray-300"}`}
-                        >
-                            Yearly
-                        </button>
-                    </div>
-
-                    {/* Price */}
-                    <div className="mt-5 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                            <span className="text-3xl font-black text-white tracking-tight">
-                                {billing === "monthly" ? "$5.99" : "$49.99"}
-                            </span>
-                            <span className="text-sm text-gray-400">
-                                CAD / {billing === "monthly" ? "month" : "year"}
-                            </span>
+                    <div className="mt-8">
+                        <div className="inline-flex items-center gap-1 bg-[#F6F8FA] dark:bg-[#161B22] rounded-full p-1 border border-[#D0D7DE] dark:border-[#30363D]">
+                            <button
+                                onClick={() => setBilling("monthly")}
+                                className={`px-6 py-2.5 rounded-full text-base font-semibold transition-all duration-200 cursor-pointer ${billing === "monthly"
+                                    ? "bg-[#E85D2A] text-white shadow-md"
+                                    : "text-[#656D76] dark:text-[#8B949E] hover:text-[#0E1116] dark:hover:text-white"
+                                    }`}
+                            >
+                                Monthly
+                            </button>
+                            <button
+                                onClick={() => setBilling("yearly")}
+                                className={`px-6 py-2.5 rounded-full text-base font-semibold transition-all duration-200 cursor-pointer ${billing === "yearly"
+                                    ? "bg-[#E85D2A] text-white shadow-md"
+                                    : "text-[#656D76] dark:text-[#8B949E] hover:text-[#0E1116] dark:hover:text-white"
+                                    }`}
+                            >
+                                Yearly
+                            </button>
                         </div>
-                        {billing === "yearly" && (
-                            <span className="inline-block mt-2 bg-green-500/10 text-green-400 text-xs px-2.5 py-0.5 rounded-full font-medium">
-                                Save 30%
-                            </span>
+                        {billing === "monthly" && (
+                            <p className="text-sm text-[#CA8A04] font-medium mt-2.5">Save 30% with yearly</p>
                         )}
                     </div>
-
-                    {/* CTA */}
-                    <button
-                        onClick={handleCta}
-                        className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold px-6 py-3.5 rounded-xl hover:opacity-90 transition mt-6 cursor-pointer"
-                    >
-                        Start 7-day free trial
-                    </button>
-                    <p className="text-gray-500 text-xs text-center mt-3">Cancel anytime. No commitment.</p>
-                </div>
+                </motion.div>
             </section>
 
-            {/* FAQ */}
-            <section className="max-w-lg mx-auto px-5 mt-14">
-                <h2 className="text-lg font-bold text-white text-center">Questions</h2>
+            {/* ═══ SECTION 2: PRICING CARDS ═══ */}
+            <motion.section
+                className="relative mt-12 px-4 md:px-6"
+                initial="hidden"
+                animate="visible"
+                variants={sectionVariants}
+            >
+                {/* Floating decorative shape */}
+                <div className="absolute -top-10 right-[5%] w-[80px] h-[80px] rounded-full bg-[#E85D2A]/8 blur-[40px] pointer-events-none hidden md:block" />
 
-                <div className="mt-6">
+                <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    {/* Pro card — first on mobile via order */}
+                    <div className="relative rounded-2xl p-8 md:p-10 bg-white dark:bg-[#161B22] border-2 border-[#CA8A04] pro-card-glow order-first md:order-last overflow-hidden">
+                        {/* Inner radial glow */}
+                        <div className="absolute inset-0 pointer-events-none rounded-2xl" style={{ background: "radial-gradient(circle at center, rgba(202,138,4,0.05) 0%, transparent 70%)" }} />
+
+                        {/* Popular badge with shimmer */}
+                        <span className="pro-popular-badge absolute -top-3.5 right-5 bg-[#CA8A04] text-white text-sm font-bold px-3 py-1 rounded-full">
+                            Popular
+                        </span>
+
+                        {/* Header */}
+                        <div className="relative">
+                            <div className="flex items-center gap-2.5">
+                                <h3 className="text-2xl font-bold text-[#0E1116] dark:text-white">Pro</h3>
+                                <span className="inline-flex items-center gap-1 bg-[#CA8A04] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                    <Crown className="w-2.5 h-2.5" />
+                                    PRO
+                                </span>
+                            </div>
+                            <p className="text-base text-[#656D76] dark:text-[#8B949E] mt-1">For serious foodies</p>
+                        </div>
+
+                        {/* Price */}
+                        <div className="relative flex items-baseline gap-2 mt-5">
+                            <span className="text-5xl md:text-6xl font-bold text-[#0E1116] dark:text-white tracking-tight">
+                                {billing === "monthly" ? "$5.99" : "$49.99"}
+                            </span>
+                            <span className="text-base text-[#656D76] dark:text-[#8B949E]">
+                                CAD/{billing === "monthly" ? "month" : "year"}
+                            </span>
+                            {billing === "yearly" && (
+                                <span className="text-base text-[#8B949E] line-through ml-1">$71.88</span>
+                            )}
+                        </div>
+
+                        {/* CTA */}
+                        <button
+                            onClick={handleCta}
+                            className="relative w-full bg-[#E85D2A] hover:bg-[#D14E1F] text-white font-semibold py-4 rounded-xl text-lg transition-all duration-200 mt-6 cursor-pointer"
+                        >
+                            Upgrade to Pro
+                        </button>
+
+                        {/* Divider */}
+                        <div className="relative border-t border-[#D0D7DE] dark:border-[#30363D] my-6" />
+
+                        {/* Feature list */}
+                        <div className="relative space-y-4">
+                            {PRO_FEATURES_LIST.map((f) => (
+                                <div key={f.text} className="flex items-center gap-3">
+                                    <Check className="w-5 h-5 text-green-600 dark:text-[#4ADE80] shrink-0" />
+                                    <span className={`text-base ${f.gold ? "text-[#CA8A04] font-medium" : "text-[#0E1116] dark:text-white"}`}>
+                                        {f.text}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Free card */}
+                    <div className="relative rounded-2xl p-8 md:p-10 bg-white dark:bg-[#161B22] border border-[#D0D7DE] dark:border-[#30363D] order-last md:order-first overflow-hidden">
+                        {/* Subtle diagonal stripe pattern */}
+                        <div
+                            className="absolute inset-0 pointer-events-none rounded-2xl"
+                            style={{
+                                backgroundImage: "repeating-linear-gradient(135deg, transparent, transparent 10px, rgba(255,255,255,0.015) 10px, rgba(255,255,255,0.015) 11px)",
+                            }}
+                        />
+
+                        {/* Header */}
+                        <div className="relative">
+                            <h3 className="text-2xl font-bold text-[#0E1116] dark:text-white">Free</h3>
+                            <p className="text-base text-[#656D76] dark:text-[#8B949E] mt-1">For casual explorers</p>
+                        </div>
+
+                        {/* Price */}
+                        <div className="relative flex items-baseline gap-2 mt-5">
+                            <span className="text-5xl md:text-6xl font-bold text-[#0E1116] dark:text-white tracking-tight">$0</span>
+                            <span className="text-base text-[#656D76] dark:text-[#8B949E]">/month</span>
+                        </div>
+
+                        {/* Spacer to align with Pro card CTA */}
+                        <div className="h-[68px] mt-6" />
+
+                        {/* Divider */}
+                        <div className="relative border-t border-[#D0D7DE] dark:border-[#30363D] my-6" />
+
+                        {/* Feature list */}
+                        <div className="relative space-y-4">
+                            {FREE_FEATURES.map((f) => (
+                                <div key={f.text} className="flex items-center gap-3">
+                                    {f.included ? (
+                                        <Check className="w-5 h-5 text-green-600 dark:text-[#4ADE80] shrink-0" />
+                                    ) : (
+                                        <X className="w-5 h-5 text-[#8B949E] shrink-0" />
+                                    )}
+                                    <span className={`text-base ${f.included
+                                        ? "text-[#0E1116] dark:text-white"
+                                        : "text-[#8B949E] line-through"
+                                        }`}>
+                                        {f.text}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* See all features link */}
+                <p className="text-center mt-6">
+                    <span className="text-sm text-[#CA8A04] hover:underline cursor-pointer">
+                        See all plans & features
+                    </span>
+                </p>
+            </motion.section>
+
+            {/* ═══ SECTION 3: FEATURE HIGHLIGHTS ═══ */}
+            <motion.section
+                className="relative mt-20 md:mt-24 px-4 md:px-6"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-60px" }}
+                variants={sectionVariants}
+            >
+                {/* Floating decorative shape */}
+                <div className="absolute top-10 left-[3%] w-[60px] h-[60px] rounded-full bg-[#CA8A04]/8 blur-[30px] pointer-events-none hidden md:block" />
+
+                <h2 className="text-3xl font-bold text-[#0E1116] dark:text-white text-center mb-10">
+                    Everything in Pro
+                </h2>
+
+                <motion.div
+                    className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
+                    variants={staggerContainer}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-40px" }}
+                >
+                    {FEATURE_CARDS.map(({ Icon, title, desc }) => (
+                        <motion.div
+                            key={title}
+                            variants={cardVariants}
+                            className="pro-feature-card relative flex items-start gap-4 rounded-xl p-6 bg-[#F6F8FA] dark:bg-[#161B22] border border-[#D0D7DE] dark:border-[#30363D] overflow-hidden"
+                            style={{ "--card-bg": "var(--tw-bg-opacity, 1)" } as React.CSSProperties}
+                        >
+                            {/* Accent line */}
+                            <div className="absolute top-4 left-0 w-[2px] h-10 bg-[#E85D2A]/20 rounded-r-full" />
+                            {/* Icon with circle bg */}
+                            <div className="w-12 h-12 rounded-full bg-[#E85D2A]/10 flex items-center justify-center shrink-0">
+                                <Icon className="w-6 h-6 text-[#E85D2A]" />
+                            </div>
+                            <div className="min-w-0">
+                                <h3 className="text-base font-semibold text-[#0E1116] dark:text-white">{title}</h3>
+                                <p className="text-sm text-[#656D76] dark:text-[#8B949E] mt-0.5">{desc}</p>
+                            </div>
+                        </motion.div>
+                    ))}
+                </motion.div>
+            </motion.section>
+
+            {/* ═══ SECTION 4: FAQ ACCORDION ═══ */}
+            <motion.section
+                className="relative mt-20 md:mt-24 px-4 md:px-6"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-60px" }}
+                variants={sectionVariants}
+            >
+                {/* Floating decorative shape */}
+                <div className="absolute top-20 right-[5%] w-[100px] h-[100px] rounded-full bg-[#E85D2A]/5 blur-[50px] pointer-events-none hidden md:block" />
+
+                <h2 className="text-3xl font-bold text-[#0E1116] dark:text-white text-center mb-8">
+                    Frequently Asked Questions
+                </h2>
+
+                <div className="max-w-3xl mx-auto space-y-3">
                     {FAQS.map((faq, i) => (
-                        <div key={i} className="border-b border-white/10">
+                        <div
+                            key={i}
+                            className="rounded-xl bg-[#F6F8FA] dark:bg-[#161B22] border border-[#D0D7DE] dark:border-[#30363D] overflow-hidden"
+                        >
                             <button
                                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                                className="w-full flex items-center justify-between py-4 text-left cursor-pointer"
+                                className="w-full flex items-center justify-between px-6 py-4 text-left cursor-pointer"
                             >
-                                <span className="text-white text-sm font-medium pr-4">{faq.q}</span>
-                                <svg
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    className={`text-gray-500 shrink-0 transition-transform duration-200 ${openFaq === i ? "rotate-180" : ""}`}
+                                <span className="text-base font-medium text-[#0E1116] dark:text-white pr-4">
+                                    {faq.q}
+                                </span>
+                                <motion.div
+                                    animate={{ rotate: openFaq === i ? 180 : 0 }}
+                                    transition={{ duration: 0.2 }}
                                 >
-                                    <path d="m6 9 6 6 6-6" />
-                                </svg>
+                                    <ChevronDown className="w-5 h-5 text-[#656D76] dark:text-[#8B949E] shrink-0" />
+                                </motion.div>
                             </button>
-                            {openFaq === i && (
-                                <p className="text-gray-400 text-sm pb-4 -mt-1">{faq.a}</p>
-                            )}
+                            <AnimatePresence initial={false}>
+                                {openFaq === i && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] as const }}
+                                        className="overflow-hidden"
+                                    >
+                                        <p className="text-base text-[#656D76] dark:text-[#8B949E] px-6 pt-0 pb-4">
+                                            {faq.a}
+                                        </p>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     ))}
                 </div>
-            </section>
+            </motion.section>
+
+            {/* ═══ SECTION 5: BOTTOM CTA ═══ */}
+            <motion.section
+                className="mt-20 md:mt-24 mb-16 text-center px-6"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-60px" }}
+                variants={sectionVariants}
+            >
+                <h2 className="text-3xl font-bold text-[#0E1116] dark:text-white">
+                    Ready to upgrade?
+                </h2>
+                <button
+                    onClick={handleCta}
+                    className="w-full max-w-md mx-auto bg-[#E85D2A] hover:bg-[#D14E1F] text-white font-semibold py-4 rounded-xl text-lg transition-all duration-200 mt-6 cursor-pointer block"
+                >
+                    Upgrade to Pro
+                </button>
+                <p className="text-sm text-[#656D76] dark:text-[#8B949E] mt-3">
+                    Cancel anytime. No commitment.
+                </p>
+            </motion.section>
         </div>
     );
 }
