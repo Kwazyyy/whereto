@@ -14,18 +14,12 @@ import { BookOpen, Heart, Flame, Coffee, Laptop, Users, DollarSign, MessageCircl
 import { useSession } from "next-auth/react";
 import { Place } from "@/lib/types";
 import { SavedPlace, getSavedPlaces } from "@/lib/saved-places";
-import PlaceDetailSheet from "@/components/PlaceDetailSheet";
-import { useSavePlace } from "@/lib/use-save-place";
+import MapPlaceDetail from "@/components/MapPlaceDetail";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useTheme } from "@/components/ThemeProvider";
 import FogOverlay from "@/components/FogOverlay";
-import { verifyVisitOnServer } from "@/lib/use-visit-tracker";
-import { useBadges } from "@/components/providers/BadgeProvider";
-import { useNeighborhoodReveal } from "@/components/providers/NeighborhoodRevealProvider";
-import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
 import VisitCelebration from "@/components/VisitCelebration";
 import PhotoUploadPrompt from "@/components/PhotoUploadPrompt";
-import { useToast } from "@/components/Toast";
 
 const DEFAULT_LAT = 43.6532;
 const DEFAULT_LNG = -79.3832;
@@ -79,14 +73,6 @@ const DARK_MAP_STYLES: Array<{ featureType?: string; elementType?: string; style
   { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#454d5c" }] },
   { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#a0aabf" }] },
   { featureType: "administrative.neighborhood", elementType: "labels.text.fill", stylers: [{ color: "#8793a8" }] },
-];
-
-const FALLBACK_GRADIENTS = [
-  "from-amber-800 via-orange-700 to-yellow-600",
-  "from-slate-800 via-slate-600 to-cyan-700",
-  "from-green-800 via-emerald-700 to-teal-600",
-  "from-purple-900 via-violet-700 to-fuchsia-600",
-  "from-stone-800 via-stone-600 to-orange-800",
 ];
 
 const categories = [
@@ -455,20 +441,11 @@ function MapMarkers({
 // --- Main page ---
 export default function MapPage() {
   const { status } = useSession();
-  const { handleSave } = useSavePlace();
-  const { showToast } = useToast();
 
   const [intent, setIntent] = useState("trending");
-  const [dragThresholdMet, setDragThresholdMet] = useState(false);
-  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
 
-  const { triggerBadgeCheck } = useBadges();
-  const { triggerNeighborhoodReveal } = useNeighborhoodReveal();
-  const { triggerVibeVoting } = useVibeVoting();
   const [celebrationPlace, setCelebrationPlace] = useState<{ placeId: string; name: string } | null>(null);
   const [photoPromptPlace, setPhotoPromptPlace] = useState<{ placeId: string; name: string } | null>(null);
-
-  const [savingPlaceId, setSavingPlaceId] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{
     lat: number;
     lng: number;
@@ -541,48 +518,6 @@ export default function MapPage() {
     load();
   }, [status]);
 
-  const handleManualCheckIn = async (place: Place) => {
-    if (!userLocation) return;
-
-    const result = await verifyVisitOnServer(
-      place.placeId,
-      userLocation.lat,
-      userLocation.lng,
-      "manual"
-    );
-
-    if (result) {
-      setVisitedIds(prev => new Set([...prev, place.placeId]));
-      setDetailPlace(null); // close sheet
-      setCelebrationPlace({ placeId: place.placeId, name: result.name });
-
-      setTimeout(async () => {
-        let triggeredReveal = false;
-        try {
-          const nhRes = await fetch(`/api/exploration-stats/check-new-neighborhood?placeId=${place.placeId}`);
-          if (nhRes.ok) {
-            const nhData = await nhRes.json();
-            if (nhData.isNewNeighborhood && nhData.neighborhood) {
-              triggerNeighborhoodReveal(nhData, () => {
-                triggerVibeVoting(place.placeId, result.name);
-              });
-              triggeredReveal = true;
-            }
-          }
-        } catch (e) {
-          console.error("Neighborhood check failed", e);
-        } finally {
-          if (!triggeredReveal) {
-            setTimeout(() => triggerVibeVoting(place.placeId, result.name), 1000);
-          }
-          triggerBadgeCheck();
-        }
-      }, 1000);
-    } else {
-      showToast("You are too far away to check in here! Get closer.");
-    }
-  };
-
   // Fetch visited places for fog-of-war
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -619,14 +554,6 @@ export default function MapPage() {
   useEffect(() => {
     fetchNearby();
   }, [fetchNearby]);
-
-  const fallbackGradient =
-    FALLBACK_GRADIENTS[
-    detailPlace
-      ? nearbyPlaces.findIndex((p) => p.placeId === detailPlace.placeId) %
-      FALLBACK_GRADIENTS.length
-      : 0
-    ] ?? FALLBACK_GRADIENTS[0];
 
   const neighborhoods = useMemo(
     () => new Set(visitedLocations.map(v => `${Math.floor(v.lat * 100)}_${Math.floor(v.lng * 100)}`)).size,
@@ -779,15 +706,15 @@ export default function MapPage() {
         )}
       </div>
 
-      {/* Place detail bottom sheet */}
+      {/* Place detail modal (desktop) / bottom sheet (mobile) */}
       <AnimatePresence>
         {detailPlace && (
-          <PlaceDetailSheet
+          <MapPlaceDetail
             place={detailPlace}
-            fallbackGradient={fallbackGradient}
+            intent={intent}
+            savedPlaceIds={new Set(savedPlaces.map(p => p.placeId))}
+            userLocation={userLocation}
             onClose={() => setDetailPlace(null)}
-            onSave={(action) => handleSave(detailPlace, intent, action)}
-            onCheckIn={() => handleManualCheckIn(detailPlace)}
           />
         )}
       </AnimatePresence>
