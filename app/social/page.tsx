@@ -483,7 +483,7 @@ export default function SocialPage() {
               >
                 <Avatar image={f.image} name={f.name} size={40} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#0E1116] dark:text-[#C9D1D9] truncate">{f.name ?? f.email}</p>
+                  <p className="text-sm font-medium text-[#0E1116] dark:text-[#C9D1D9] truncate">{f.name ?? f.email?.split("@")[0]}</p>
                 </div>
                 {score != null && (
                   <span className="text-xs text-[#E85D2A] font-semibold shrink-0">{score}% match</span>
@@ -593,7 +593,7 @@ export default function SocialPage() {
                           >
                             <Avatar image={f.image} name={f.name} size={40} />
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-[#0E1116] dark:text-[#C9D1D9] truncate">{f.name ?? f.email}</p>
+                              <p className="text-sm font-medium text-[#0E1116] dark:text-[#C9D1D9] truncate">{f.name ?? f.email?.split("@")[0]}</p>
                             </div>
                             {score != null && (
                               <span className="text-xs text-[#E85D2A] font-semibold shrink-0">{score}% match</span>

@@ -117,7 +117,7 @@ export function CompatibilityDrawer({
                 <div className="flex items-center gap-3 mb-6">
                     <Avatar image={friend.image} name={friend.name} size={48} />
                     <div className="flex-1 min-w-0">
-                        <p className="font-bold text-[#0E1116] dark:text-[#e8edf4] truncate">{friend.name ?? friend.email}</p>
+                        <p className="font-bold text-[#0E1116] dark:text-[#e8edf4] truncate">{friend.name ?? friend.email?.split("@")[0]}</p>
                         <p className="text-xs text-gray-400 dark:text-gray-500">Taste Compatibility</p>
                     </div>
                 </div>

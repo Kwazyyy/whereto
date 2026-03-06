@@ -209,8 +209,7 @@ export function ShareModal({
                                                 </div>
                                             )}
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4] truncate">{f.name ?? f.email}</p>
-                                                {f.name && <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{f.email}</p>}
+                                                <p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4] truncate">{f.name ?? f.email?.split("@")[0]}</p>
                                             </div>
                                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
                                         </button>
@@ -247,7 +246,7 @@ export function ShareModal({
                                     </div>
                                 )}
                                 <p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">
-                                    Sending <span className="text-[#E85D2A]">{place.name}</span> to {selectedFriend.name?.split(" ")[0] ?? selectedFriend.email}
+                                    Sending <span className="text-[#E85D2A]">{place.name}</span> to {selectedFriend.name?.split(" ")[0] ?? selectedFriend.email?.split("@")[0]}
                                 </p>
                             </div>
 

@@ -170,13 +170,8 @@ export function FriendsListModal({ onClose }: { onClose: () => void }) {
                                             onClick={() => setSelectedCompareFriend(friend.userId)}
                                         >
                                             <p className="text-sm font-bold text-[#0E1116] dark:text-[#e8edf4] truncate group-hover/name:text-[#E85D2A] group-hover/name:underline transition-all">
-                                                {friend.name ?? friend.email}
+                                                {friend.name ?? friend.email?.split("@")[0]}
                                             </p>
-                                            {friend.name && (
-                                                <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
-                                                    {friend.email}
-                                                </p>
-                                            )}
                                         </div>
                                         <div className="flex items-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
                                             <button
