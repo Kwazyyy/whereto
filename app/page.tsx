@@ -61,7 +61,6 @@ const DEFAULT_LAT = 43.6532;
 const DEFAULT_LNG = -79.3832;
 
 const SWIPE_THRESHOLD = 100;
-const SWIPE_UP_THRESHOLD = 80;
 const TAP_MOVE_LIMIT = 10;
 const TAP_TIME_LIMIT = 200;
 
@@ -357,21 +356,7 @@ export default function Home() {
     });
   }
 
-  function handleSwipeUpSync(place: Place) {
-    if (sessionStatusRef.current === "authenticated") {
-      const url = `https://www.google.com/maps/dir/?api=1&destination=${place.location.lat},${place.location.lng}&destination_place_id=${place.placeId}`;
-      // Use anchor click for reliable mobile browser popup handling
-      const a = document.createElement("a");
-      a.href = url;
-      a.target = "_blank";
-      a.rel = "noopener noreferrer";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-  }
-
-  function handleSwipe(direction: "left" | "right" | "up") {
+  function handleSwipe(direction: "left" | "right") {
     const place = visiblePlaces[0];
     if (!place) return;
 
@@ -383,24 +368,23 @@ export default function Home() {
         body: JSON.stringify({ ids: [place.recommendationId] }),
       }).catch(() => { });
       setRecommendations(prev => prev.filter(r => r.recommendationId !== place.recommendationId));
-      if (direction === "right" || direction === "up") {
+      if (direction === "right") {
         if (sessionStatusRef.current === "authenticated") {
-          handleSave(place, intent, direction === "up" ? "go_now" : "save", place.recommendationId);
+          handleSave(place, intent, "save", place.recommendationId);
           setSavedPlaceIds(prev => new Set([...prev, place.placeId]));
         }
       }
       return;
     }
 
-    if (direction === "right" || direction === "up") {
+    if (direction === "right") {
       if (sessionStatusRef.current !== "authenticated") {
         // Show sign-in modal; card already flew away, so add to session skipped
         addToSkipped(place.placeId, false);
         setShowSignInModal(true);
         return;
       }
-      const action = direction === "up" ? "go_now" : "save";
-      handleSave(place, intent, action);
+      handleSave(place, intent, "save");
       setSavedPlaceIds(prev => new Set([...prev, place.placeId]));
       // Session-only skip (don't persist saves)
       addToSkipped(place.placeId, false);
@@ -564,7 +548,6 @@ export default function Home() {
                   place={place}
                   fallbackGradient={gradient}
                   onSwipe={handleSwipe}
-                  onSwipeUpSync={() => handleSwipeUpSync(place)}
                   isTop={isTop}
                   isSaved={isSaved}
                   isVisited={visitedPlaceIds.has(place.placeId)}

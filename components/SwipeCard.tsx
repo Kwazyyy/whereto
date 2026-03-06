@@ -16,7 +16,6 @@ import { usePhotoUrl } from "@/lib/use-photo-url";
 import CommunityVibes from "./CommunityVibes";
 
 const SWIPE_THRESHOLD = 100;
-const SWIPE_UP_THRESHOLD = 50;
 const TAP_MOVE_LIMIT = 10;
 const TAP_TIME_LIMIT = 200;
 
@@ -96,7 +95,6 @@ export function SwipeCard({
     place,
     fallbackGradient,
     onSwipe,
-    onSwipeUpSync,
     isTop,
     isSaved,
     isVisited,
@@ -108,8 +106,7 @@ export function SwipeCard({
 }: {
     place: Place;
     fallbackGradient: string;
-    onSwipe: (direction: "left" | "right" | "up") => void;
-    onSwipeUpSync?: () => void;
+    onSwipe: (direction: "left" | "right") => void;
     isTop: boolean;
     isSaved: boolean;
     isVisited?: boolean;
@@ -120,7 +117,6 @@ export function SwipeCard({
     onAddPhotos?: () => void;
 }) {
     const x = useMotionValue(0);
-    const y = useMotionValue(0);
     const pointerStart = useRef({ x: 0, y: 0, time: 0 });
     const isDragging = useRef(false);
     const carouselPointerStart = useRef({ x: 0, y: 0, time: 0 });
@@ -128,7 +124,6 @@ export function SwipeCard({
     const rotateZ = useTransform(x, [-300, 0, 300], [-20, 0, 20]);
     const saveOpacity = useTransform(x, [0, SWIPE_THRESHOLD], [0, 1]);
     const skipOpacity = useTransform(x, [-SWIPE_THRESHOLD, 0], [1, 0]);
-    const goNowOpacity = useTransform(y, [-SWIPE_UP_THRESHOLD, 0], [1, 0]);
 
     const cardRef = useRef<HTMLDivElement>(null);
     const dragEnabledRef = useRef(false);
@@ -185,11 +180,7 @@ export function SwipeCard({
 
     function handleDragEnd(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
         const { offset } = info;
-        if (offset.y < -SWIPE_UP_THRESHOLD) {
-            if (onSwipeUpSync) onSwipeUpSync();
-            animate(y, -800, { duration: 0.3 });
-            setTimeout(() => onSwipe("up"), 300);
-        } else if (offset.x > SWIPE_THRESHOLD) {
+        if (offset.x > SWIPE_THRESHOLD) {
             animate(x, 500, { duration: 0.3 });
             setTimeout(() => onSwipe("right"), 300);
         } else if (offset.x < -SWIPE_THRESHOLD) {
@@ -197,7 +188,6 @@ export function SwipeCard({
             setTimeout(() => onSwipe("left"), 300);
         } else {
             animate(x, 0, { type: "spring", stiffness: 500, damping: 30 });
-            animate(y, 0, { type: "spring", stiffness: 500, damping: 30 });
         }
     }
 
@@ -205,15 +195,14 @@ export function SwipeCard({
         <motion.div
             ref={cardRef}
             className="absolute inset-4 z-10 touch-none"
-            style={{ x, y, rotateZ, zIndex: isTop ? 10 : 0, perspective: 1500 }}
+            style={{ x, rotateZ, zIndex: isTop ? 10 : 0, perspective: 1500 }}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
             transition={{ duration: 0.3 }}
-            drag={dragEnabled}
-            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+            drag={dragEnabled ? "x" : false}
+            dragConstraints={{ left: 0, right: 0 }}
             dragElastic={1}
-            dragDirectionLock={false}
             onPointerDown={dragEnabled ? handlePointerDown : undefined}
             onPointerUp={dragEnabled ? handlePointerUp : undefined}
             onDragStart={dragEnabled ? handleDragStart : undefined}
@@ -312,9 +301,6 @@ export function SwipeCard({
                             </motion.div>
                             <motion.div className="absolute inset-0 flex items-center justify-center bg-gray-500/30 z-20 pointer-events-none" style={{ opacity: skipOpacity }}>
                                 <span className="text-5xl font-black text-white border-4 border-white rounded-2xl px-8 py-4 rotate-[15deg]">SKIP</span>
-                            </motion.div>
-                            <motion.div className="absolute inset-0 flex items-center justify-center bg-blue-500/30 z-20 pointer-events-none" style={{ opacity: goNowOpacity }}>
-                                <span className="text-5xl font-black text-white border-4 border-white rounded-2xl px-6 py-4">GO NOW</span>
                             </motion.div>
                         </>
                     )}
