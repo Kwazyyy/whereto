@@ -102,7 +102,7 @@ function DetailContent({
   return (
     <>
       {/* Photo section */}
-      <div className="relative h-56 md:h-64 w-full shrink-0 bg-gray-200 dark:bg-[#1C2128]">
+      <div className="relative h-48 w-full shrink-0 bg-gray-200 dark:bg-[#1C2128]">
         {photos ? (
           <div
             className="absolute inset-0 overflow-hidden"
@@ -586,8 +586,8 @@ export default function MapPlaceDetail({
         />
         {/* Sheet */}
         <motion.div
-          className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#161B22] rounded-t-2xl border-t border-[#D0D7DE] dark:border-[#30363D] flex flex-col"
-          style={{ height: sheetExpanded ? "95dvh" : "80dvh" }}
+          className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#161B22] rounded-t-3xl flex flex-col overflow-hidden"
+          style={{ height: sheetExpanded ? "95dvh" : "70dvh" }}
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
