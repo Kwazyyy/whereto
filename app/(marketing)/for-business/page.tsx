@@ -126,7 +126,7 @@ export default function ForBusinessPage() {
     <div className="min-h-screen bg-[#0E1116] text-white overflow-x-hidden">
       {/* ── Nav ─────────────────────────────────────────────────── */}
       <nav className="fixed top-0 inset-x-0 bg-[#0E1116]/90 backdrop-blur-md border-b border-white/5 z-50">
-        <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3">
+        <div className="flex items-center justify-between px-4 md:px-6 py-3">
           <Link href="/for-business" className="flex items-center gap-2">
             <span className="text-xl font-bold text-[#E85D2A]">WhereTo</span>
             <span className="text-sm font-bold text-white">for Business</span>
@@ -341,7 +341,7 @@ export default function ForBusinessPage() {
                 </span>
                 <span className="text-gray-400 text-sm">/month</span>
               </div>
-              <div className="inline-block bg-green-500/10 border border-green-500/20 rounded-full px-3 py-1 text-green-400 text-xs font-medium mt-2">
+              <div className="inline-block bg-[#CA8A04]/10 border border-[#CA8A04]/20 rounded-full px-3 py-1 text-[#CA8A04] text-xs font-medium mt-2">
                 Free during beta
               </div>
               <p className="text-gray-400 text-sm mt-3">{tier.description}</p>
@@ -352,7 +352,7 @@ export default function ForBusinessPage() {
         <motion.div {...fadeInView(0.3)} className="text-center mt-6">
           <Link
             href="/business/pricing"
-            className="text-[#E85D2A] text-sm hover:underline"
+            className="text-[#CA8A04] text-sm hover:text-[#E85D2A] transition"
           >
             See all plans →
           </Link>
@@ -384,9 +384,9 @@ export default function ForBusinessPage() {
       </motion.section>
 
       {/* ── Footer ──────────────────────────────────────────────── */}
-      <footer className="py-8 border-t border-white/5 mt-20">
+      <footer className="py-8 border-t border-white/5 mt-20 px-4 md:px-6">
         <p className="text-gray-500 text-sm text-center">
-          © 2025 WhereTo. Made with love in Toronto.
+          © {new Date().getFullYear()} WhereTo. Made with love in Toronto.
         </p>
       </footer>
     </div>

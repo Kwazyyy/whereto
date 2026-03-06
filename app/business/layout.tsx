@@ -32,7 +32,7 @@ function TopNav() {
 
   return (
     <header className="border-b border-white/10 bg-[#0E1116]">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="px-4 md:px-6 h-16 flex items-center justify-between">
         <Link href="/business/dashboard" className="flex items-center gap-2">
           <span className="text-xl font-bold text-[#E85D2A]">WhereTo</span>
           <span className="text-sm text-gray-400 font-medium">for Business</span>
@@ -143,7 +143,7 @@ function LoadingSkeleton() {
   return (
     <div className="min-h-screen bg-[#0E1116]">
       <div className="border-b border-white/10 bg-[#0E1116]">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="px-4 md:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="h-6 w-24 bg-white/5 rounded animate-pulse" />
             <div className="h-4 w-20 bg-white/5 rounded animate-pulse" />
