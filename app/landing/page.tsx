@@ -70,8 +70,8 @@ function BoardsIcon() {
 function CameraIcon() {
     return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg>;
 }
-function TrendingIcon() {
-    return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" /></svg>;
+function BarChart3Icon() {
+    return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg>;
 }
 function StarIcon({ filled = false }: { filled?: boolean }) {
     return <svg width="20" height="20" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>;
@@ -135,7 +135,7 @@ function WaitlistForm() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="bg-green-500/10 border border-green-500/20 text-green-400 p-8 rounded-2xl flex flex-col items-center gap-3"
                     >
-                        <div className="text-4xl mb-1">🎉</div>
+                        <div className="mb-1 text-green-400"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg></div>
                         <h3 className="text-xl font-bold text-white">You&apos;re on the list!</h3>
                         <p className="text-green-400/70 text-sm">We&apos;ll notify you when we launch in your city.</p>
                     </motion.div>
@@ -206,15 +206,15 @@ export default function LandingPage() {
         document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
     };
 
-    const navLinks = [
+    const navLinks: { label: string; id?: string; href?: string }[] = [
         { label: "About", id: "about" },
         { label: "How It Works", id: "how-it-works" },
         { label: "Cities", id: "cities" },
-        { label: "For Cafés", id: "for-cafes" },
+        { label: "For Cafés", href: "/for-business" },
     ];
 
     return (
-        <div className="bg-zinc-950 text-white min-h-screen selection:bg-orange-500 selection:text-white" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+        <div className="bg-zinc-950 text-white min-h-screen w-full overflow-x-hidden selection:bg-orange-500 selection:text-white" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
             {/* eslint-disable-next-line @next/next/no-page-custom-font */}
             <link rel="preconnect" href="https://fonts.googleapis.com" />
             {/* eslint-disable-next-line @next/next/no-page-custom-font */}
@@ -229,7 +229,7 @@ export default function LandingPage() {
 
             {/* ═══════ NAV ═══════ */}
             <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-zinc-950/90 backdrop-blur-md py-4 border-b border-white/5" : "bg-transparent py-6"}`}>
-                <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+                <div className="px-4 md:px-6 flex items-center justify-between">
                     {/* Logo */}
                     <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center text-white">
@@ -243,19 +243,26 @@ export default function LandingPage() {
                     {/* Desktop links */}
                     <div className="hidden md:flex items-center gap-1">
                         {navLinks.map((l) => (
-                            <button key={l.id} onClick={() => scrollToSection(l.id)}
-                                className="px-4 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-all">
-                                {l.label}
-                            </button>
+                            l.href ? (
+                                <Link key={l.label} href={l.href}
+                                    className="px-4 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer">
+                                    {l.label}
+                                </Link>
+                            ) : (
+                                <button key={l.id} onClick={() => scrollToSection(l.id!)}
+                                    className="px-4 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer">
+                                    {l.label}
+                                </button>
+                            )
                         ))}
                     </div>
 
                     <div className="flex items-center gap-3">
                         <button onClick={() => scrollToSection("waitlist")}
-                            className="hidden sm:block bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-full font-semibold text-sm transition-all shadow-lg shadow-orange-500/20">
+                            className="hidden md:block bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-full font-semibold text-sm transition-all shadow-lg shadow-orange-500/20 cursor-pointer">
                             Join Waitlist
                         </button>
-                        <button onClick={() => setMobileMenu(!mobileMenu)} className="md:hidden p-2 text-zinc-400 hover:text-white">
+                        <button onClick={() => setMobileMenu(!mobileMenu)} className="md:hidden p-2 text-zinc-400 hover:text-white cursor-pointer">
                             {mobileMenu ? <XIcon /> : <MenuIcon />}
                         </button>
                     </div>
@@ -267,10 +274,17 @@ export default function LandingPage() {
                             className="md:hidden bg-zinc-950/95 backdrop-blur-xl border-t border-white/5 overflow-hidden">
                             <div className="p-4 flex flex-col gap-1">
                                 {[...navLinks, { label: "Join Waitlist", id: "waitlist" }].map((l) => (
-                                    <button key={l.id} onClick={() => scrollToSection(l.id)}
-                                        className="px-4 py-3 rounded-xl text-left text-[15px] font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-all">
-                                        {l.label}
-                                    </button>
+                                    l.href ? (
+                                        <Link key={l.label} href={l.href}
+                                            className="px-4 py-3 rounded-xl text-left text-[15px] font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer">
+                                            {l.label}
+                                        </Link>
+                                    ) : (
+                                        <button key={l.id} onClick={() => scrollToSection(l.id!)}
+                                            className="px-4 py-3 rounded-xl text-left text-[15px] font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer">
+                                            {l.label}
+                                        </button>
+                                    )
                                 ))}
                             </div>
                         </motion.div>
@@ -339,7 +353,7 @@ export default function LandingPage() {
                                         className="w-9 h-9 rounded-full ring-[2.5px] ring-zinc-950 object-cover" />
                                 ))}
                             </div>
-                            <p className="text-sm text-zinc-500">Join <span className="text-white font-semibold">500+</span> early explorers</p>
+                            <p className="text-sm text-zinc-500">Join <span className="text-white font-semibold">1,000+</span> early explorers</p>
                         </div>
                     </motion.div>
 
@@ -447,7 +461,7 @@ export default function LandingPage() {
                     <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
                         <motion.div {...fadeInView(0)}>
                             <span className="inline-block text-xs font-semibold text-orange-500 uppercase tracking-[0.18em] mb-3">Sound familiar?</span>
-                            <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-[1.1]">Still arguing about<br />where to eat? 😮‍💨</h2>
+                            <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-[1.1]">Still arguing about<br />where to eat?</h2>
                         </motion.div>
                     </div>
 
@@ -487,9 +501,12 @@ export default function LandingPage() {
                         {/* Right: clean solution */}
                         <motion.div {...fadeInView(0.15)} className="relative">
                             <div className="bg-zinc-900 rounded-3xl p-1.5 border border-orange-500/30 shadow-[0_0_50px_rgba(249,115,22,0.1)]">
-                                <div className="bg-zinc-950 rounded-[22px] overflow-hidden relative" style={{ aspectRatio: "16/11" }}>
-                                    <img src={IMAGES.latte} alt="Solution" className="w-full h-full object-cover opacity-60" />
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-black/40 backdrop-blur-sm">
+                                <div className="rounded-[22px] overflow-hidden relative" style={{ aspectRatio: "16/11" }}>
+                                    {/* Blurry café background */}
+                                    <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&q=80" alt="" className="absolute inset-0 w-full h-full object-cover blur-lg scale-110" />
+                                    <div className="absolute inset-0 bg-black/50" />
+                                    {/* Content */}
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center z-10">
                                         <div className="bg-orange-500 w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-orange-500/40 text-white">
                                             <HeartIcon filled />
                                         </div>
@@ -622,9 +639,9 @@ export default function LandingPage() {
                             <div className="grid grid-cols-2 gap-5 mb-10">
                                 {[
                                     { icon: <CameraIcon />, label: "Add Photos" },
-                                    { icon: <TrendingIcon />, label: "See Analytics" },
+                                    { icon: <BarChart3Icon />, label: "See Analytics" },
                                     { icon: <StarIcon />, label: "Get Featured" },
-                                    { icon: <UsersIcon />, label: "Reach Locals" },
+                                    { icon: <MapPinIcon />, label: "Reach Locals" },
                                 ].map((item, i) => (
                                     <div key={i} className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-orange-500">
@@ -700,7 +717,7 @@ export default function LandingPage() {
 
             {/* ═══════ FOOTER ═══════ */}
             <footer className="py-12 bg-zinc-950 border-t border-white/5">
-                <div className="max-w-7xl mx-auto px-6">
+                <div className="px-4 md:px-6">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-8">
                         <div className="flex items-center gap-2.5">
                             <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-500">
