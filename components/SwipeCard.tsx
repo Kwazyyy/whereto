@@ -3,6 +3,7 @@
 import { useState, useRef, useMemo, useEffect } from "react";
 import {
     motion,
+    AnimatePresence,
     useMotionValue,
     useTransform,
     animate,
@@ -18,6 +19,18 @@ const SWIPE_THRESHOLD = 100;
 const SWIPE_UP_THRESHOLD = 50;
 const TAP_MOVE_LIMIT = 10;
 const TAP_TIME_LIMIT = 200;
+
+const carouselSlideVariants = {
+    enter: (direction: number) => ({
+        x: direction > 0 ? "100%" : "-100%",
+    }),
+    center: {
+        x: 0,
+    },
+    exit: (direction: number) => ({
+        x: direction > 0 ? "-100%" : "100%",
+    }),
+};
 
 export function friendLabel(friends: FriendSignal[]): string {
     const first = (f: FriendSignal) => f.name?.split(" ")[0] ?? "someone";
@@ -111,7 +124,7 @@ export function SwipeCard({
     const pointerStart = useRef({ x: 0, y: 0, time: 0 });
     const isDragging = useRef(false);
     const carouselPointerStart = useRef({ x: 0, y: 0, time: 0 });
-    const carouselRef = useRef<HTMLDivElement>(null);
+    const [carouselDirection, setCarouselDirection] = useState(0);
     const rotateZ = useTransform(x, [-300, 0, 300], [-20, 0, 20]);
     const saveOpacity = useTransform(x, [0, SWIPE_THRESHOLD], [0, 1]);
     const skipOpacity = useTransform(x, [-SWIPE_THRESHOLD, 0], [1, 0]);
@@ -387,8 +400,7 @@ export function SwipeCard({
                         {/* Photo Carousel */}
                         <div className="relative min-h-[40vh] h-[40%] shrink-0 w-full">
                             <div
-                                ref={carouselRef}
-                                className={`absolute inset-0 flex overflow-x-auto snap-x snap-mandatory scrollbar-none ${!(place.photoRefs && place.photoRefs.length > 0) ? `bg-gradient-to-br ${fallbackGradient}` : ""}`}
+                                className={`absolute inset-0 overflow-hidden ${!(place.photoRefs && place.photoRefs.length > 0) ? `bg-gradient-to-br ${fallbackGradient}` : ""}`}
                                 onPointerDown={(e) => {
                                     e.stopPropagation();
                                     carouselPointerStart.current = { x: e.clientX, y: e.clientY, time: Date.now() };
@@ -399,49 +411,88 @@ export function SwipeCard({
                                     const dy = Math.abs(e.clientY - carouselPointerStart.current.y);
                                     const dt = Date.now() - carouselPointerStart.current.time;
 
-                                    // If it's a tap, determine if left or right side was clicked
                                     if (dx < TAP_MOVE_LIMIT && dy < TAP_MOVE_LIMIT && dt < TAP_TIME_LIMIT) {
-                                        if (carouselRef.current && place.photoRefs) {
-                                            const rect = carouselRef.current.getBoundingClientRect();
+                                        if (place.photoRefs && place.photoRefs.length > 1) {
+                                            const rect = e.currentTarget.getBoundingClientRect();
                                             const xPos = e.clientX - rect.left;
                                             const width = rect.width;
+                                            const len = place.photoRefs.length;
 
-                                            let newIndex = activePhotoIndex;
                                             if (xPos > width * 0.35) {
-                                                // Tapped right 65% -> Go to next photo
-                                                newIndex = Math.min(activePhotoIndex + 1, place.photoRefs.length - 1);
+                                                setCarouselDirection(1);
+                                                setActivePhotoIndex((activePhotoIndex + 1) % len);
                                             } else {
-                                                // Tapped left 35% -> Go to previous photo
-                                                newIndex = Math.max(activePhotoIndex - 0, 0); // Need to correctly max with 0
-                                            }
-
-                                            if (newIndex !== activePhotoIndex) {
-                                                carouselRef.current.scrollTo({
-                                                    left: newIndex * width,
-                                                    behavior: "smooth"
-                                                });
+                                                setCarouselDirection(-1);
+                                                setActivePhotoIndex((activePhotoIndex - 1 + len) % len);
                                             }
                                         }
                                     }
                                 }}
-                                onScroll={(e) => {
-                                    const scrollLeft = e.currentTarget.scrollLeft;
-                                    const width = e.currentTarget.clientWidth;
-                                    const index = Math.round(scrollLeft / width);
-                                    setActivePhotoIndex(index);
-                                }}
                             >
                                 {place.photoRefs && place.photoRefs.length > 0 ? (
-                                    place.photoRefs.map((ref, idx) => (
-                                        <div key={idx} className="w-full shrink-0 snap-center h-full relative bg-gray-200 dark:bg-[#1C2128]">
-                                            <CardPhoto photoRef={ref} gradient={fallbackGradient} />
-                                        </div>
-                                    ))
+                                    <AnimatePresence initial={false} custom={carouselDirection}>
+                                        <motion.div
+                                            key={activePhotoIndex}
+                                            custom={carouselDirection}
+                                            variants={carouselSlideVariants}
+                                            initial="enter"
+                                            animate="center"
+                                            exit="exit"
+                                            transition={{ duration: 0.25, ease: "easeOut" }}
+                                            drag="x"
+                                            dragConstraints={{ left: 0, right: 0 }}
+                                            dragElastic={0.2}
+                                            dragDirectionLock
+                                            onDragEnd={(_, info) => {
+                                                if (!place.photoRefs || place.photoRefs.length <= 1) return;
+                                                const len = place.photoRefs.length;
+                                                if (info.offset.x < -50 || info.velocity.x < -500) {
+                                                    setCarouselDirection(1);
+                                                    setActivePhotoIndex((activePhotoIndex + 1) % len);
+                                                } else if (info.offset.x > 50 || info.velocity.x > 500) {
+                                                    setCarouselDirection(-1);
+                                                    setActivePhotoIndex((activePhotoIndex - 1 + len) % len);
+                                                }
+                                            }}
+                                            className="absolute inset-0 bg-gray-200 dark:bg-[#1C2128]"
+                                            style={{ touchAction: "pan-y" }}
+                                        >
+                                            <CardPhoto photoRef={place.photoRefs[activePhotoIndex]} gradient={fallbackGradient} />
+                                        </motion.div>
+                                    </AnimatePresence>
                                 ) : (
                                     <div className={`absolute inset-0 bg-gradient-to-br ${fallbackGradient}`} />
                                 )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#161B22] via-transparent to-transparent pointer-events-none" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#161B22] via-transparent to-transparent pointer-events-none z-10" />
                             </div>
+
+                            {/* Invisible tap zones */}
+                            {place.photoRefs && place.photoRefs.length > 1 && (
+                                <>
+                                    <div
+                                        className="absolute top-0 bottom-0 left-0 w-1/2 z-10 cursor-pointer"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const len = place.photoRefs!.length;
+                                            setCarouselDirection(-1);
+                                            setActivePhotoIndex((activePhotoIndex - 1 + len) % len);
+                                        }}
+                                        onPointerDown={(e) => e.stopPropagation()}
+                                        onPointerUp={(e) => e.stopPropagation()}
+                                    />
+                                    <div
+                                        className="absolute top-0 bottom-0 right-0 w-1/2 z-10 cursor-pointer"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const len = place.photoRefs!.length;
+                                            setCarouselDirection(1);
+                                            setActivePhotoIndex((activePhotoIndex + 1) % len);
+                                        }}
+                                        onPointerDown={(e) => e.stopPropagation()}
+                                        onPointerUp={(e) => e.stopPropagation()}
+                                    />
+                                </>
+                            )}
 
                             {/* Dot Indicators */}
                             {place.photoRefs && place.photoRefs.length > 1 && (

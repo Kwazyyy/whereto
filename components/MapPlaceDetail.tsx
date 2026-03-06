@@ -37,6 +37,18 @@ function formatDistance(meters: number): string {
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
+const carouselSlideVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? "100%" : "-100%",
+  }),
+  center: {
+    x: 0,
+  },
+  exit: (direction: number) => ({
+    x: direction > 0 ? "-100%" : "100%",
+  }),
+};
+
 // --- Content shared between modal and sheet ---
 function DetailContent({
   place,
@@ -59,7 +71,8 @@ function DetailContent({
 }) {
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const carouselRef = useRef<HTMLDivElement>(null);
+  const [carouselDirection, setCarouselDirection] = useState(0);
+  const carouselPointerStart = useRef({ x: 0, y: 0, time: 0 });
   const photoUrl = usePhotoUrl(place.photoRef);
 
   const todayHours = useMemo(() => {
@@ -92,30 +105,96 @@ function DetailContent({
       <div className="relative h-48 w-full shrink-0 bg-gray-200 dark:bg-[#1C2128]">
         {photos ? (
           <div
-            ref={carouselRef}
-            className="absolute inset-0 flex overflow-x-auto snap-x snap-mandatory scrollbar-none"
-            onScroll={(e) => {
-              const scrollLeft = e.currentTarget.scrollLeft;
-              const width = e.currentTarget.clientWidth;
-              setActivePhotoIndex(Math.round(scrollLeft / width));
+            className="absolute inset-0 overflow-hidden"
+            onPointerDown={(e) => {
+              carouselPointerStart.current = { x: e.clientX, y: e.clientY, time: Date.now() };
+            }}
+            onPointerUp={(e) => {
+              const dx = Math.abs(e.clientX - carouselPointerStart.current.x);
+              const dy = Math.abs(e.clientY - carouselPointerStart.current.y);
+              const dt = Date.now() - carouselPointerStart.current.time;
+
+              if (dx < 10 && dy < 10 && dt < 300) {
+                if (photos.length > 1) {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const xPos = e.clientX - rect.left;
+                  const width = rect.width;
+                  const len = photos.length;
+
+                  if (xPos > width * 0.35) {
+                    setCarouselDirection(1);
+                    setActivePhotoIndex((activePhotoIndex + 1) % len);
+                  } else {
+                    setCarouselDirection(-1);
+                    setActivePhotoIndex((activePhotoIndex - 1 + len) % len);
+                  }
+                }
+              }
             }}
           >
-            {photos.map((ref, idx) => (
-              <div key={idx} className="w-full shrink-0 snap-center h-full relative bg-gray-200 dark:bg-[#1C2128]">
-                <DetailPhoto photoRef={ref} alt={`${place.name} photo ${idx + 1}`} />
-              </div>
-            ))}
+            <AnimatePresence initial={false} custom={carouselDirection}>
+              <motion.div
+                key={activePhotoIndex}
+                custom={carouselDirection}
+                variants={carouselSlideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.2}
+                dragDirectionLock
+                onDragEnd={(_, info) => {
+                  if (photos.length <= 1) return;
+                  const len = photos.length;
+                  if (info.offset.x < -50 || info.velocity.x < -500) {
+                    setCarouselDirection(1);
+                    setActivePhotoIndex((activePhotoIndex + 1) % len);
+                  } else if (info.offset.x > 50 || info.velocity.x > 500) {
+                    setCarouselDirection(-1);
+                    setActivePhotoIndex((activePhotoIndex - 1 + len) % len);
+                  }
+                }}
+                className="absolute inset-0 bg-gray-200 dark:bg-[#1C2128]"
+                style={{ touchAction: "pan-y" }}
+              >
+                <DetailPhoto photoRef={photos[activePhotoIndex]} alt={`${place.name} photo ${activePhotoIndex + 1}`} />
+              </motion.div>
+            </AnimatePresence>
           </div>
         ) : photoUrl ? (
           <Image src={photoUrl} alt={place.name} fill className="object-cover" unoptimized />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-[#1C2128] dark:to-[#2d333f]" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent dark:from-[#161B22] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent dark:from-[#161B22] pointer-events-none z-10" />
+
+        {/* Invisible tap zones */}
+        {photos && photos.length > 1 && (
+          <>
+            <div
+              className="absolute top-0 bottom-0 left-0 w-1/2 z-10 cursor-pointer"
+              onClick={() => {
+                const len = photos.length;
+                setCarouselDirection(-1);
+                setActivePhotoIndex((activePhotoIndex - 1 + len) % len);
+              }}
+            />
+            <div
+              className="absolute top-0 bottom-0 right-0 w-1/2 z-10 cursor-pointer"
+              onClick={() => {
+                const len = photos.length;
+                setCarouselDirection(1);
+                setActivePhotoIndex((activePhotoIndex + 1) % len);
+              }}
+            />
+          </>
+        )}
 
         {/* Carousel dots */}
         {photos && photos.length > 1 && (
-          <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">
+          <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-20">
             {photos.map((_, idx) => (
               <div
                 key={idx}
