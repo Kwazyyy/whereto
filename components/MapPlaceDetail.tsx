@@ -102,7 +102,7 @@ function DetailContent({
   return (
     <>
       {/* Photo section */}
-      <div className="relative h-48 w-full shrink-0 bg-gray-200 dark:bg-[#1C2128]">
+      <div className="relative h-56 md:h-64 w-full shrink-0 bg-gray-200 dark:bg-[#1C2128]">
         {photos ? (
           <div
             className="absolute inset-0 overflow-hidden"
@@ -607,11 +607,6 @@ export default function MapPlaceDetail({
             }
           }}
         >
-          {/* Drag handle */}
-          <div className="flex justify-center pt-3 pb-2 shrink-0 cursor-grab active:cursor-grabbing">
-            <div className="w-10 h-1 rounded-full bg-[#8B949E]/50" />
-          </div>
-
           <div className="flex-1 overflow-y-auto scrollbar-none">
             <DetailContent
               place={place}
