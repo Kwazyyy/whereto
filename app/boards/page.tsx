@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
+import { motion } from "framer-motion";
+import { Bookmark, ClipboardList } from "lucide-react";
 import { SavedPlace } from "@/lib/saved-places";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useToast } from "@/components/Toast";
@@ -53,161 +55,230 @@ const CATEGORIES = [
   { label: "Groups", value: "groups" },
 ];
 
-function formatCategory(cat: string | null): string {
-  if (!cat) return "";
-  return cat.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
+/* ── Board Card (Section 1) ────────────────────────────────────── */
 
-function ChevronLeftIcon({ size = 24 }: { size?: number }) {
+function BoardCardPhoto({ photoRef }: { photoRef: string | null }) {
+  const photoUrl = usePhotoUrl(photoRef);
+  if (!photoUrl) return null;
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m15 18-6-6 6-6" />
-    </svg>
+    <Image
+      src={photoUrl}
+      alt=""
+      fill
+      className="object-cover"
+      unoptimized
+    />
   );
 }
 
-function GridIcon({ size = 24 }: { size?: number }) {
+function BoardCard({
+  intent,
+  label,
+  items,
+  index,
+}: {
+  intent: string;
+  label: string;
+  items: SavedPlace[];
+  index: number;
+}) {
+  const hasPlaces = items.length > 0;
+  const previewRef = hasPlaces ? items[0].photoRef ?? null : null;
+
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect width="7" height="7" x="3" y="3" rx="1" />
-      <rect width="7" height="7" x="14" y="3" rx="1" />
-      <rect width="7" height="7" x="14" y="14" rx="1" />
-      <rect width="7" height="7" x="3" y="14" rx="1" />
-    </svg>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.05 }}
+    >
+      <Link href={`/boards/${intent}`} className="block cursor-pointer">
+        <div className="aspect-[4/5] rounded-xl overflow-hidden relative hover:scale-[1.02] transition-transform duration-200">
+          {hasPlaces ? (
+            <>
+              <BoardCardPhoto photoRef={previewRef} />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-3">
+                <h3 className="text-white font-semibold text-sm line-clamp-1 capitalize">
+                  {label}
+                </h3>
+                <p className="text-white/60 text-xs mt-0.5">
+                  {items.length} place{items.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="w-full h-full bg-[#F6F8FA] dark:bg-[#161B22] border-2 border-dashed border-[#D0D7DE] dark:border-[#30363D] rounded-xl flex flex-col items-center justify-center">
+              <Bookmark className="w-8 h-8 text-[#D0D7DE] dark:text-[#30363D]" />
+              <span className="text-[#656D76] dark:text-[#8B949E] text-xs mt-2">
+                No saves yet
+              </span>
+            </div>
+          )}
+        </div>
+      </Link>
+    </motion.div>
   );
 }
 
-function BoardCard({ intent, label, items }: { intent: string; label: string; items: SavedPlace[] }) {
-  const previewItem = items[0];
-  const photoUrl = usePhotoUrl(previewItem?.photoRef ?? null);
+/* ── Saved List Card (Section 2) ───────────────────────────────── */
+
+function SavedListCard({
+  list,
+  onUnsave,
+  index,
+}: {
+  list: CuratedListSummary;
+  onUnsave: (id: string) => void;
+  index: number;
+}) {
+  const photoUrl = usePhotoUrl(list.heroImage);
 
   return (
-    <Link href={`/boards/${intent}`} className="block">
-      <div className="bg-white dark:bg-[#161B22] rounded-2xl overflow-hidden border shadow-sm cursor-pointer group border-gray-100 dark:border-white/10">
-        <div className="h-32 w-full relative bg-gray-100 dark:bg-[#1C2128]">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.05 }}
+    >
+      <Link href={`/boards/list/${list.id}`} className="block cursor-pointer">
+        <div className="aspect-[4/5] rounded-xl overflow-hidden relative hover:scale-[1.02] transition-transform duration-200">
           {photoUrl ? (
             <Image
               src={photoUrl}
-              alt={label}
+              alt={list.title}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              className="object-cover"
               unoptimized
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600">
-              <GridIcon size={32} />
-            </div>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#E85D2A]/30 to-[#161B22]" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-          <div className="absolute bottom-4 left-4 right-4">
-            <h3 className="font-bold text-lg text-white capitalize drop-shadow-md">{label}</h3>
-            <p className="text-sm text-gray-200 drop-shadow-md">{items.length} place{items.length !== 1 ? "s" : ""}</p>
+          {/* Bookmark badge */}
+          <div className="absolute top-2.5 right-2.5">
+            <button
+              className="w-7 h-7 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-black/50"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onUnsave(list.id);
+              }}
+            >
+              <Bookmark className="w-4 h-4 fill-[#E85D2A] text-[#E85D2A]" />
+            </button>
+          </div>
+
+          {/* Text overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-3">
+            <h3 className="text-white font-semibold text-sm line-clamp-1">
+              {list.title}
+            </h3>
+            <p className="text-white/60 text-xs mt-0.5">
+              by @{list.creator.name}
+            </p>
+            <p className="text-white/60 text-xs">
+              {list.stats.places} place{list.stats.places !== 1 ? "s" : ""}
+            </p>
           </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+    </motion.div>
   );
 }
 
-function FeaturedListCard({ list, isSaved, onToggleSave }: { list: CuratedListSummary; isSaved: boolean; onToggleSave: (id: string) => void }) {
+/* ── Featured List Card (Section 3) ────────────────────────────── */
+
+function FeaturedListCard({
+  list,
+  isSaved,
+  onToggleSave,
+  index,
+}: {
+  list: CuratedListSummary;
+  isSaved: boolean;
+  onToggleSave: (id: string) => void;
+  index: number;
+}) {
   const photoUrl = usePhotoUrl(list.heroImage);
 
   return (
-    <Link href={`/boards/list/${list.id}`} className="block group">
-      <div className="h-[220px] rounded-xl overflow-hidden relative bg-gray-100 dark:bg-[#1C2128] shadow-sm border border-white/5">
-        {photoUrl ? (
-          <Image
-            src={photoUrl}
-            alt={list.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            unoptimized
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1e] to-[#2a1711]" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-        {list.category && (
-          <div className="absolute top-3 left-3 bg-[#E85D2A]/80 backdrop-blur-sm rounded-full px-2 py-0.5 text-xs font-medium text-white">
-            {formatCategory(list.category)}
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.05 }}
+    >
+      <Link href={`/boards/list/${list.id}`} className="block cursor-pointer">
+        <div className="aspect-[4/5] rounded-xl overflow-hidden relative hover:scale-[1.02] transition-transform duration-200">
+          {photoUrl ? (
+            <Image
+              src={photoUrl}
+              alt={list.title}
+              fill
+              className="object-cover"
+              unoptimized
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1e] to-[#2a1711]" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+          {/* Bookmark toggle */}
+          <div className="absolute top-2.5 right-2.5">
+            <button
+              className="w-7 h-7 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-black/50"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleSave(list.id);
+              }}
+            >
+              <Bookmark
+                className={`w-4 h-4 ${
+                  isSaved
+                    ? "fill-[#E85D2A] text-[#E85D2A]"
+                    : "fill-none text-white/60"
+                }`}
+              />
+            </button>
           </div>
-        )}
-        <button
-          className={`absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-colors ${isSaved ? "text-[#E85D2A]" : "text-white"}`}
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleSave(list.id); }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill={isSaved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg>
-        </button>
-        <div className="absolute bottom-3 left-3 right-3">
-          <h3 className="text-white font-semibold text-lg mb-2 leading-tight line-clamp-2 drop-shadow-md">
-            {list.title}
-          </h3>
-          <div className="flex items-center gap-1.5 mb-1.5">
-            {list.creator.image ? (
-              <img src={list.creator.image} alt="Avatar" className="w-4 h-4 rounded-full shrink-0 object-cover" />
-            ) : (
-              <div className="w-4 h-4 rounded-full bg-gray-600 shrink-0" />
-            )}
-            <span className="text-[10px] font-semibold text-gray-200 truncate">
-              {list.creator.name} {list.creator.isVerified && "\u2713"}
-            </span>
+
+          {/* Text overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-3">
+            <h3 className="text-white font-semibold text-sm line-clamp-1">
+              {list.title}
+            </h3>
+            <div className="flex items-center gap-1 mt-0.5">
+              {list.creator.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={list.creator.image}
+                  alt=""
+                  className="w-4 h-4 rounded-full shrink-0 object-cover"
+                />
+              ) : (
+                <div className="w-4 h-4 rounded-full bg-gray-600 shrink-0" />
+              )}
+              <span className="text-white/60 text-xs truncate">
+                {list.creator.name}
+                {list.creator.isVerified && " \u2713"}
+              </span>
+            </div>
+            <div className="flex items-center gap-1 mt-0.5 text-white/60 text-xs">
+              <Bookmark className="w-3 h-3" />
+              <span>{list.stats.saves}</span>
+              <span>·</span>
+              <span>
+                {list.stats.places} place{list.stats.places !== 1 ? "s" : ""}
+              </span>
+            </div>
           </div>
-          <span className="text-[10px] font-medium text-gray-400">
-            {list.stats.places} place{list.stats.places !== 1 ? "s" : ""}
-          </span>
         </div>
-      </div>
-    </Link>
+      </Link>
+    </motion.div>
   );
 }
 
-function SavedListCard({ list, onUnsave }: { list: CuratedListSummary; onUnsave: (id: string) => void }) {
-  const photoUrl = usePhotoUrl(list.heroImage);
-
-  return (
-    <Link href={`/boards/list/${list.id}`} className="block group">
-      <div className="h-[220px] rounded-xl overflow-hidden relative bg-gray-100 dark:bg-[#1C2128] shadow-sm border border-white/5">
-        {photoUrl ? (
-          <Image
-            src={photoUrl}
-            alt={list.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            unoptimized
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-[#E85D2A]/30 to-[#161B22]" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-        <button
-          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-[#E85D2A] hover:bg-black/60 transition-colors"
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onUnsave(list.id); }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg>
-        </button>
-        <div className="absolute bottom-3 left-3 right-3">
-          <h3 className="text-white font-semibold text-lg mb-2 leading-tight line-clamp-2 drop-shadow-md">
-            {list.title}
-          </h3>
-          <div className="flex items-center gap-1.5 mb-1.5">
-            {list.creator.image ? (
-              <img src={list.creator.image} alt="Avatar" className="w-4 h-4 rounded-full shrink-0 object-cover" />
-            ) : (
-              <div className="w-4 h-4 rounded-full bg-gray-600 shrink-0" />
-            )}
-            <span className="text-[10px] font-semibold text-gray-200 truncate">
-              {list.creator.name} {list.creator.isVerified && "\u2713"}
-            </span>
-          </div>
-          <span className="text-[10px] font-medium text-gray-400">
-            {list.stats.places} place{list.stats.places !== 1 ? "s" : ""}
-          </span>
-        </div>
-      </div>
-    </Link>
-  );
-}
+/* ── Main Page ─────────────────────────────────────────────────── */
 
 export default function BoardsPage() {
   const { status } = useSession();
@@ -253,7 +324,6 @@ export default function BoardsPage() {
         .then((r) => r.json())
         .then((d) => setFeaturedLists(d.lists || []))
         .catch(console.error);
-
     } else {
       setLoading(false);
     }
@@ -270,7 +340,8 @@ export default function BoardsPage() {
     // Optimistic update
     setSavedListIds((prev) => {
       const next = new Set(prev);
-      if (wasSaved) next.delete(listId); else next.add(listId);
+      if (wasSaved) next.delete(listId);
+      else next.add(listId);
       return next;
     });
     if (wasSaved) {
@@ -287,7 +358,8 @@ export default function BoardsPage() {
       // Revert
       setSavedListIds((prev) => {
         const next = new Set(prev);
-        if (wasSaved) next.add(listId); else next.delete(listId);
+        if (wasSaved) next.add(listId);
+        else next.delete(listId);
         return next;
       });
       if (!wasSaved) {
@@ -297,25 +369,34 @@ export default function BoardsPage() {
   };
 
   const handleUnsave = async (listId: string) => {
-    // Optimistic removal
     const removed = savedLists.find((l) => l.id === listId);
     setSavedLists((prev) => prev.filter((l) => l.id !== listId));
-    setSavedListIds((prev) => { const next = new Set(prev); next.delete(listId); return next; });
+    setSavedListIds((prev) => {
+      const next = new Set(prev);
+      next.delete(listId);
+      return next;
+    });
 
     try {
-      const res = await fetch(`/api/curated-lists/${listId}/save`, { method: "DELETE" });
+      const res = await fetch(`/api/curated-lists/${listId}/save`, {
+        method: "DELETE",
+      });
       if (!res.ok) throw new Error();
       showToast("List removed from saved");
     } catch {
-      // Revert
       if (removed) setSavedLists((prev) => [removed, ...prev]);
-      setSavedListIds((prev) => { const next = new Set(prev); next.add(listId); return next; });
+      setSavedListIds((prev) => {
+        const next = new Set(prev);
+        next.add(listId);
+        return next;
+      });
     }
   };
 
+  /* ── Loading state ─────────────────────────────────────────── */
   if (loading || status === "loading") {
     return (
-      <div className="min-h-dvh bg-white dark:bg-[#0E1116] flex flex-col items-center justify-center pb-16">
+      <div className="min-h-dvh bg-white dark:bg-[#0E1116] flex items-center justify-center pb-24">
         <div
           className="w-8 h-8 rounded-full border-3 border-t-transparent animate-spin"
           style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
@@ -324,31 +405,52 @@ export default function BoardsPage() {
     );
   }
 
+  /* ── Unauthenticated state ─────────────────────────────────── */
   if (status === "unauthenticated") {
     return (
       <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24">
-        <header className="flex items-center px-5 pt-5 pb-4 sticky top-0 bg-white/80 dark:bg-[#0E1116]/80 backdrop-blur-md z-10 border-b border-gray-100 dark:border-white/10">
-          <h1 className="text-xl font-bold text-[#0E1116] dark:text-[#e8edf4]">Your Boards</h1>
-        </header>
-        <div className="flex flex-col items-center justify-center px-8 pt-24 text-center gap-5">
-          <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-[#161B22] flex items-center justify-center">
-            <GridIcon size={28} />
+        <div className="max-w-5xl mx-auto px-4 lg:px-6 pt-10">
+          <h1 className="text-2xl font-bold text-[#0E1116] dark:text-white">
+            My Boards
+          </h1>
+          <p className="text-[#656D76] dark:text-[#8B949E] text-sm mt-1">
+            Your saved places, organized by mood
+          </p>
+        </div>
+        <div className="flex flex-col items-center justify-center px-8 pt-20 text-center gap-5">
+          <div className="w-16 h-16 rounded-full bg-[#F6F8FA] dark:bg-[#161B22] flex items-center justify-center">
+            <Bookmark className="w-7 h-7 text-[#D0D7DE] dark:text-[#30363D]" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-[#0E1116] dark:text-[#e8edf4]">Sign in to view your boards</h2>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1.5 max-w-xs">
-              Save places while discovering to create boards grouped by your vibe.
+            <h2 className="text-xl font-bold text-[#0E1116] dark:text-white">
+              Sign in to view your boards
+            </h2>
+            <p className="text-sm text-[#656D76] dark:text-[#8B949E] mt-1.5 max-w-xs">
+              Save places while discovering to create boards grouped by your
+              vibe.
             </p>
           </div>
           <button
             onClick={() => signIn("google")}
-            className="flex items-center justify-center gap-3 w-full max-w-xs py-3.5 rounded-2xl bg-white dark:bg-[#161B22] border-2 border-gray-200 dark:border-white/10 font-semibold text-sm text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#1C2128] transition-colors cursor-pointer"
+            className="flex items-center justify-center gap-3 w-full max-w-xs py-3.5 rounded-xl bg-white dark:bg-[#161B22] border border-[#D0D7DE] dark:border-[#30363D] font-semibold text-sm text-[#0E1116] dark:text-white hover:bg-[#F6F8FA] dark:hover:bg-[#1C2128] transition-all duration-200 cursor-pointer"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+              <path
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+                fill="#4285F4"
+              />
+              <path
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                fill="#34A853"
+              />
+              <path
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                fill="#FBBC05"
+              />
+              <path
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                fill="#EA4335"
+              />
             </svg>
             Sign in with Google
           </button>
@@ -357,110 +459,167 @@ export default function BoardsPage() {
     );
   }
 
-  // Group by intent
+  /* ── Group saves by intent ─────────────────────────────────── */
   const groupedSaves: Record<string, SavedPlace[]> = {};
   saves.forEach((save) => {
-    // Only group by assigned intents or uncategorized. Re-routing recs back into standard boards or omitting them here.
     if (save.intent === "recs_from_friends") return;
-
     const intent = save.intent || "uncategorized";
     if (!groupedSaves[intent]) groupedSaves[intent] = [];
     groupedSaves[intent].push(save);
   });
 
-  const intents = Object.keys(groupedSaves).sort((a, b) => {
-    return a.localeCompare(b);
-  });
+  const intents = Object.keys(groupedSaves).sort((a, b) =>
+    a.localeCompare(b)
+  );
 
   const BOARD_LABELS: Record<string, string> = {
     ...INTENT_LABELS,
   };
 
+  const hasSavedLists = savedLists.length > 0;
+
   return (
     <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24">
-      <header className="flex items-center px-5 pt-5 pb-4 sticky top-0 bg-white/80 dark:bg-[#0E1116]/80 backdrop-blur-md z-10 border-b border-gray-100 dark:border-white/10">
-        <Link href="/profile" className="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#161B22] transition-colors cursor-pointer">
-          <div className="text-[#0E1116] dark:text-[#e8edf4]">
-            <ChevronLeftIcon size={24} />
-          </div>
-        </Link>
-        <h1 className="text-xl font-bold text-[#0E1116] dark:text-[#e8edf4] ml-2 flex-1">Your Boards</h1>
-      </header>
+      <div className="max-w-5xl mx-auto px-4 lg:px-6">
+        {/* ── Page Header ────────────────────────────────────── */}
+        <div className="pt-8 lg:pt-10">
+          <h1 className="text-2xl font-bold text-[#0E1116] dark:text-white">
+            My Boards
+          </h1>
+          <p className="text-[#656D76] dark:text-[#8B949E] text-sm mt-1">
+            Your saved places, organized by mood
+          </p>
+        </div>
 
-      <div className="px-5 pt-6">
-        {intents.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center mb-4">
-              <GridIcon size={32} />
+        {/* ── Section 1: My Boards ───────────────────────────── */}
+        <div className="mt-8">
+          {intents.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <Bookmark className="w-12 h-12 text-[#D0D7DE] dark:text-[#30363D]" />
+              <h2 className="text-lg font-semibold text-[#0E1116] dark:text-white mt-4">
+                No boards yet
+              </h2>
+              <p className="text-[#656D76] dark:text-[#8B949E] text-sm mt-1 max-w-sm">
+                Save places while discovering to automatically create boards
+                based on your intentions!
+              </p>
             </div>
-            <h2 className="text-xl font-bold text-[#0E1116] dark:text-[#e8edf4] mb-2">No boards yet</h2>
-            <p className="text-gray-500 dark:text-gray-400 max-w-sm">
-              Save places while discovering to automatically create boards based on your intentions!
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {intents.map((intent) => {
-              const items = groupedSaves[intent];
-              const label = BOARD_LABELS[intent] || intent;
-              return <BoardCard key={intent} intent={intent} label={label} items={items} />;
-            })}
-          </div>
+          ) : (
+            <motion.div
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4"
+              initial="hidden"
+              animate="visible"
+            >
+              {intents.map((intent, i) => {
+                const items = groupedSaves[intent];
+                const label = BOARD_LABELS[intent] || intent;
+                return (
+                  <BoardCard
+                    key={intent}
+                    intent={intent}
+                    label={label}
+                    items={items}
+                    index={i}
+                  />
+                );
+              })}
+            </motion.div>
+          )}
+        </div>
+
+        {/* ── Divider ────────────────────────────────────────── */}
+        {(hasSavedLists || true) && (
+          <div className="border-t border-[#D0D7DE]/50 dark:border-[#30363D]/50 mt-8 pt-8" />
         )}
-      </div>
 
-      {/* SECTION 2: Saved Lists */}
-      {savedLists.length > 0 && (
-        <div className="mt-12 px-5">
-          <h2 className="text-xl font-bold text-[#0E1116] dark:text-[#e8edf4] mb-4">Saved Lists</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {savedLists.map((list) => (
-              <SavedListCard key={list.id} list={list} onUnsave={handleUnsave} />
-            ))}
-          </div>
-        </div>
-      )}
+        {/* ── Section 2: Saved Lists ─────────────────────────── */}
+        {hasSavedLists && (
+          <>
+            <div className="flex items-center">
+              <h2 className="text-lg font-semibold text-[#0E1116] dark:text-white">
+                Saved Lists
+              </h2>
+              <span className="text-[#656D76] dark:text-[#8B949E] text-sm ml-2">
+                ({savedLists.length})
+              </span>
+            </div>
 
-      {/* SECTION 3: Featured Lists */}
-      <div className="mt-12 px-5 pb-12">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-[#0E1116] dark:text-[#e8edf4]">Featured Lists</h2>
-        </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-4 mb-2 -mx-5 px-5">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.value}
-              onClick={() => setSelectedCategory(cat.value)}
-              className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${selectedCategory === cat.value
-                ? "bg-[#0E1116] dark:bg-white text-white dark:text-[#0E1116]"
-                : "bg-gray-100 dark:bg-[#161B22] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10"
-                }`}
+            <motion.div
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4 mt-4"
+              initial="hidden"
+              animate="visible"
             >
-              {cat.label}
-            </button>
-          ))}
-        </div>
+              {savedLists.map((list, i) => (
+                <SavedListCard
+                  key={list.id}
+                  list={list}
+                  onUnsave={handleUnsave}
+                  index={i}
+                />
+              ))}
+            </motion.div>
 
-        {featuredLists.length === 0 ? (
-          <div className="text-center py-12 px-6 bg-gray-50 dark:bg-[#161B22] rounded-3xl border border-gray-100 dark:border-white/5 mt-2">
-            <p className="text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
-              No lists in this category yet. Be the first to create one!
-            </p>
+            {/* Divider between Section 2 and 3 */}
+            <div className="border-t border-[#D0D7DE]/50 dark:border-[#30363D]/50 mt-8 pt-8" />
+          </>
+        )}
+
+        {/* ── Section 3: Featured Lists ──────────────────────── */}
+        <div>
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-[#0E1116] dark:text-white">
+              Featured Lists
+            </h2>
             <Link
-              href="/profile"
-              className="inline-block mt-4 bg-[#E85D2A] text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-[#d45222] transition-colors"
+              href="/lists"
+              className="text-[#656D76] dark:text-[#8B949E] hover:text-[#E85D2A] text-sm cursor-pointer transition-colors duration-200"
             >
-              Create List
+              See all &rarr;
             </Link>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-            {featuredLists.map((list) => (
-              <FeaturedListCard key={list.id} list={list} isSaved={savedListIds.has(list.id)} onToggleSave={handleToggleSave} />
+
+          {/* Category filter chips */}
+          <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1 mt-3 mb-4 -mx-4 px-4 lg:-mx-6 lg:px-6">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.value}
+                onClick={() => setSelectedCategory(cat.value)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap cursor-pointer transition-all duration-200 ${
+                  selectedCategory === cat.value
+                    ? "bg-[#E85D2A] text-white"
+                    : "bg-[#F6F8FA] dark:bg-[#1C2128] text-[#656D76] dark:text-[#8B949E] border border-[#D0D7DE] dark:border-[#30363D] hover:border-[#E85D2A] hover:text-[#E85D2A]"
+                }`}
+              >
+                {cat.label}
+              </button>
             ))}
           </div>
-        )}
+
+          {featuredLists.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <ClipboardList className="w-12 h-12 text-[#D0D7DE] dark:text-[#30363D]" />
+              <p className="text-[#656D76] dark:text-[#8B949E] text-sm mt-4 max-w-sm">
+                Lists from Toronto&apos;s best food creators are on the way!
+              </p>
+            </div>
+          ) : (
+            <motion.div
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4"
+              initial="hidden"
+              animate="visible"
+            >
+              {featuredLists.map((list, i) => (
+                <FeaturedListCard
+                  key={list.id}
+                  list={list}
+                  isSaved={savedListIds.has(list.id)}
+                  onToggleSave={handleToggleSave}
+                  index={i}
+                />
+              ))}
+            </motion.div>
+          )}
+        </div>
       </div>
     </div>
   );
