@@ -538,7 +538,7 @@ export function SwipeCard({
                                                         {f.name?.[0]?.toUpperCase() ?? "?"}
                                                     </div>
                                                 )}
-                                                <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">
+                                                <span className="text-sm font-medium text-[#0E1116] dark:text-white">
                                                     {f.name ?? "A friend"}
                                                 </span>
                                                 <span className="ml-auto text-xs text-gray-400 dark:text-gray-500">saved this</span>
@@ -550,23 +550,23 @@ export function SwipeCard({
 
                             {/* Details Grid */}
                             <div className="mt-6">
-                                <h3 className="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Details</h3>
+                                <h3 className="text-xs font-semibold text-[#656D76] dark:text-[#8B949E] uppercase tracking-wider mb-3">Details</h3>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#1C2128]">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 10v3a1 1 0 0 0 1 1h3" /><path d="M8 14h0" /><path d="m6 6 1.5 1.5" /><path d="M2 2v2" /></svg>
-                                        <div><p className="text-xs text-gray-400 dark:text-gray-500 font-medium">Noise Level</p><p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">Quiet</p></div>
+                                        <div><p className="text-xs font-normal text-[#656D76] dark:text-[#8B949E]">Noise Level</p><p className="text-sm font-medium text-[#0E1116] dark:text-white">Quiet</p></div>
                                     </div>
                                     <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#1C2128]">
                                         <span className="w-2.5 h-2.5 rounded-full bg-green-500 shrink-0 ml-0.5" />
-                                        <div><p className="text-xs text-gray-400 dark:text-gray-500 font-medium">Busyness</p><p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">Not Busy</p></div>
+                                        <div><p className="text-xs font-normal text-[#656D76] dark:text-[#8B949E]">Busyness</p><p className="text-sm font-medium text-[#0E1116] dark:text-white">Not Busy</p></div>
                                     </div>
                                     <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#1C2128]">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22v-5" /><path d="M9 8V2" /><path d="M15 8V2" /><path d="M18 8v5a6 6 0 0 1-6 6a6 6 0 0 1-6-6V8Z" /></svg>
-                                        <div><p className="text-xs text-gray-400 dark:text-gray-500 font-medium">Outlets</p><p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">Plenty</p></div>
+                                        <div><p className="text-xs font-normal text-[#656D76] dark:text-[#8B949E]">Outlets</p><p className="text-sm font-medium text-[#0E1116] dark:text-white">Plenty</p></div>
                                     </div>
                                     <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#1C2128]">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3" /><path d="M3 16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V11a2 2 0 0 0-4 0Z" /><path d="M5 18v2" /><path d="M19 18v2" /></svg>
-                                        <div><p className="text-xs text-gray-400 dark:text-gray-500 font-medium">Seating</p><p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">Long Stay</p></div>
+                                        <div><p className="text-xs font-normal text-[#656D76] dark:text-[#8B949E]">Seating</p><p className="text-sm font-medium text-[#0E1116] dark:text-white">Long Stay</p></div>
                                     </div>
                                 </div>
                             </div>
@@ -575,10 +575,10 @@ export function SwipeCard({
                             <div className="mt-6 flex items-center gap-2.5 p-3.5 rounded-xl bg-gray-50 dark:bg-[#1C2128]">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
                                 <div>
-                                    <p className="text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">
+                                    <p className="text-sm font-medium text-[#0E1116] dark:text-white">
                                         {place.openNow ? "Open Now" : "Closed"}
                                     </p>
-                                    <p className="text-xs text-gray-400 dark:text-gray-500">
+                                    <p className="text-xs font-normal text-[#656D76] dark:text-[#8B949E]">
                                         {todayHours ?? "Hours unavailable"}
                                     </p>
                                 </div>
@@ -597,7 +597,7 @@ export function SwipeCard({
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
                                     </svg>
-                                    <span className="flex-1 text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">
+                                    <span className="flex-1 text-sm font-medium text-[#0E1116] dark:text-white">
                                         {place.menuType === "direct" ? "View Menu" : "Search Menu"}
                                     </span>
                                     <div className="flex items-center gap-1">
@@ -622,12 +622,12 @@ export function SwipeCard({
                                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
                                     <circle cx="12" cy="13" r="4" />
                                 </svg>
-                                <span className="flex-1 text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">
+                                <span className="flex-1 text-sm font-medium text-[#0E1116] dark:text-white">
                                     Community Photos
                                     {place.communityPhotoCount != null && place.communityPhotoCount > 0 ? (
-                                        <span className="text-gray-400 dark:text-gray-500 font-normal"> ({place.communityPhotoCount})</span>
+                                        <span className="text-[#656D76] dark:text-[#8B949E] font-normal"> ({place.communityPhotoCount})</span>
                                     ) : (
-                                        <span className="text-gray-400 dark:text-gray-500 font-normal text-xs"> — Be the first!</span>
+                                        <span className="text-[#656D76] dark:text-[#8B949E] font-normal text-xs"> — Be the first!</span>
                                     )}
                                 </span>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -644,9 +644,9 @@ export function SwipeCard({
                             >
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onAction("save"); }}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-colors cursor-pointer ${isSaved
-                                        ? "border border-[#E85D2A] bg-[#E85D2A]/10 text-[#E85D2A]"
-                                        : "border border-[#30363D] bg-transparent text-[#C9D1D9] hover:border-[#E85D2A]"
+                                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-colors duration-200 cursor-pointer ${isSaved
+                                        ? "border border-[#D0D7DE] dark:border-[#30363D] bg-transparent text-[#E85D2A]"
+                                        : "border border-[#D0D7DE] dark:border-[#30363D] text-[#0E1116] dark:text-white hover:border-[#E85D2A] hover:text-[#E85D2A]"
                                         }`}
                                 >
                                     <svg
@@ -666,14 +666,14 @@ export function SwipeCard({
                                 </button>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onAction("go_now"); }}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#E85D2A] hover:bg-[#D14E1F] text-white font-semibold text-sm transition-colors cursor-pointer"
+                                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#E85D2A] hover:bg-[#D14E1F] text-white font-semibold text-sm transition-colors duration-200 cursor-pointer"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11" /></svg>
                                     Go Now
                                 </button>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); if (onShare) onShare(); }}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-[#30363D] bg-transparent text-[#C9D1D9] hover:border-[#E85D2A] font-semibold text-sm transition-colors cursor-pointer">
+                                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-[#D0D7DE] dark:border-[#30363D] text-[#656D76] dark:text-[#8B949E] hover:border-[#E85D2A] hover:text-[#E85D2A] font-semibold text-sm transition-colors duration-200 cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" x2="12" y1="2" y2="15" /></svg>
                                     Share
                                 </button>
