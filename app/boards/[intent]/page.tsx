@@ -128,7 +128,6 @@ export default function BoardDetailPage() {
 
     const handleUnsaveFromModal = useCallback((placeId: string) => {
         setPlaces((prev) => prev.filter((p) => p.placeId !== placeId));
-        setDetailPlace(null);
         setToast(`Removed from ${label}`);
     }, [label]);
 
