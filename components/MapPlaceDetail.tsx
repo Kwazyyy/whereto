@@ -409,12 +409,14 @@ export default function MapPlaceDetail({
   savedPlaceIds,
   userLocation,
   onClose,
+  onUnsave,
 }: {
   place: Place;
   intent: string;
   savedPlaceIds: Set<string>;
   userLocation: { lat: number; lng: number } | null;
   onClose: () => void;
+  onUnsave?: (placeId: string) => void;
 }) {
   const { handleSave, handleUnsave } = useSavePlace();
   const { status } = useSession();
@@ -443,7 +445,8 @@ export default function MapPlaceDetail({
   const doUnsave = useCallback(async () => {
     setLocalSaved(false);
     await handleUnsave(place.placeId);
-  }, [handleUnsave, place.placeId]);
+    onUnsave?.(place.placeId);
+  }, [handleUnsave, place.placeId, onUnsave]);
 
   return (
     <>

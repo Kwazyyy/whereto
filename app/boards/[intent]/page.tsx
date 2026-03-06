@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { getSavedPlaces, SavedPlace } from "@/lib/saved-places";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { Place } from "@/lib/types";
-import PlaceDetailSheet from "@/components/PlaceDetailSheet";
+import MapPlaceDetail from "@/components/MapPlaceDetail";
 import { useSavePlace } from "@/lib/use-save-place";
 import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
+import { ChevronLeft, MapPin, Star, X, Bookmark } from "lucide-react";
 
 const RECS_INTENT = "recs_from_friends";
 
@@ -27,30 +28,17 @@ const INTENT_LABELS: Record<string, string> = {
     outdoor: "Outdoor / Patio",
 };
 
-function ChevronLeftIcon({ size = 24 }: { size?: number }) {
+function PlaceCardPhoto({ photoRef, alt }: { photoRef: string | null; alt: string }) {
+    const photoUrl = usePhotoUrl(photoRef);
+    if (!photoUrl) return null;
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m15 18-6-6 6-6" />
-        </svg>
-    );
-}
-
-function GridIcon({ size = 24 }: { size?: number }) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect width="7" height="7" x="3" y="3" rx="1" />
-            <rect width="7" height="7" x="14" y="3" rx="1" />
-            <rect width="7" height="7" x="14" y="14" rx="1" />
-            <rect width="7" height="7" x="3" y="14" rx="1" />
-        </svg>
-    );
-}
-
-function StarIcon({ size = 16, className = "" }: { size?: number; className?: string }) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-        </svg>
+        <Image
+            src={photoUrl}
+            alt={alt}
+            fill
+            className="object-cover"
+            unoptimized
+        />
     );
 }
 
@@ -67,100 +55,33 @@ function RecSenderAvatar({ image, name }: { image?: string | null; name?: string
     );
 }
 
-function PlaceListItem({ place, onTap, isRecs, hasVisited, userVibesForPlace, onRateVibes }: { place: SavedPlace; onTap: () => void; isRecs: boolean; hasVisited?: boolean; userVibesForPlace?: string[]; onRateVibes?: () => void }) {
-    const photoUrl = usePhotoUrl(place.photoRef);
-
-    return (
-        <div onClick={onTap} className="flex bg-white dark:bg-[#161B22] rounded-2xl overflow-hidden border border-gray-100 dark:border-white/10 shadow-sm mb-4 cursor-pointer active:scale-[0.98] transition-transform">
-            <div className="h-auto w-28 relative flex-shrink-0 bg-gray-100 dark:bg-[#1C2128]" style={{ minHeight: 112 }}>
-                {photoUrl ? (
-                    <Image
-                        src={photoUrl}
-                        alt={place.name}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600">
-                        <GridIcon size={24} />
-                    </div>
-                )}
-            </div>
-            <div className="p-3 flex flex-col justify-center flex-1 min-w-0">
-                <h3 className="font-bold text-[#0E1116] dark:text-[#e8edf4] text-base leading-tight line-clamp-1">{place.name}</h3>
-                <p className="text-sm text-gray-500 line-clamp-1 mt-0.5">{place.address}</p>
-
-                <div className="flex items-center gap-3 mt-1.5">
-                    <div className="flex items-center gap-1 text-[#E85D2A]">
-                        <StarIcon size={13} />
-                        <span className="text-xs font-bold">{place.rating?.toFixed(1) || "New"}</span>
-                    </div>
-                    <span className="text-gray-300 dark:text-gray-600 text-xs">•</span>
-                    <span className="text-xs font-medium text-gray-500">{place.price || "$$"}</span>
-                    {place.distance && (
-                        <>
-                            <span className="text-gray-300 dark:text-gray-600 text-xs">•</span>
-                            <span className="text-xs font-medium text-gray-500">{place.distance}</span>
-                        </>
-                    )}
-                </div>
-
-                {/* Rate Vibes Button */}
-                {hasVisited && (
-                    <div className="mt-2.5">
-                        <button
-                            onClick={(e) => { e.stopPropagation(); onRateVibes?.(); }}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#E85D2A]/10 text-[#E85D2A] hover:bg-[#E85D2A]/20 transition-colors border border-[#E85D2A]/20"
-                        >
-                            <span className="text-sm">✨</span>
-                            <span className="text-xs font-bold">
-                                {userVibesForPlace && userVibesForPlace.length > 0 ? "Edit vibes" : "Rate vibes"}
-                            </span>
-                        </button>
-                    </div>
-                )}
-
-                {/* Recommendation metadata */}
-                {isRecs && place.recommendedByName && (
-                    <div className="flex items-start gap-1.5 mt-2 p-2 rounded-xl bg-violet-50 dark:bg-violet-950/30">
-                        <RecSenderAvatar image={place.recommendedByImage} name={place.recommendedByName} />
-                        <div className="flex-1 min-w-0">
-                            <p className="text-[11px] font-semibold text-violet-700 dark:text-violet-400 truncate">
-                                From {place.recommendedByName.split(" ")[0]}
-                                {place.recommendedAt && (
-                                    <span className="font-normal text-violet-500/70 ml-1">
-                                        · {new Date(place.recommendedAt).toLocaleDateString("en", { month: "short", day: "numeric" })}
-                                    </span>
-                                )}
-                            </p>
-                            {place.recommenderNote && (
-                                <p className="text-[11px] text-violet-600/80 dark:text-violet-300/70 line-clamp-2 mt-0.5 italic">
-                                    &ldquo;{place.recommenderNote}&rdquo;
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-}
-
 export default function BoardDetailPage() {
     const { status } = useSession();
     const params = useParams();
     const router = useRouter();
     const intent = typeof params.intent === "string" ? params.intent : "uncategorized";
     const isRecs = intent === RECS_INTENT;
+    const label = INTENT_LABELS[intent] || intent;
 
     const [places, setPlaces] = useState<SavedPlace[]>([]);
     const [loading, setLoading] = useState(true);
     const [detailPlace, setDetailPlace] = useState<SavedPlace | null>(null);
-    const { handleSave, handleUnsave } = useSavePlace();
+    const { handleUnsave } = useSavePlace();
     const { triggerVibeVoting } = useVibeVoting();
     const [visitedIds, setVisitedIds] = useState<Set<string>>(new Set());
     const [userVibes, setUserVibes] = useState<Record<string, string[]>>({});
+    const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [toast, setToast] = useState<string | null>(null);
+
+    // Get user location for distance in detail modal
+    useEffect(() => {
+        if (!navigator.geolocation) return;
+        navigator.geolocation.getCurrentPosition(
+            (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+            () => {},
+            { timeout: 8000 }
+        );
+    }, []);
 
     useEffect(() => {
         if (status === "loading") return;
@@ -199,6 +120,25 @@ export default function BoardDetailPage() {
         }
     }, [status, intent]);
 
+    const handleRemovePlace = useCallback(async (placeId: string) => {
+        await handleUnsave(placeId);
+        setPlaces((prev) => prev.filter((p) => p.placeId !== placeId));
+        setToast(`Removed from ${label}`);
+    }, [handleUnsave, label]);
+
+    const handleUnsaveFromModal = useCallback((placeId: string) => {
+        setPlaces((prev) => prev.filter((p) => p.placeId !== placeId));
+        setDetailPlace(null);
+        setToast(`Removed from ${label}`);
+    }, [label]);
+
+    // Auto-dismiss toast
+    useEffect(() => {
+        if (!toast) return;
+        const timer = setTimeout(() => setToast(null), 3000);
+        return () => clearTimeout(timer);
+    }, [toast]);
+
     if (loading || status === "loading") {
         return (
             <div className="min-h-dvh bg-white dark:bg-[#0E1116] flex flex-col items-center justify-center pb-16">
@@ -210,94 +150,162 @@ export default function BoardDetailPage() {
         );
     }
 
-    const label = INTENT_LABELS[intent] || intent;
-
-    const FALLBACK_GRADIENTS = [
-        "from-amber-800 via-orange-700 to-yellow-600",
-        "from-slate-800 via-slate-600 to-cyan-700",
-        "from-green-800 via-emerald-700 to-teal-600",
-        "from-purple-900 via-violet-700 to-fuchsia-600",
-        "from-stone-800 via-stone-600 to-orange-800",
-    ];
-
-    const fallbackGradient = detailPlace
-        ? FALLBACK_GRADIENTS[places.findIndex((p) => p.placeId === detailPlace.placeId) % FALLBACK_GRADIENTS.length]
-        : FALLBACK_GRADIENTS[3];
+    const savedPlaceIds = new Set(places.map(p => p.placeId));
 
     return (
         <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24">
             {/* Header */}
-            <header className={`flex items-center px-5 pt-5 pb-4 sticky top-0 backdrop-blur-md z-10 border-b ${isRecs ? "bg-violet-50/90 dark:bg-violet-950/50 border-violet-200/50 dark:border-violet-900/40" : "bg-white/80 dark:bg-[#0E1116]/80 border-gray-100 dark:border-white/10"}`}>
-                <button onClick={() => router.back()} className="p-2 -ml-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer">
-                    <div className={isRecs ? "text-violet-700 dark:text-violet-400" : "text-[#0E1116] dark:text-[#e8edf4]"}>
-                        <ChevronLeftIcon size={24} />
-                    </div>
+            <div className="max-w-5xl mx-auto px-4 lg:px-6 pt-6">
+                <button
+                    onClick={() => router.push("/boards")}
+                    className="flex items-center gap-1 text-sm text-[#656D76] dark:text-[#8B949E] hover:text-[#E85D2A] cursor-pointer transition-colors duration-200"
+                >
+                    <ChevronLeft size={18} />
+                    Back
                 </button>
-                <div className="flex items-center gap-2 ml-2 flex-1">
-                    {isRecs && <span className="text-2xl">🎁</span>}
-                    <h1 className={`text-xl font-bold capitalize ${isRecs ? "text-violet-700 dark:text-violet-400" : "text-[#0E1116] dark:text-[#e8edf4]"}`}>
-                        {label}
-                    </h1>
-                </div>
-            </header>
+                <h1 className="text-2xl font-bold text-[#0E1116] dark:text-white mt-2">
+                    {label}
+                </h1>
+                <p className="text-[#656D76] dark:text-[#8B949E] text-sm mt-1">
+                    {places.length} {places.length === 1 ? "place" : "places"} saved
+                </p>
+            </div>
 
+            {/* Recs banner */}
             {isRecs && (
-                <div className="mx-5 mt-4 p-3.5 rounded-2xl bg-violet-50 dark:bg-violet-950/30 border border-violet-200/50 dark:border-violet-800/30">
-                    <p className="text-xs text-violet-600 dark:text-violet-400 font-medium">
-                        ✨ Places recommended by your friends — a personal collection of trusted spots.
-                    </p>
+                <div className="max-w-5xl mx-auto px-4 lg:px-6 mt-4">
+                    <div className="p-3.5 rounded-2xl bg-violet-50 dark:bg-violet-950/30 border border-violet-200/50 dark:border-violet-800/30">
+                        <p className="text-xs text-violet-600 dark:text-violet-400 font-medium">
+                            Places recommended by your friends — a personal collection of trusted spots.
+                        </p>
+                    </div>
                 </div>
             )}
 
-            <div className="px-5 pt-4">
+            {/* Content */}
+            <div className="max-w-5xl mx-auto px-4 lg:px-6 mt-6">
                 {places.length === 0 ? (
+                    /* Empty state */
                     <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 text-4xl">
-                            {isRecs ? "🎁" : "📍"}
-                        </div>
-                        <h2 className="text-xl font-bold text-[#0E1116] dark:text-[#e8edf4] mb-2">
-                            {isRecs ? "No recs saved yet" : "No places found"}
+                        <Bookmark className="w-16 h-16 text-[#D0D7DE] dark:text-[#30363D]" />
+                        <h2 className="text-lg font-semibold text-[#0E1116] dark:text-white mt-4">
+                            No places saved yet
                         </h2>
-                        <p className="text-gray-500 dark:text-gray-400 max-w-sm text-sm">
-                            {isRecs
-                                ? "When a friend recommends a place and you swipe right, it'll appear here."
-                                : "You haven't saved any places to this board yet."}
+                        <p className="text-[#656D76] dark:text-[#8B949E] text-sm mt-2 max-w-sm">
+                            Swipe right on places you like to save them here
                         </p>
+                        <button
+                            onClick={() => router.push("/")}
+                            className="bg-[#E85D2A] hover:bg-[#D14E1F] text-white font-semibold px-6 py-3 rounded-xl mt-6 cursor-pointer transition-all duration-200"
+                        >
+                            Start Discovering
+                        </button>
                     </div>
                 ) : (
-                    <div className="flex flex-col gap-1">
-                        {places.map((place) => (
-                            <PlaceListItem
-                                key={`${place.placeId}-${place.savedAt}`}
-                                place={place}
-                                isRecs={isRecs}
-                                onTap={() => setDetailPlace(place)}
-                                hasVisited={visitedIds.has(place.placeId)}
-                                userVibesForPlace={userVibes[place.placeId]}
-                                onRateVibes={() => triggerVibeVoting(place.placeId, place.name)}
-                            />
-                        ))}
-                    </div>
+                    /* Place cards grid */
+                    <motion.div
+                        className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4"
+                        initial="hidden"
+                        animate="visible"
+                        variants={{
+                            hidden: {},
+                            visible: { transition: { staggerChildren: 0.05 } },
+                        }}
+                    >
+                        <AnimatePresence>
+                            {places.map((place) => (
+                                <motion.div
+                                    key={place.placeId}
+                                    layout
+                                    variants={{
+                                        hidden: { opacity: 0, y: 20 },
+                                        visible: { opacity: 1, y: 0 },
+                                    }}
+                                    exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                                    className="aspect-[3/4] rounded-xl overflow-hidden relative cursor-pointer border border-[#D0D7DE]/50 dark:border-0 shadow-sm dark:shadow-lg hover:scale-[1.02] hover:shadow-xl transition-transform duration-200"
+                                    onClick={() => setDetailPlace(place)}
+                                >
+                                    {/* Full photo background */}
+                                    <div className="absolute inset-0 bg-[#F6F8FA] dark:bg-[#1C2128]">
+                                        <PlaceCardPhoto photoRef={place.photoRef} alt={place.name} />
+                                        {!place.photoRef && (
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <MapPin className="w-8 h-8 text-[#D0D7DE] dark:text-[#30363D]" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    {/* Gradient overlay */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                                    {/* Remove button */}
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleRemovePlace(place.placeId);
+                                        }}
+                                        className="absolute top-2.5 right-2.5 bg-black/40 backdrop-blur-sm rounded-full p-1.5 cursor-pointer hover:bg-black/60 transition-all duration-200"
+                                    >
+                                        <X className="w-4 h-4 text-white" />
+                                    </button>
+                                    {/* Rec sender badge */}
+                                    {isRecs && place.recommendedByName && (
+                                        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 bg-black/50 backdrop-blur-sm rounded-full px-2 py-1">
+                                            <RecSenderAvatar image={place.recommendedByImage} name={place.recommendedByName} />
+                                            <span className="text-[10px] font-semibold text-white truncate max-w-[100px]">
+                                                From {place.recommendedByName.split(" ")[0]}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {/* Text overlay */}
+                                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                                        <p className="text-white font-semibold text-base line-clamp-1">
+                                            {place.name}
+                                        </p>
+                                        <p className="text-white/60 text-xs line-clamp-1 mt-0.5">
+                                            {place.address}
+                                        </p>
+                                        <div className="flex items-center gap-2 mt-1.5">
+                                            <Star className="w-3.5 h-3.5 text-[#E85D2A] fill-[#E85D2A]" />
+                                            <span className="text-white text-xs font-medium">
+                                                {place.rating?.toFixed(1) || "New"}
+                                            </span>
+                                            <span className="text-white/30 text-xs">&middot;</span>
+                                            <span className="text-white/60 text-xs">
+                                                {place.price || "$$"}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </motion.div>
                 )}
             </div>
 
+            {/* Place detail modal */}
             <AnimatePresence>
                 {detailPlace && (
-                    <PlaceDetailSheet
+                    <MapPlaceDetail
                         place={detailPlace as Place}
-                        fallbackGradient={fallbackGradient}
-                        isSaved={true}
+                        intent={intent}
+                        savedPlaceIds={savedPlaceIds}
+                        userLocation={userLocation}
                         onClose={() => setDetailPlace(null)}
-                        onSave={async (action) => {
-                            if (action === "save") {
-                                await handleUnsave(detailPlace.placeId);
-                                setPlaces((prev) => prev.filter((p) => p.placeId !== detailPlace.placeId));
-                                setDetailPlace(null);
-                            } else {
-                                handleSave(detailPlace as Place, intent, action);
-                            }
-                        }}
+                        onUnsave={handleUnsaveFromModal}
                     />
+                )}
+            </AnimatePresence>
+
+            {/* Toast notification */}
+            <AnimatePresence>
+                {toast && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[70] bg-[#161B22] dark:bg-white text-white dark:text-[#0E1116] px-4 py-2.5 rounded-xl text-sm font-medium shadow-lg"
+                    >
+                        {toast}
+                    </motion.div>
                 )}
             </AnimatePresence>
         </div>
