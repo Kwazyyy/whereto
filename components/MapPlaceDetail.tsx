@@ -102,7 +102,11 @@ function DetailContent({
   return (
     <>
       {/* Photo section */}
-      <div className="relative h-48 w-full shrink-0 bg-gray-200 dark:bg-[#1C2128]">
+      <motion.div
+        className="relative w-full shrink-0 bg-gray-200 dark:bg-[#1C2128] overflow-hidden"
+        animate={{ height: detailsOpen ? 128 : 224 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      >
         {photos ? (
           <div
             className="absolute inset-0 overflow-hidden"
@@ -207,7 +211,7 @@ function DetailContent({
             ))}
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Content */}
       <div className="p-5 pb-6">
@@ -348,7 +352,7 @@ function DetailContent({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
               className="overflow-hidden"
             >
               {/* Community Vibes */}
@@ -471,8 +475,8 @@ function DetailContent({
                 <ChevronRight size={16} className="text-[#656D76] dark:text-[#8B949E] shrink-0" />
               </Link>
 
-              {/* Bottom spacing: pb-6 desktop, pb-24 mobile */}
-              <div className="pb-24 lg:pb-6" />
+              {/* Bottom spacing */}
+              <div className="pb-6" />
             </motion.div>
           )}
         </AnimatePresence>
@@ -500,7 +504,6 @@ export default function MapPlaceDetail({
   const { handleSave, handleUnsave } = useSavePlace();
   const { status } = useSession();
   const [localSaved, setLocalSaved] = useState(savedPlaceIds.has(place.placeId));
-  const [sheetExpanded, setSheetExpanded] = useState(false);
 
   // Sync if savedPlaceIds changes
   useEffect(() => {
@@ -586,28 +589,21 @@ export default function MapPlaceDetail({
         />
         {/* Sheet */}
         <motion.div
-          className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#161B22] rounded-t-3xl flex flex-col overflow-hidden"
-          style={{ height: sheetExpanded ? "95dvh" : "70dvh" }}
+          className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#161B22] rounded-t-3xl overflow-hidden max-h-[90dvh]"
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
-          transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          transition={{ type: "spring", damping: 30, stiffness: 200 }}
           drag="y"
           dragConstraints={{ top: 0, bottom: 0 }}
-          dragElastic={{ top: 0.1, bottom: 0.5 }}
+          dragElastic={{ top: 0, bottom: 0.3 }}
           onDragEnd={(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-            if (info.offset.y < -100 && !sheetExpanded) {
-              setSheetExpanded(true);
-            } else if (info.offset.y > 100) {
-              if (sheetExpanded) {
-                setSheetExpanded(false);
-              } else {
-                onClose();
-              }
+            if (info.offset.y > 100 || info.velocity.y > 500) {
+              onClose();
             }
           }}
         >
-          <div className="flex-1 overflow-y-auto scrollbar-none">
+          <div className="overflow-y-auto max-h-[90dvh] scrollbar-none">
             <DetailContent
               place={place}
               isSaved={localSaved}

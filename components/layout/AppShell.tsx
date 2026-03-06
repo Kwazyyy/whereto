@@ -36,9 +36,9 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
   const { data: session } = useSession();
 
   return (
-    <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-screen z-40 bg-white dark:bg-[#0E1116] border-r border-[#D0D7DE] dark:border-[#30363D] w-[72px] xl:w-[240px] transition-all duration-200 ease-in-out">
+    <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-screen z-40 bg-white dark:bg-[#0E1116] w-[72px] xl:w-[240px] transition-all duration-200 ease-in-out">
       {/* Logo */}
-      <div className="p-4 xl:px-5 pt-6 pb-8 flex items-center justify-center xl:justify-start">
+      <div className="px-4 xl:px-5 pt-6 pb-4 shrink-0 flex items-center justify-center xl:justify-start">
         <Link href="/" className="flex items-center">
           <span className="text-xl font-bold text-[#E85D2A] xl:hidden">W</span>
           <span className="text-xl font-bold text-[#E85D2A] hidden xl:block">WhereTo</span>
@@ -46,7 +46,7 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
       </div>
 
       {/* Nav Items */}
-      <nav className="flex flex-col gap-1 px-2 xl:px-3 flex-1">
+      <nav className="flex-1 flex flex-col justify-center pb-24 gap-1 px-2 xl:px-3">
         {NAV_ITEMS.map((item) => {
           const active = isActive(pathname, item.href, item.exact);
           const Icon = item.icon;
@@ -59,8 +59,8 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
                 relative flex items-center justify-center xl:justify-start gap-3 px-3 py-2.5 rounded-lg cursor-pointer
                 transition-colors duration-200
                 ${active
-                  ? "bg-[#E85D2A]/10 text-[#E85D2A]"
-                  : "text-[#656D76] dark:text-[#8B949E] hover:bg-[#F6F8FA] dark:hover:bg-[#161B22] hover:text-[#0E1116] dark:hover:text-[#C9D1D9]"
+                  ? "text-[#E85D2A]"
+                  : "text-[#656D76] dark:text-[#8B949E] hover:text-[#E85D2A] transition-colors duration-200"
                 }
               `}
             >
@@ -68,15 +68,15 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
               {active && (
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-[#E85D2A]" />
               )}
-              <Icon size={22} strokeWidth={active ? 2.5 : 2} />
-              <span className="hidden xl:block text-sm font-medium">{item.label}</span>
+              <Icon size={24} strokeWidth={active ? 2.5 : 2} />
+              <span className="hidden xl:block text-base font-medium">{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
       {/* User Avatar */}
-      <div className="mt-auto p-4 border-t border-[#D0D7DE] dark:border-[#30363D]">
+      <div className="shrink-0 px-4 pt-4 pb-6">
         <Link
           href="/profile"
           className="flex items-center justify-center xl:justify-start gap-3"
