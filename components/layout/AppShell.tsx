@@ -1,9 +1,11 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Compass, Map, LayoutGrid, Users, User } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
+import { Compass, Map, LayoutGrid, Users, User, Sun, Moon, Monitor } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/", label: "Discover", icon: Compass, exact: true },
@@ -34,14 +36,31 @@ function isActive(pathname: string, href: string, exact?: boolean): boolean {
 
 function DesktopSidebar({ pathname }: { pathname: string }) {
   const { data: session } = useSession();
-  const isMapPage = pathname === "/map" || pathname.startsWith("/map/");
+  const { theme, setTheme } = useTheme();
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    setIsDark(
+      theme === "dark" ||
+      (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
+    );
+    if (theme === "system") {
+      const mq = window.matchMedia("(prefers-color-scheme: dark)");
+      const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
+      mq.addEventListener("change", handler);
+      return () => mq.removeEventListener("change", handler);
+    }
+  }, [theme]);
 
   return (
-    <aside className={`hidden lg:flex flex-col fixed left-0 top-0 h-screen z-40 w-[72px] xl:w-[240px] transition-all duration-200 ease-in-out ${isMapPage ? "bg-white/90 dark:bg-[#0E1116]/90 backdrop-blur-sm" : "bg-white dark:bg-[#0E1116]"}`}>
-      {/* Soft fade edge on map page */}
-      {isMapPage && (
-        <div className="absolute top-0 -right-5 bottom-0 w-5 pointer-events-none" style={{ background: "linear-gradient(to right, rgba(14,17,22,0.3), transparent)" }} />
-      )}
+    <aside
+      className="hidden lg:flex flex-col fixed left-0 top-0 h-screen z-40 w-[72px] xl:w-[240px] transition-all duration-200 ease-in-out"
+      style={{
+        backgroundColor: isDark ? 'rgba(14, 17, 22, 0.7)' : 'rgba(255, 255, 255, 0.7)',
+        backdropFilter: 'blur(24px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+      }}
+    >
       {/* Logo */}
       <div className="px-4 xl:px-5 pt-6 pb-4 shrink-0 flex items-center justify-center xl:justify-start">
         <Link href="/" className="flex items-center">
@@ -80,8 +99,32 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
         })}
       </nav>
 
+      {/* Theme Toggle */}
+      <div className="shrink-0 px-2 xl:px-3">
+        <button
+          onClick={() => {
+            if (theme === "system") setTheme("light");
+            else if (theme === "light") setTheme("dark");
+            else setTheme("system");
+          }}
+          className="w-full flex items-center justify-center xl:justify-start gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-[#656D76] dark:text-[#8B949E] hover:text-[#E85D2A] transition-colors duration-200"
+          title={theme === "system" ? "System theme" : theme === "light" ? "Light theme" : "Dark theme"}
+        >
+          {theme === "light" ? (
+            <Sun size={24} strokeWidth={2} />
+          ) : theme === "dark" ? (
+            <Moon size={24} strokeWidth={2} />
+          ) : (
+            <Monitor size={24} strokeWidth={2} />
+          )}
+          <span className="hidden xl:block text-base font-medium">
+            {theme === "light" ? "Light" : theme === "dark" ? "Dark" : "System"}
+          </span>
+        </button>
+      </div>
+
       {/* User Avatar */}
-      <div className="shrink-0 px-4 pt-4 pb-6">
+      <div className="shrink-0 px-4 pt-2 pb-6">
         <Link
           href="/profile"
           className="flex items-center justify-center xl:justify-start gap-3"

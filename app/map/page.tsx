@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   APIProvider,
   Map,
@@ -20,6 +20,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import FogOverlay from "@/components/FogOverlay";
 import VisitCelebration from "@/components/VisitCelebration";
 import PhotoUploadPrompt from "@/components/PhotoUploadPrompt";
+import ExplorationPanel from "@/components/ExplorationPanel";
 
 const DEFAULT_LAT = 43.6532;
 const DEFAULT_LNG = -79.3832;
@@ -555,15 +556,10 @@ export default function MapPage() {
     fetchNearby();
   }, [fetchNearby]);
 
-  const neighborhoods = useMemo(
-    () => new Set(visitedLocations.map(v => `${Math.floor(v.lat * 100)}_${Math.floor(v.lng * 100)}`)).size,
-    [visitedLocations]
-  );
-
   return (
     <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-16 lg:pb-0">
       {/* Intent chips */}
-      <div className="shrink-0 px-5 py-3 border-b border-gray-100 dark:border-[#30363D]">
+      <div className="shrink-0 px-5 lg:pl-[88px] xl:pl-[256px] py-3 border-b border-gray-100 dark:border-[#30363D] transition-all duration-200">
         <div
           className="flex justify-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-1"
         >
@@ -696,14 +692,8 @@ export default function MapPage() {
           </button>
         )}
 
-        {/* Exploration stats pill */}
-        {userLocation && status === "authenticated" && visitedLocations.length > 0 && fogEnabled && (
-          <div className="absolute top-3 right-3 z-30 bg-black/70 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-md">
-            <p className="text-[11px] font-semibold text-white whitespace-nowrap">
-              {visitedLocations.length} {visitedLocations.length === 1 ? "place" : "places"} · {neighborhoods} {neighborhoods === 1 ? "area" : "areas"}
-            </p>
-          </div>
-        )}
+        {/* Exploration panel */}
+        {userLocation && status === "authenticated" && <ExplorationPanel mapInstance={mapInstance} />}
       </div>
 
       {/* Place detail modal (desktop) / bottom sheet (mobile) */}
