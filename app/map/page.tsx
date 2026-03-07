@@ -571,9 +571,9 @@ export default function MapPage() {
             <button
               key={cat.id}
               onClick={() => setIntent(cat.id)}
-              className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap ${intent === cat.id
-                ? "bg-[#E85D2A] text-white border border-transparent"
-                : "bg-[#161B22] text-[#8B949E] border border-[#30363D] hover:border-[#8B949E]"
+              className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-200 cursor-pointer whitespace-nowrap ${intent === cat.id
+                ? "bg-[#E85D2A] text-white shadow-sm"
+                : "bg-gray-100 dark:bg-white/10 text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-200 dark:hover:bg-white/15"
                 }`}
             >
               <cat.icon size={14} className="mr-1 inline-block" />{cat.label}

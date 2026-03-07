@@ -34,9 +34,14 @@ function isActive(pathname: string, href: string, exact?: boolean): boolean {
 
 function DesktopSidebar({ pathname }: { pathname: string }) {
   const { data: session } = useSession();
+  const isMapPage = pathname === "/map" || pathname.startsWith("/map/");
 
   return (
-    <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-screen z-40 bg-white dark:bg-[#0E1116] w-[72px] xl:w-[240px] transition-all duration-200 ease-in-out">
+    <aside className={`hidden lg:flex flex-col fixed left-0 top-0 h-screen z-40 w-[72px] xl:w-[240px] transition-all duration-200 ease-in-out ${isMapPage ? "bg-white/90 dark:bg-[#0E1116]/90 backdrop-blur-sm" : "bg-white dark:bg-[#0E1116]"}`}>
+      {/* Soft fade edge on map page */}
+      {isMapPage && (
+        <div className="absolute top-0 -right-5 bottom-0 w-5 pointer-events-none" style={{ background: "linear-gradient(to right, rgba(14,17,22,0.3), transparent)" }} />
+      )}
       {/* Logo */}
       <div className="px-4 xl:px-5 pt-6 pb-4 shrink-0 flex items-center justify-center xl:justify-start">
         <Link href="/" className="flex items-center">
@@ -108,10 +113,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
+  const isMapPage = pathname === "/map" || pathname.startsWith("/map/");
+
   return (
     <>
       <DesktopSidebar pathname={pathname} />
-      <main className="lg:ml-[72px] xl:ml-[240px] transition-all duration-200 min-h-0">
+      <main className={`transition-all duration-200 min-h-0 ${isMapPage ? "" : "lg:ml-[72px] xl:ml-[240px]"}`}>
         {children}
       </main>
     </>

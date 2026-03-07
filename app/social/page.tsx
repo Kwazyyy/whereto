@@ -357,7 +357,7 @@ export default function SocialPage() {
   if (status === "loading" || loading) {
     return (
       <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24 max-w-6xl mx-auto px-6 pt-5">
-        <h1 className="text-2xl font-extrabold tracking-tight mb-6" style={{ color: "#E85D2A" }}>Social</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight mb-6 lg:hidden" style={{ color: "#E85D2A" }}>Social</h1>
         <div className="flex gap-8">
           <div className="w-full lg:w-[65%] space-y-3">
             <div className="h-24 bg-gray-100 dark:bg-white/5 rounded-xl animate-pulse" />
@@ -500,9 +500,7 @@ export default function SocialPage() {
     <div className="min-h-dvh bg-gray-50 dark:bg-[#0E1116] pb-24">
       {/* ── DESKTOP LAYOUT (>=1024px) ── */}
       <div className="hidden lg:block max-w-6xl mx-auto px-6 pt-5">
-        <div className="mb-6">
-          <h1 className="text-2xl font-extrabold tracking-tight text-[#E85D2A]">Social</h1>
-        </div>
+        <div className="pt-1"></div>
 
         <div className="flex gap-8 items-start">
           {/* Left Column (65%) */}
