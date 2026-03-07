@@ -577,44 +577,34 @@ export default function LandingPage() {
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {/* Toronto — active */}
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={{ once: true }}
-                            className="relative group overflow-hidden rounded-3xl aspect-[3/4]"
-                        >
-                            <img src={IMAGES.toronto} alt="Toronto" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent p-6 flex flex-col justify-end">
-                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-500/30 text-green-400 text-[10px] font-bold w-fit mb-3">
-                                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                                    NOW LIVE
-                                </div>
-                                <h3 className="text-lg font-extrabold text-white">Toronto</h3>
-                                <p className="text-zinc-400 text-sm mt-1">200+ curated spots</p>
-                            </div>
-                        </motion.div>
-
-                        {/* Coming soon cities */}
                         {[
-                            { name: "Vancouver", img: IMAGES.vancouver },
-                            { name: "Montreal", img: IMAGES.montreal },
-                            { name: "New York", img: IMAGES.nyc },
+                            { name: "Toronto", img: IMAGES.toronto, active: true },
+                            { name: "Vancouver", img: IMAGES.vancouver, active: false },
+                            { name: "Montreal", img: IMAGES.montreal, active: false },
+                            { name: "New York", img: IMAGES.nyc, active: false },
                         ].map((city, i) => (
                             <motion.div key={city.name}
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
-                                transition={{ delay: (i + 1) * 0.1 }}
-                                className="relative group overflow-hidden rounded-3xl aspect-[3/4]"
+                                transition={{ delay: i * 0.1 }}
+                                className="relative group overflow-hidden rounded-3xl h-[400px] md:h-[450px]"
                             >
                                 <img src={city.img} alt={city.name}
-                                    className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" />
-                                <div className="absolute inset-0 bg-black/60 group-hover:bg-black/40 transition-colors p-6 flex flex-col justify-end">
-                                    <div className="inline-flex items-center px-2 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-[9px] font-bold text-zinc-400 w-fit mb-2">
-                                        COMING SOON
-                                    </div>
+                                    className={`absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-all duration-700 ${city.active ? "" : "grayscale group-hover:grayscale-0"}`} />
+                                <div className={`absolute inset-0 ${city.active ? "bg-gradient-to-t from-black/90 via-black/20 to-transparent" : "bg-black/60 group-hover:bg-black/40"} transition-colors p-6 flex flex-col justify-end`}>
+                                    {city.active ? (
+                                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-500/30 text-green-400 text-[10px] font-bold w-fit mb-2">
+                                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                                            NOW LIVE
+                                        </div>
+                                    ) : (
+                                        <div className="inline-flex items-center px-2 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-[9px] font-bold text-zinc-400 w-fit mb-2">
+                                            COMING SOON
+                                        </div>
+                                    )}
                                     <h3 className="text-lg font-extrabold text-white">{city.name}</h3>
+                                    <p className="text-zinc-400 text-sm mt-1">{city.active ? "200+ curated spots" : "Stay tuned"}</p>
                                 </div>
                             </motion.div>
                         ))}

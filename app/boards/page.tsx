@@ -18,6 +18,7 @@ const INTENT_LABELS: Record<string, string> = {
   laptop: "Laptop-Friendly",
   group: "Group Hangouts",
   budget: "Budget Eats",
+  desserts: "Desserts",
   coffee: "Coffee & Catch-Up",
   outdoor: "Outdoor / Patio",
 };

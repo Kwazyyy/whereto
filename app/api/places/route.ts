@@ -9,6 +9,7 @@ const INTENT_QUERIES: Record<string, { primary: string; fallback: string }> = {
   laptop: { primary: "cafe wifi coworking", fallback: "cafe" },
   group: { primary: "restaurant bar group", fallback: "restaurant" },
   budget: { primary: "cheap restaurant cafe", fallback: "restaurant cafe" },
+  desserts: { primary: "dessert cafe bakery ice cream pastry", fallback: "bakery cafe" },
   coffee: { primary: "coffee shop cafe", fallback: "cafe" },
   outdoor: { primary: "patio restaurant outdoor", fallback: "restaurant" },
 };
@@ -74,6 +75,7 @@ function generateTags(place: PlacesResult, intent: string): string[] {
     laptop: ["Wifi", "Outlets", "Work-Friendly"],
     group: ["Spacious", "Group-Friendly", "Lively"],
     budget: ["Affordable", "Budget", "Good Value"],
+    desserts: ["Sweet Treats", "Bakery", "Instagrammable"],
     coffee: ["Good Coffee", "Cozy", "Chill"],
     outdoor: ["Patio", "Fresh Air", "Scenic"],
   };

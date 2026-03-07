@@ -27,7 +27,7 @@ import { useNeighborhoodReveal } from "@/components/providers/NeighborhoodReveal
 import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
 import { Theme } from "@/components/ThemeProvider";
 import Link from 'next/link';
-import { BookOpen, Heart, Flame, Coffee, Laptop, Users, DollarSign, MessageCircle, Sun } from "lucide-react";
+import { BookOpen, Heart, Flame, Coffee, Laptop, Users, DollarSign, Cake, MessageCircle, Sun } from "lucide-react";
 import VisitCelebration from "@/components/VisitCelebration";
 import PhotoUploadPrompt from "@/components/PhotoUploadPrompt";
 
@@ -39,6 +39,7 @@ const categories = [
   { id: "laptop", icon: Laptop, label: "Laptop-Friendly" },
   { id: "group", icon: Users, label: "Group Hangouts" },
   { id: "budget", icon: DollarSign, label: "Budget Eats" },
+  { id: "desserts", icon: Cake, label: "Desserts" },
   { id: "coffee", icon: MessageCircle, label: "Coffee & Catch-Up" },
   { id: "outdoor", icon: Sun, label: "Outdoor / Patio" },
 ];
