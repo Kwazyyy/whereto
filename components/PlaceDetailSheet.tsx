@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
-import { motion, PanInfo } from "framer-motion";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import { Place, FriendSignal } from "@/lib/types";
 import { usePhotoUrl } from "@/lib/use-photo-url";
@@ -58,6 +58,29 @@ export default function PlaceDetailSheet({
     }
   }
 
+  const [sheetState, setSheetState] = useState<"partial" | "full">("partial");
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const touchStartY = useRef(0);
+  const touchStartScrollTop = useRef(0);
+
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartY.current = e.touches[0].clientY;
+    touchStartScrollTop.current = scrollRef.current?.scrollTop ?? 0;
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+    if (sheetState === "partial") {
+      if (deltaY < -60) setSheetState("full");
+      else if (deltaY > 60) onClose();
+    } else {
+      if (touchStartScrollTop.current <= 0 && deltaY > 80) {
+        scrollRef.current?.scrollTo({ top: 0 });
+        setSheetState("partial");
+      }
+    }
+  }
+
   return (
     <>
       <motion.div
@@ -69,22 +92,26 @@ export default function PlaceDetailSheet({
       />
 
       <motion.div
-        className="fixed inset-x-0 bottom-0 z-[60] bg-white dark:bg-[#161B22] rounded-t-3xl overflow-hidden flex flex-col"
-        style={{ height: "85dvh" }}
+        className="fixed inset-x-0 bottom-0 z-[60] bg-white dark:bg-[#161B22] rounded-t-3xl overflow-hidden"
+        style={{ height: "95dvh", touchAction: sheetState === "partial" ? "none" : "auto" }}
         initial={{ y: "100%" }}
-        animate={{ y: 0 }}
+        animate={{ y: sheetState === "full" ? "5vh" : "35vh" }}
         exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 20, stiffness: 350 }}
-        drag="y"
-        dragConstraints={{ top: 0, bottom: 0 }}
-        dragElastic={{ top: 0, bottom: 0.6 }}
-        onDragEnd={(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-          if (info.offset.y > 100 || info.velocity.y > 500) onClose();
-        }}
+        transition={{ type: "spring", damping: 28, stiffness: 300 }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
-        <div className="flex-1 overflow-y-auto">
+        <div
+          ref={scrollRef}
+          className={`h-full ${sheetState === "full" ? "overflow-y-auto" : "overflow-hidden"}`}
+          style={{
+            overscrollBehavior: "contain",
+            touchAction: sheetState === "full" ? "pan-y" : "none",
+            WebkitOverflowScrolling: "touch",
+          }}
+        >
           {/* Photo */}
-          <div className={`h-48 relative ${!photoUrl ? `bg-gradient-to-br ${fallbackGradient}` : "bg-gray-200 dark:bg-[#1C2128]"}`}>
+          <div className={`h-56 relative ${!photoUrl ? `bg-gradient-to-br ${fallbackGradient}` : "bg-gray-200 dark:bg-[#1C2128]"}`}>
             {photoUrl && (
               <Image
                 src={photoUrl}
@@ -212,7 +239,7 @@ export default function PlaceDetailSheet({
             </div>
 
             {/* Action Buttons — inside scroll so they don't overlap the nav bar */}
-            <div className="flex gap-3 mt-8 pb-10">
+            <div className="flex gap-3 mt-8 pb-6">
               <button
                 onClick={() => handleSaveClick("save")}
                 className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 font-semibold text-sm transition-colors cursor-pointer ${isSaved

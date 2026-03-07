@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { AnimatePresence, motion, PanInfo } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { Camera, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
@@ -59,6 +59,7 @@ function DetailContent({
   intent,
   userLocation,
   onDetailsToggle,
+  forceDetailsOpen,
 }: {
   place: Place;
   isSaved: boolean;
@@ -68,12 +69,36 @@ function DetailContent({
   intent: string;
   userLocation: { lat: number; lng: number } | null;
   onDetailsToggle?: (open: boolean) => void;
+  forceDetailsOpen?: boolean;
 }) {
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
   const [detailsOpen, setDetailsOpen] = useState(false);
+
+  // Auto-expand details when sheet expands to full
+  useEffect(() => {
+    if (forceDetailsOpen && !detailsOpen) {
+      setDetailsOpen(true);
+      onDetailsToggle?.(true);
+    }
+  }, [forceDetailsOpen]); // eslint-disable-line react-hooks/exhaustive-deps
   const [carouselDirection, setCarouselDirection] = useState(0);
+  const [fetchedPhotoRefs, setFetchedPhotoRefs] = useState<string[] | null>(null);
   const carouselPointerStart = useRef({ x: 0, y: 0, time: 0 });
   const photoUrl = usePhotoUrl(place.photoRef);
+
+  // Fetch photoRefs from Google if not provided (e.g. saved places from boards)
+  useEffect(() => {
+    if (place.photoRefs && place.photoRefs.length > 0) return;
+    if (!place.placeId) return;
+    fetch(`/api/places/photos?placeId=${encodeURIComponent(place.placeId)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { photoRefs: string[] } | null) => {
+        if (data?.photoRefs && data.photoRefs.length > 0) {
+          setFetchedPhotoRefs(data.photoRefs);
+        }
+      })
+      .catch(() => {});
+  }, [place.placeId, place.photoRefs]);
 
   const todayHours = useMemo(() => {
     const today = DAY_NAMES[new Date().getDay()];
@@ -89,7 +114,9 @@ function DetailContent({
     return formatDistance(meters);
   }, [userLocation, place.location]);
 
-  const photos = place.photoRefs && place.photoRefs.length > 0 ? place.photoRefs : null;
+  const photos = place.photoRefs && place.photoRefs.length > 0
+    ? place.photoRefs
+    : fetchedPhotoRefs;
 
   const toggleDetails = useCallback(() => {
     setDetailsOpen((prev) => {
@@ -475,7 +502,7 @@ function DetailContent({
                 <ChevronRight size={16} className="text-[#656D76] dark:text-[#8B949E] shrink-0" />
               </Link>
 
-              {/* Bottom spacing */}
+              {/* Bottom spacing for nav clearance */}
               <div className="pb-6" />
             </motion.div>
           )}
@@ -529,6 +556,29 @@ export default function MapPlaceDetail({
     await handleUnsave(place.placeId);
     onUnsave?.(place.placeId);
   }, [handleUnsave, place.placeId, onUnsave]);
+
+  const [mobileSheetState, setMobileSheetState] = useState<"partial" | "full">("partial");
+  const mobileScrollRef = useRef<HTMLDivElement>(null);
+  const touchStartY = useRef(0);
+  const touchStartScrollTop = useRef(0);
+
+  function handleMobileTouchStart(e: React.TouchEvent) {
+    touchStartY.current = e.touches[0].clientY;
+    touchStartScrollTop.current = mobileScrollRef.current?.scrollTop ?? 0;
+  }
+
+  function handleMobileTouchEnd(e: React.TouchEvent) {
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+    if (mobileSheetState === "partial") {
+      if (deltaY < -60) setMobileSheetState("full");
+      else if (deltaY > 60) onClose();
+    } else {
+      if (touchStartScrollTop.current <= 0 && deltaY > 80) {
+        mobileScrollRef.current?.scrollTo({ top: 0 });
+        setMobileSheetState("partial");
+      }
+    }
+  }
 
   return (
     <>
@@ -589,21 +639,24 @@ export default function MapPlaceDetail({
         />
         {/* Sheet */}
         <motion.div
-          className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#161B22] rounded-t-3xl overflow-hidden max-h-[90dvh]"
+          className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#161B22] rounded-t-3xl overflow-hidden"
+          style={{ height: "95dvh", touchAction: mobileSheetState === "partial" ? "none" : "auto" }}
           initial={{ y: "100%" }}
-          animate={{ y: 0 }}
+          animate={{ y: mobileSheetState === "full" ? "5vh" : "35vh" }}
           exit={{ y: "100%" }}
-          transition={{ type: "spring", damping: 30, stiffness: 200 }}
-          drag="y"
-          dragConstraints={{ top: 0, bottom: 0 }}
-          dragElastic={{ top: 0, bottom: 0.3 }}
-          onDragEnd={(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-            if (info.offset.y > 100 || info.velocity.y > 500) {
-              onClose();
-            }
-          }}
+          transition={{ type: "spring", damping: 28, stiffness: 300 }}
+          onTouchStart={handleMobileTouchStart}
+          onTouchEnd={handleMobileTouchEnd}
         >
-          <div className="overflow-y-auto max-h-[90dvh] scrollbar-none">
+          <div
+            ref={mobileScrollRef}
+            className={`h-full scrollbar-none ${mobileSheetState === "full" ? "overflow-y-auto" : "overflow-hidden"}`}
+            style={{
+              overscrollBehavior: "contain",
+              touchAction: mobileSheetState === "full" ? "pan-y" : "none",
+              WebkitOverflowScrolling: "touch",
+            }}
+          >
             <DetailContent
               place={place}
               isSaved={localSaved}
@@ -612,6 +665,7 @@ export default function MapPlaceDetail({
               onClose={onClose}
               intent={intent}
               userLocation={userLocation}
+              forceDetailsOpen={mobileSheetState === "full"}
             />
           </div>
         </motion.div>
