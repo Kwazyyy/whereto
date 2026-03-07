@@ -43,6 +43,17 @@ interface ExplorationPanelProps {
 
 const AREAS = ["All", "Downtown", "West End", "East End", "Midtown", "North York", "Scarborough", "Etobicoke"];
 
+const AREA_VIEWS: Record<string, { lat: number; lng: number; zoom: number }> = {
+  All:          { lat: 43.6532, lng: -79.3832, zoom: 11 },
+  Downtown:     { lat: 43.6510, lng: -79.3810, zoom: 13 },
+  "West End":   { lat: 43.6480, lng: -79.4450, zoom: 13 },
+  "East End":   { lat: 43.6680, lng: -79.3250, zoom: 13 },
+  Midtown:      { lat: 43.6950, lng: -79.3980, zoom: 13 },
+  "North York": { lat: 43.7615, lng: -79.4111, zoom: 12 },
+  Scarborough:  { lat: 43.7731, lng: -79.2572, zoom: 12 },
+  Etobicoke:    { lat: 43.6205, lng: -79.5132, zoom: 12 },
+};
+
 export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps) {
   const { status } = useSession();
   const { theme } = useTheme();
@@ -56,30 +67,30 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
   const panelRef = useRef<HTMLDivElement>(null);
   const mobilePanelRef = useRef<HTMLDivElement>(null);
 
-  // Glass styles — Vision Pro inspired
+  // Glass styles — Vision Pro inspired (use `background` shorthand, NOT `backgroundColor`)
   const pillGlassStyle: React.CSSProperties = {
-    backgroundColor: isDark ? 'rgba(14, 17, 22, 0.4)' : 'rgba(255, 255, 255, 0.5)',
+    background: isDark ? 'rgba(14, 17, 22, 0.4)' : 'rgba(255, 255, 255, 0.5)',
     backdropFilter: 'blur(20px) saturate(180%)',
     WebkitBackdropFilter: 'blur(20px) saturate(180%)',
     border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(208, 215, 222, 0.5)',
     boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)',
   };
 
-  const panelGlassStyle: React.CSSProperties = isDark
-    ? {
-        backgroundColor: 'rgba(14, 17, 22, 0.2)',
-        backdropFilter: 'blur(40px) saturate(200%)',
-        WebkitBackdropFilter: 'blur(40px) saturate(200%)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
-      }
-    : {
-        backgroundColor: 'rgba(255, 255, 255, 0.25)',
-        backdropFilter: 'blur(40px) saturate(200%)',
-        WebkitBackdropFilter: 'blur(40px) saturate(200%)',
-        border: '1px solid rgba(208, 215, 222, 0.4)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
-      };
+  const panelGlassStyle: React.CSSProperties = {
+    background: isDark ? 'rgba(14, 17, 22, 0.2)' : 'rgba(255, 255, 255, 0.25)',
+    backdropFilter: 'blur(40px) saturate(200%)',
+    WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+    border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(255, 255, 255, 0.5)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1), 0 20px 25px rgba(0,0,0,0.15)',
+  };
+
+  const mobilePanelGlassStyle: React.CSSProperties = {
+    background: isDark ? 'rgba(14, 17, 22, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+    backdropFilter: 'blur(40px) saturate(200%)',
+    WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+    border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(255, 255, 255, 0.5)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1), 0 20px 25px rgba(0,0,0,0.15)',
+  };
 
   // Mobile touch refs
   const mobileScrollRef = useRef<HTMLDivElement>(null);
@@ -145,10 +156,8 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
     return () => document.removeEventListener("mousedown", handleClick);
   }, [expanded]);
 
-  if (loading) return null;
-
-  // Unauthenticated pill
-  if (status !== "authenticated" || !challengeData) {
+  // Unauthenticated — static pill, no expand
+  if (status !== "authenticated") {
     return (
       <button
         className="fixed bottom-20 left-1/2 -translate-x-1/2 lg:bottom-auto lg:left-auto lg:translate-x-0 lg:top-20 lg:right-6 z-30 flex items-center gap-2 px-4 py-2.5 rounded-full cursor-pointer text-sm font-medium text-gray-900 dark:text-white hover:scale-[1.02] transition-all duration-300 shadow-lg"
@@ -157,6 +166,89 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
         <Compass className="w-4 h-4 text-[#E85D2A]" />
         <span>Explore Toronto</span>
       </button>
+    );
+  }
+
+  // Loading or no data yet — expandable pill with skeleton panel
+  if (loading || !challengeData) {
+    const skeletonPanel = (
+      <div className="p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="animate-pulse rounded h-5 w-24" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }} />
+          <div className="animate-pulse rounded-full h-5 w-10" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }} />
+        </div>
+        <div className="animate-pulse rounded-full h-1.5 w-full mb-4" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }} />
+        {[1, 2, 3, 4, 5].map((k) => (
+          <div key={k} className="flex items-center justify-between py-3 px-2">
+            <div className="flex items-center gap-2.5">
+              <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }} />
+              <div className="animate-pulse rounded h-4 w-28" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }} />
+            </div>
+            <div className="animate-pulse rounded h-4 w-8" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }} />
+          </div>
+        ))}
+      </div>
+    );
+
+    return (
+      <>
+        {/* Desktop skeleton */}
+        <div className="hidden lg:block">
+          {!expanded ? (
+            <button
+              onClick={() => setExpanded(true)}
+              className="fixed top-20 right-6 z-30 flex items-center gap-2.5 px-4 py-2.5 rounded-full hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-lg"
+              style={pillGlassStyle}
+            >
+              <Compass className="w-4 h-4 text-[#E85D2A]" />
+              <span className="text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">Explore Toronto</span>
+            </button>
+          ) : (
+            <div
+              ref={panelRef}
+              className="fixed top-20 right-6 z-30 rounded-2xl"
+              style={{ ...panelGlassStyle, width: 360, maxWidth: 360 }}
+            >
+              <div className="flex justify-end p-4 pb-0">
+                <button onClick={() => setExpanded(false)} className="p-1 rounded-md text-gray-500 dark:text-[#8B949E] hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer">
+                  <ChevronDown size={20} />
+                </button>
+              </div>
+              {skeletonPanel}
+            </div>
+          )}
+        </div>
+        {/* Mobile skeleton */}
+        <div className="lg:hidden">
+          {!expanded ? (
+            <button
+              onClick={() => setExpanded(true)}
+              className="fixed bottom-20 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 px-4 py-2.5 rounded-full cursor-pointer transition-all duration-300 shadow-lg"
+              style={pillGlassStyle}
+            >
+              <Compass className="w-4 h-4 text-[#E85D2A]" />
+              <span className="text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">Explore Toronto</span>
+            </button>
+          ) : (
+            <>
+              <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setExpanded(false)} />
+              <div
+                ref={mobilePanelRef}
+                className="fixed bottom-0 inset-x-0 z-50 rounded-t-2xl"
+                style={{ ...mobilePanelGlassStyle, borderRadius: '16px 16px 0 0', height: '60dvh' }}
+              >
+                <div className="pt-3" />
+                <div className="flex justify-end px-4">
+                  <button onClick={() => setExpanded(false)} className="p-1 rounded-md text-gray-500 dark:text-[#8B949E] hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer">
+                    <ChevronDown size={20} />
+                  </button>
+                </div>
+                {skeletonPanel}
+              </div>
+            </>
+          )}
+        </div>
+      </>
     );
   }
 
@@ -252,28 +344,29 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
 
       {/* Challenge places list */}
       {selectedNbData.status === "no_data" ? (
-        <div className="text-center py-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">No places discovered in this area yet.</p>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Visit any cafe or restaurant here to start exploring!</p>
+        <div className="text-center py-6">
+          <MapPin className="w-8 h-8 mx-auto mb-2" style={{ color: isDark ? '#8B949E' : '#656D76' }} />
+          <p className="text-sm text-gray-700 dark:text-gray-300">We're adding places to this neighborhood soon!</p>
+          <p className="text-xs mt-1" style={{ color: isDark ? '#8B949E' : '#656D76' }}>Visit any cafe or restaurant here to start exploring.</p>
         </div>
       ) : (
         <div className="space-y-3">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Places to visit:
+          <p className="text-sm font-semibold" style={{ color: isDark ? '#8B949E' : '#656D76' }}>
+            Places to Visit
           </p>
           {selectedNbData.challengePlaces.map((place) => (
-            <div key={place.id} className="flex items-center gap-3 p-3 rounded-xl bg-black/5 dark:bg-white/5">
+            <div key={place.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}>
               {place.photoUrl ? (
-                <img src={place.photoUrl} alt={place.name} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                <img src={place.photoUrl} alt={place.name} className="w-14 h-14 lg:w-12 lg:h-12 rounded-lg object-cover flex-shrink-0" />
               ) : (
-                <div className="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-700 flex-shrink-0 flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-gray-400" />
+                <div className="w-14 h-14 lg:w-12 lg:h-12 rounded-lg flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }}>
+                  <MapPin className="w-5 h-5" style={{ color: isDark ? '#8B949E' : '#9CA3AF' }} />
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{place.name}</p>
+                <p className="text-base lg:text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2">{place.name}</p>
                 {place.rating ? (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs" style={{ color: isDark ? '#8B949E' : '#656D76' }}>
                     ★ {place.rating}
                   </p>
                 ) : null}
@@ -281,7 +374,7 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
               {place.visited ? (
                 <Check className="w-5 h-5 text-[#E85D2A] flex-shrink-0" />
               ) : (
-                <div className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 flex-shrink-0" />
+                <div className="w-5 h-5 rounded-full border-2 flex-shrink-0" style={{ borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)' }} />
               )}
             </div>
           ))}
@@ -294,70 +387,62 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
   function renderRow(hood: NeighborhoodChallenge, isLast: boolean) {
     const isSelected = selectedNeighborhood === hood.name;
 
-    // Dot color based on status
-    const dotClass =
-      hood.status === "unlocked" ? "bg-[#E85D2A]"
-      : hood.status === "in_progress" ? "bg-[#CA8A04]"
-      : hood.status === "no_data" ? "bg-gray-200 dark:bg-gray-700"
-      : "bg-gray-300 dark:bg-gray-600";
+    // Dot color — inline styles for glass contrast
+    const dotStyle: React.CSSProperties =
+      hood.status === "unlocked" ? { backgroundColor: '#E85D2A' }
+      : hood.status === "in_progress" ? { backgroundColor: '#CA8A04' }
+      : { backgroundColor: isDark ? '#8B949E' : '#656D76' };
+
+    // Progress text per status
+    const progressText =
+      hood.status === "unlocked" ? "Unlocked ✓"
+      : hood.status === "in_progress" ? `${hood.visitedCount}/${hood.requiredVisits} visited`
+      : hood.status === "no_data" ? "Coming soon"
+      : `0/${hood.requiredVisits} to unlock`;
+
+    const progressColor =
+      hood.status === "unlocked" ? '#E85D2A'
+      : hood.status === "in_progress" ? '#CA8A04'
+      : isDark ? '#8B949E' : '#656D76';
 
     return (
       <button
         key={hood.name}
         onClick={() => handleNeighborhoodClick(hood.name)}
-        className={`w-full flex items-center justify-between py-3 lg:py-2 px-2 rounded-lg cursor-pointer transition-all duration-200 ${
+        className={`w-full flex items-center justify-between py-3 px-2 rounded-lg cursor-pointer transition-all duration-200 ${
           isSelected
-            ? "bg-[#E85D2A]/10 border-l-2 border-l-[#E85D2A]"
-            : `border-l-2 border-l-transparent hover:bg-black/5 dark:hover:bg-white/5 ${!isLast ? "border-b border-gray-200/30 dark:border-[#30363D]/30" : ""}`
+            ? "border-l-2 border-l-[#E85D2A]"
+            : "border-l-2 border-l-transparent"
         }`}
+        style={{
+          ...(isSelected ? { background: 'rgba(232, 93, 42, 0.1)' } : {}),
+          ...(!isSelected && !isLast ? { borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}` } : {}),
+        }}
+        onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'; }}
+        onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className={`w-2 h-2 rounded-full shrink-0 ${dotClass}`} />
+          <div className="w-2 h-2 rounded-full shrink-0" style={dotStyle} />
           <div className="min-w-0">
-            <span className="text-base lg:text-sm truncate text-left font-medium text-gray-900 dark:text-gray-100 block">
+            <span className="text-sm leading-tight text-left font-medium text-gray-900 dark:text-gray-100 block">
               {hood.name}
             </span>
-            {(hood.status === "in_progress" || hood.status === "unlocked") && (
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                {hood.visitedCount}/{hood.requiredVisits} visited
-              </span>
-            )}
+            <span className="text-xs mt-0.5 block" style={{ color: progressColor }}>
+              {progressText}
+            </span>
           </div>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
           {hood.status === "unlocked" ? (
-            <Check size={16} className="text-[#E85D2A]" />
-          ) : hood.status === "in_progress" ? (
-            <div className="relative">
-              <Lock size={16} className="text-gray-500 dark:text-gray-500" />
-              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#E85D2A] text-white text-[9px] font-bold flex items-center justify-center">
-                {hood.visitedCount}
-              </span>
-            </div>
+            <Check size={16} style={{ color: '#E85D2A' }} />
           ) : hood.status === "no_data" ? (
-            <div className="relative">
-              <MapPin size={16} className="text-gray-400 dark:text-gray-500" />
-              <span className="absolute -top-1 -right-1.5 text-[10px] font-bold text-gray-400">?</span>
-            </div>
+            <MapPin size={16} style={{ color: isDark ? '#8B949E' : '#656D76' }} />
           ) : (
-            <Lock size={16} className="text-gray-500 dark:text-gray-500" />
+            <Lock size={16} style={{ color: isDark ? '#8B949E' : '#656D76' }} />
           )}
-          <ChevronRight className="w-4 h-4 flex-shrink-0 text-gray-400 dark:text-gray-500" />
+          <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: isDark ? '#8B949E' : '#9CA3AF' }} />
         </div>
       </button>
-    );
-  }
-
-  // ── Loading skeleton row ──
-  function renderSkeletonRow(key: number) {
-    return (
-      <div key={key} className="flex items-center justify-between py-3 lg:py-2 px-2">
-        <div className="flex items-center gap-2.5">
-          <div className="w-2 h-2 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-          <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-4 w-24 rounded" />
-        </div>
-        <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-4 w-8 rounded" />
-      </div>
     );
   }
 
@@ -368,7 +453,7 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-lg font-bold text-gray-900 dark:text-white">Exploration</span>
-          <span className="text-xs font-semibold bg-[#E85D2A]/15 text-[#E85D2A] px-2 py-0.5 rounded-full">
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(232, 93, 42, 0.15)', color: '#E85D2A' }}>
             {challengeData.overallPercentage}%
           </span>
         </div>
@@ -402,12 +487,21 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
           return (
             <button
               key={area}
-              onClick={() => { setSelectedArea(area); setSelectedNeighborhood(null); }}
-              className={`flex-shrink-0 whitespace-nowrap rounded-full px-4 py-2 lg:px-3 lg:py-1.5 text-sm lg:text-xs font-medium border transition-all duration-200 cursor-pointer ${
-                isActive
-                  ? "bg-[#E85D2A] text-white border-transparent"
-                  : "bg-white/60 text-gray-700 border-gray-300 hover:border-[#E85D2A]/50 dark:bg-white/10 dark:text-gray-300 dark:border-[#30363D] dark:hover:border-[#E85D2A]/50"
-              }`}
+              onClick={() => {
+                setSelectedArea(area);
+                setSelectedNeighborhood(null);
+                const view = AREA_VIEWS[area];
+                if (view && mapInstance) {
+                  mapInstance.panTo({ lat: view.lat, lng: view.lng });
+                  mapInstance.setZoom(view.zoom);
+                }
+              }}
+              className="flex-shrink-0 whitespace-nowrap rounded-full px-4 py-2 lg:px-3 lg:py-1.5 text-sm lg:text-xs font-medium transition-all duration-200 cursor-pointer"
+              style={{
+                background: isActive ? '#E85D2A' : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.6)'),
+                color: isActive ? '#fff' : (isDark ? '#D1D5DB' : '#374151'),
+                border: isActive ? '1px solid transparent' : `1px solid ${isDark ? '#30363D' : '#D1D5DB'}`,
+              }}
             >
               {area} ({counts.explored}/{counts.total})
             </button>
@@ -542,7 +636,7 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 28, stiffness: 300 }}
                 className="fixed bottom-0 inset-x-0 z-50 rounded-t-2xl flex flex-col"
-                style={{ ...panelGlassStyle, borderRadius: '16px 16px 0 0', height: "60dvh", touchAction: "none" }}
+                style={{ ...mobilePanelGlassStyle, borderRadius: '16px 16px 0 0', height: "60dvh", touchAction: "none" }}
                 onTouchStart={handleMobileTouchStart}
                 onTouchEnd={handleMobileTouchEnd}
               >
