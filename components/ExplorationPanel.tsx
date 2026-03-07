@@ -39,6 +39,7 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
   const [isDark, setIsDark] = useState(false);
   const [showPulse, setShowPulse] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const mobilePanelRef = useRef<HTMLDivElement>(null);
 
   // Glass styles — Vision Pro inspired
   const pillGlassStyle: React.CSSProperties = {
@@ -122,7 +123,10 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
   useEffect(() => {
     if (!expanded) return;
     function handleClick(e: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const inDesktop = panelRef.current?.contains(target);
+      const inMobile = mobilePanelRef.current?.contains(target);
+      if (!inDesktop && !inMobile) {
         setExpanded(false);
       }
     }
@@ -195,53 +199,44 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
     <div className="px-4 pb-4">
       <button
         onClick={() => setSelectedNeighborhood(null)}
-        className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-[#8B949E] hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer mb-3"
+        className="flex items-center gap-2 mb-4 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
       >
-        <ArrowLeft size={16} />
-        <span>Back</span>
+        <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+        <span className="text-base font-medium">Back to neighborhoods</span>
       </button>
 
-      <div className="bg-black/5 dark:bg-white/5 border border-white/20 dark:border-[#30363D]/50 rounded-xl p-3">
-        <p className="text-base font-semibold text-gray-900 dark:text-[#E6EDF3]">
-          {selectedHoodStat.name}
-        </p>
-        <p className="text-xs text-gray-500 dark:text-[#8B949E] mt-0.5">
-          {selectedHoodGeo?.area}
-        </p>
+      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+        {selectedHoodStat.name}
+      </h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mb-4">
+        {selectedHoodGeo?.area}
+      </p>
 
-        {selectedHoodStat.explored ? (
-          <>
-            <p className="text-sm text-gray-800 dark:text-[#E6EDF3] mt-3">
+      {selectedHoodStat.explored ? (
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-black/8 dark:bg-white/8">
+          <Check className="w-5 h-5 text-[#E85D2A] shrink-0" />
+          <div>
+            <p className="text-base font-medium text-[#E85D2A]">Explored!</p>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
               {selectedHoodStat.visitCount} {selectedHoodStat.visitCount === 1 ? "place" : "places"} visited
-              {selectedHoodStat.uniquePlaceCount > 0 && (
-                <span className="text-gray-500 dark:text-[#8B949E]"> · {selectedHoodStat.uniquePlaceCount} nearby</span>
-              )}
+              {selectedHoodStat.uniquePlaceCount > 0 && ` · ${selectedHoodStat.uniquePlaceCount} nearby`}
             </p>
-            <div className="w-full rounded-full mt-2" style={{ height: '6px', backgroundColor: 'rgba(128,128,128,0.2)' }}>
-              <div
-                className="rounded-full transition-all duration-500"
-                style={{
-                  height: '6px',
-                  backgroundColor: '#E85D2A',
-                  width: `${selectedHoodStat.uniquePlaceCount > 0
-                    ? Math.min(100, Math.round((selectedHoodStat.visitCount / selectedHoodStat.uniquePlaceCount) * 100))
-                    : 100}%`,
-                }}
-              />
-            </div>
-            <p className="text-xs text-gray-500 dark:text-[#8B949E] mt-2">
-              Tap markers to explore
-            </p>
-          </>
-        ) : (
-          <div className="flex items-center gap-2 mt-3">
-            <Lock size={14} className="text-gray-400 dark:text-[#8B949E] shrink-0" />
-            <p className="text-sm text-gray-500 dark:text-[#8B949E]">
-              Undiscovered — visit a spot here to unlock!
-            </p>
+            {selectedHoodStat.uniquePlaceCount > 0 && (
+              <div className="mt-2" style={{ width: '100%', height: 4, borderRadius: 9999, backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)' }}>
+                <div style={{ height: 4, borderRadius: 9999, backgroundColor: '#E85D2A', width: `${Math.min(100, Math.round((selectedHoodStat.visitCount / selectedHoodStat.uniquePlaceCount) * 100))}%`, transition: 'width 500ms ease' }} />
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-black/8 dark:bg-white/8">
+          <Lock className="w-5 h-5 text-gray-500 shrink-0" />
+          <div>
+            <p className="text-base font-normal text-gray-700 dark:text-gray-300">Undiscovered</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Visit spots here to start unlocking!</p>
+          </div>
+        </div>
+      )}
     </div>
   ) : null;
 
@@ -261,14 +256,14 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
         <div className="flex items-center gap-2.5 min-w-0">
           <div
             className={`w-2 h-2 rounded-full shrink-0 ${
-              hood.explored ? "bg-[#E85D2A]" : "bg-gray-300 dark:bg-[#30363D]"
+              hood.explored ? "bg-[#E85D2A]" : "bg-gray-400 dark:bg-gray-600"
             }`}
           />
           <span
             className={`text-base lg:text-sm truncate text-left ${
               hood.explored
-                ? "font-medium text-gray-800 dark:text-[#E6EDF3]"
-                : "text-gray-500 dark:text-[#8B949E]"
+                ? "font-medium text-gray-900 dark:text-gray-100"
+                : "font-medium text-gray-900 dark:text-gray-100"
             }`}
           >
             {hood.name}
@@ -278,9 +273,9 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
           {hood.explored ? (
             <Check size={16} className="text-[#E85D2A]" />
           ) : (
-            <Lock size={16} className="text-gray-400 dark:text-[#8B949E]" />
+            <Lock size={16} className="text-gray-500 dark:text-gray-500" />
           )}
-          <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: isDark ? 'rgba(48,54,61,0.8)' : 'rgba(0,0,0,0.2)' }} />
+          <ChevronRight className="w-4 h-4 flex-shrink-0 text-gray-400 dark:text-gray-500" />
         </div>
       </button>
     );
@@ -292,7 +287,7 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
       {/* Title row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-base font-semibold text-gray-900 dark:text-[#E6EDF3]">Exploration</span>
+          <span className="text-lg font-bold text-gray-900 dark:text-white">Exploration</span>
           <span className="text-xs font-semibold bg-[#E85D2A]/15 text-[#E85D2A] px-2 py-0.5 rounded-full">
             {data.percentage}%
           </span>
@@ -311,7 +306,7 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
       </div>
 
       {/* Subtitle */}
-      <p className="text-sm text-gray-500 dark:text-[#8B949E] mb-3">
+      <p className="text-base text-gray-700 dark:text-gray-300 font-medium mb-3">
         {data.exploredCount} of {data.totalNeighborhoods} neighborhoods discovered
       </p>
     </div>
@@ -331,7 +326,7 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
               className={`flex-shrink-0 whitespace-nowrap rounded-full px-4 py-2 lg:px-3 lg:py-1.5 text-sm lg:text-xs font-medium border transition-all duration-200 cursor-pointer ${
                 isActive
                   ? "bg-[#E85D2A] text-white border-transparent"
-                  : "bg-black/5 text-gray-600 border-gray-200 hover:border-[#E85D2A]/50 dark:bg-white/10 dark:text-[#8B949E] dark:border-[#30363D] dark:hover:border-[#E85D2A]/50"
+                  : "bg-white/60 text-gray-700 border-gray-300 hover:border-[#E85D2A]/50 dark:bg-white/10 dark:text-gray-300 dark:border-[#30363D] dark:hover:border-[#E85D2A]/50"
               }`}
             >
               {area} ({counts.explored}/{counts.total})
@@ -461,6 +456,7 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
                 onClick={() => setExpanded(false)}
               />
               <motion.div
+                ref={mobilePanelRef}
                 initial={{ y: "100%" }}
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
