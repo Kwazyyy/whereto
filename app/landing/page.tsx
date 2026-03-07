@@ -214,7 +214,7 @@ export default function LandingPage() {
     ];
 
     return (
-        <div className="bg-zinc-950 text-white min-h-screen w-full overflow-x-hidden selection:bg-orange-500 selection:text-white" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+        <div className="bg-[#0E1116] text-white min-h-screen w-full overflow-x-hidden selection:bg-orange-500 selection:text-white" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
             {/* eslint-disable-next-line @next/next/no-page-custom-font */}
             <link rel="preconnect" href="https://fonts.googleapis.com" />
             {/* eslint-disable-next-line @next/next/no-page-custom-font */}
@@ -228,7 +228,7 @@ export default function LandingPage() {
             `}</style>
 
             {/* ═══════ NAV ═══════ */}
-            <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-zinc-950/90 backdrop-blur-md py-4 border-b border-white/5" : "bg-transparent py-6"}`}>
+            <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-[#0E1116]/90 backdrop-blur-md py-4" : "bg-transparent py-6"}`}>
                 <div className="px-4 md:px-6 flex items-center justify-between">
                     {/* Logo */}
                     <div className="flex items-center gap-2.5">
@@ -271,7 +271,7 @@ export default function LandingPage() {
                 <AnimatePresence>
                     {mobileMenu && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                            className="md:hidden bg-zinc-950/95 backdrop-blur-xl border-t border-white/5 overflow-hidden">
+                            className="md:hidden bg-[#0E1116]/95 backdrop-blur-xl overflow-hidden">
                             <div className="p-4 flex flex-col gap-1">
                                 {[...navLinks, { label: "Join Waitlist", id: "waitlist" }].map((l) => (
                                     l.href ? (
@@ -371,7 +371,7 @@ export default function LandingPage() {
                             style={{ animation: "spin 30s linear infinite reverse" }} />
 
                         {/* Phone shell */}
-                        <div className="relative w-[300px] h-[620px] bg-zinc-950 border-[7px] border-zinc-800 rounded-[3rem] shadow-2xl overflow-hidden z-20 ring-1 ring-white/10">
+                        <div className="relative w-[300px] h-[620px] bg-[#0E1116] border-[7px] border-zinc-800 rounded-[3rem] shadow-2xl overflow-hidden z-20 ring-1 ring-white/10">
                             {/* Dynamic island */}
                             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-7 bg-black rounded-b-2xl z-30" />
 
@@ -456,7 +456,7 @@ export default function LandingPage() {
             </section>
 
             {/* ═══════ PROBLEM ═══════ */}
-            <section id="about" className="py-24 bg-zinc-950 relative overflow-hidden">
+            <section id="about" className="py-24 relative overflow-hidden">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
                         <motion.div {...fadeInView(0)}>
@@ -465,15 +465,15 @@ export default function LandingPage() {
                         </motion.div>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-10 items-center max-w-4xl mx-auto">
+                    <div className="grid md:grid-cols-2 gap-10 items-stretch max-w-4xl mx-auto">
                         {/* Left: messy chat */}
                         <motion.div {...fadeInView(0)}
-                            className="bg-zinc-900 rounded-3xl p-8 border border-white/5 relative overflow-hidden">
+                            className="bg-zinc-900 rounded-3xl p-8 border border-white/5 relative overflow-hidden flex flex-col">
                             <div className="flex items-center gap-2 mb-6">
                                 <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
                                 <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">The Group Chat</span>
                             </div>
-                            <div className="space-y-3 font-sans">
+                            <div className="space-y-3 font-sans flex-1">
                                 {[
                                     { from: false, text: "Where should we go for dinner?" },
                                     { from: false, text: "Idk you pick 🙃" },
@@ -499,9 +499,9 @@ export default function LandingPage() {
                         </motion.div>
 
                         {/* Right: clean solution */}
-                        <motion.div {...fadeInView(0.15)} className="relative">
-                            <div className="bg-zinc-900 rounded-3xl p-1.5 border border-orange-500/30 shadow-[0_0_50px_rgba(249,115,22,0.1)]">
-                                <div className="rounded-[22px] overflow-hidden relative" style={{ aspectRatio: "16/11" }}>
+                        <motion.div {...fadeInView(0.15)} className="relative flex">
+                            <div className="bg-zinc-900 rounded-3xl p-1.5 border border-orange-500/30 shadow-[0_0_50px_rgba(249,115,22,0.1)] flex-1 flex">
+                                <div className="rounded-[22px] overflow-hidden relative flex-1">
                                     {/* Blurry café background */}
                                     <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&q=80" alt="" className="absolute inset-0 w-full h-full object-cover blur-lg scale-110" />
                                     <div className="absolute inset-0 bg-black/50" />
@@ -528,7 +528,7 @@ export default function LandingPage() {
             </section>
 
             {/* ═══════ HOW IT WORKS ═══════ */}
-            <section id="how-it-works" className="py-24 bg-zinc-900 border-y border-white/5">
+            <section id="how-it-works" className="py-24">
                 <div className="max-w-7xl mx-auto px-6">
                     <motion.div {...fadeInView(0)} className="text-center mb-16">
                         <span className="inline-block text-xs font-semibold text-orange-500 uppercase tracking-[0.18em] mb-3">How it works</span>
@@ -546,11 +546,11 @@ export default function LandingPage() {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: i * 0.15, duration: 0.6 }}
-                                className="group p-8 rounded-3xl bg-zinc-950 border border-white/5 hover:border-orange-500/30 transition-colors relative overflow-hidden">
-                                <div className="absolute top-6 right-6 text-[80px] font-black text-zinc-900 leading-none select-none pointer-events-none group-hover:text-zinc-800 transition-colors">
+                                className="group p-8 rounded-3xl bg-[#161B22] border border-white/5 hover:border-orange-500/30 transition-colors relative overflow-hidden">
+                                <div className="absolute top-6 right-6 text-[80px] font-black text-white/[0.04] leading-none select-none pointer-events-none group-hover:text-white/[0.06] transition-colors">
                                     {s.n}
                                 </div>
-                                <div className="w-12 h-12 bg-zinc-900 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-orange-500/10 group-hover:text-orange-500 transition-colors text-zinc-400">
+                                <div className="w-12 h-12 bg-white/[0.05] rounded-2xl flex items-center justify-center mb-6 group-hover:bg-orange-500/10 group-hover:text-orange-500 transition-colors text-zinc-400">
                                     {s.icon}
                                 </div>
                                 <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.15em]">{s.n}</span>
@@ -563,7 +563,7 @@ export default function LandingPage() {
             </section>
 
             {/* ═══════ CITIES ═══════ */}
-            <section id="cities" className="py-24 bg-zinc-950 relative overflow-hidden">
+            <section id="cities" className="py-24 relative overflow-hidden">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-4">
                         <motion.div {...fadeInView(0)}>
@@ -576,21 +576,21 @@ export default function LandingPage() {
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {/* Toronto — featured */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {/* Toronto — active */}
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
-                            className="lg:col-span-1 lg:row-span-2 relative group overflow-hidden rounded-3xl min-h-[300px] lg:min-h-[400px]"
+                            className="relative group overflow-hidden rounded-3xl aspect-[3/4]"
                         >
                             <img src={IMAGES.toronto} alt="Toronto" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent p-8 flex flex-col justify-end">
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent p-6 flex flex-col justify-end">
                                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-500/30 text-green-400 text-[10px] font-bold w-fit mb-3">
                                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                                     NOW LIVE
                                 </div>
-                                <h3 className="text-2xl font-extrabold text-white">Toronto</h3>
+                                <h3 className="text-lg font-extrabold text-white">Toronto</h3>
                                 <p className="text-zinc-400 text-sm mt-1">200+ curated spots</p>
                             </div>
                         </motion.div>
@@ -605,8 +605,8 @@ export default function LandingPage() {
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
-                                transition={{ delay: i * 0.1 }}
-                                className="relative group overflow-hidden rounded-3xl aspect-square"
+                                transition={{ delay: (i + 1) * 0.1 }}
+                                className="relative group overflow-hidden rounded-3xl aspect-[3/4]"
                             >
                                 <img src={city.img} alt={city.name}
                                     className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" />
@@ -623,7 +623,7 @@ export default function LandingPage() {
             </section>
 
             {/* ═══════ FOR CAFÉS ═══════ */}
-            <section id="for-cafes" className="py-24 bg-zinc-900 border-t border-white/5 relative overflow-hidden">
+            <section id="for-cafes" className="py-24 relative overflow-hidden">
                 <div className="absolute right-0 top-0 w-1/3 h-full bg-orange-500/5 blur-3xl pointer-events-none" />
                 <div className="max-w-7xl mx-auto px-6 relative z-10">
                     <div className="grid md:grid-cols-2 gap-16 items-center">
@@ -683,7 +683,7 @@ export default function LandingPage() {
             </section>
 
             {/* ═══════ WAITLIST ═══════ */}
-            <section id="waitlist" className="py-32 bg-zinc-950 relative overflow-hidden">
+            <section id="waitlist" className="py-32 relative overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.08),transparent_70%)] pointer-events-none" />
 
                 <div className="max-w-xl mx-auto px-6 relative z-10 text-center">
@@ -716,7 +716,7 @@ export default function LandingPage() {
             </section>
 
             {/* ═══════ FOOTER ═══════ */}
-            <footer className="py-12 bg-zinc-950 border-t border-white/5">
+            <footer className="py-12">
                 <div className="px-4 md:px-6">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-8">
                         <div className="flex items-center gap-2.5">
