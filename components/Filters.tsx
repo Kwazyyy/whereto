@@ -25,7 +25,6 @@ export function DistanceBubble({
 
     const currentLabel =
         DISTANCE_OPTIONS.find((o) => o.value === radius)?.label ?? "5km";
-    const isAllToronto = radius === 0;
 
     useEffect(() => {
         if (!open) return;

@@ -346,7 +346,7 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
       {selectedNbData.status === "no_data" ? (
         <div className="text-center py-6">
           <MapPin className="w-8 h-8 mx-auto mb-2" style={{ color: isDark ? '#8B949E' : '#656D76' }} />
-          <p className="text-sm text-gray-700 dark:text-gray-300">We're adding places to this neighborhood soon!</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300">We&apos;re adding places to this neighborhood soon!</p>
           <p className="text-xs mt-1" style={{ color: isDark ? '#8B949E' : '#656D76' }}>Visit any cafe or restaurant here to start exploring.</p>
         </div>
       ) : (
