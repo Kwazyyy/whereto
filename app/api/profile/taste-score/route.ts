@@ -49,10 +49,9 @@ export async function GET() {
   const volumeScore = Math.min(totalSaves, 50);
   const score = Math.min(100, Math.round(diversityScore + volumeScore));
 
-  // Top 4 intents sorted by count
+  // All intents sorted by count
   const topIntents = Object.entries(intentCounts)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 4)
     .map(([intent, count]) => ({
       id: intent,
       name: INTENT_LABELS[intent] || intent,

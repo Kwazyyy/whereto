@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useSession, signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -321,13 +322,23 @@ type MyPhoto = {
 
 type MyPhotosStats = { total: number; approved: number; pending: number; featured: number };
 
-const CATEGORY_ICONS: Record<string, string> = {
-  food_drink: "🍽️",
-  vibe_interior: "✨",
-  seating_workspace: "💺",
-  exterior_entrance: "🏠",
-  special_features: "⭐",
-};
+function CategoryIcon({ category }: { category: string }) {
+  const cls = "w-3.5 h-3.5 text-white";
+  switch (category) {
+    case "food_drink":
+      return <svg className={cls} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg>;
+    case "vibe_interior":
+      return <svg className={cls} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3 14.22 7.81 19.5 8.5 15.72 12.1 16.71 17.34 12 14.86 7.29 17.34 8.28 12.1 4.5 8.5 9.78 7.81Z" /></svg>;
+    case "seating_workspace":
+      return <svg className={cls} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3" /><path d="M3 16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V11a2 2 0 0 0-4 0Z" /><path d="M5 18v2" /><path d="M19 18v2" /></svg>;
+    case "exterior_entrance":
+      return <svg className={cls} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" /></svg>;
+    case "special_features":
+      return <svg className={cls} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>;
+    default:
+      return <svg className={cls} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg>;
+  }
+}
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   pending: { bg: "bg-amber-400/80", text: "text-amber-950", label: "Pending" },
@@ -417,7 +428,7 @@ function MyPhotosSection() {
                     />
                     {/* Category icon */}
                     <span className="absolute top-1.5 left-1.5 w-6 h-6 rounded-md bg-black/40 backdrop-blur-sm flex items-center justify-center text-xs">
-                      {CATEGORY_ICONS[photo.category] || "📷"}
+                      <CategoryIcon category={photo.category} />
                     </span>
                     {/* Status badge */}
                     <span className={`absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold ${st.bg} ${st.text} backdrop-blur-sm`}>
@@ -465,23 +476,24 @@ type TasteScoreData = {
   totalCategories: number;
 };
 
-const SCORE_LABELS: [number, string, string][] = [
-  [80, "Eclectic Explorer", "\u{1F30D}"],
-  [60, "Adventurous Taster", "\u{1F525}"],
-  [40, "Curious Diner", "\u{2728}"],
-  [20, "Finding Your Vibe", "\u{1F331}"],
-  [0, "Just Getting Started", "\u{1F44B}"],
+const SCORE_LABELS: [number, string][] = [
+  [80, "Eclectic Explorer"],
+  [60, "Adventurous Taster"],
+  [40, "Curious Diner"],
+  [20, "Finding Your Vibe"],
+  [0, "Just Getting Started"],
 ];
 
-function getScoreLabel(score: number): { label: string; emoji: string } {
-  for (const [threshold, label, emoji] of SCORE_LABELS) {
-    if (score >= threshold) return { label, emoji };
+function getScoreLabel(score: number): string {
+  for (const [threshold, label] of SCORE_LABELS) {
+    if (score >= threshold) return label;
   }
-  return { label: "Just Getting Started", emoji: "\u{1F44B}" };
+  return "Just Getting Started";
 }
 
 function TasteScoreCard() {
   const [data, setData] = useState<TasteScoreData | null>(null);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     fetch("/api/profile/taste-score")
@@ -492,34 +504,87 @@ function TasteScoreCard() {
 
   if (!data || data.totalSaves === 0) return null;
 
-  const { label, emoji } = getScoreLabel(data.score);
+  const label = getScoreLabel(data.score);
 
-  return (
-    <div className="bg-white dark:bg-[#161B22] rounded-xl p-5 border border-[#D0D7DE] dark:border-[#30363D] h-full">
-      <div className="flex gap-5">
-        {/* Left: Score */}
-        <div className="flex flex-col items-center justify-center min-w-[90px]">
-          <span className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider">Taste Score</span>
-          <span className="text-4xl font-bold text-[#E85D2A] mt-1">{data.score}</span>
-          <span className="text-sm text-[#8B949E] mt-0.5">{emoji} {label}</span>
-        </div>
-
-        {/* Right: Intent breakdown bars */}
-        <div className="flex-1 min-w-0 flex flex-col gap-2.5 justify-center">
-          {data.topIntents.map((intent) => (
-            <div key={intent.id} className="flex items-center gap-2">
-              <span className="text-sm text-[#0E1116] dark:text-[#e8edf4] truncate w-32 shrink-0">{intent.name}</span>
-              <div className="flex-1 h-2 bg-gray-100 dark:bg-[#30363D] rounded-full overflow-hidden">
-                <div className="h-full bg-[#E85D2A] rounded-full transition-all duration-500" style={{ width: `${intent.percentage}%` }} />
-              </div>
-              <span className="text-sm text-[#8B949E] w-10 text-right shrink-0">{intent.percentage}%</span>
+  const breakdownContent = (
+    <>
+      <div className="flex flex-col gap-2 mt-4 w-full">
+        {data.topIntents.map((intent) => (
+          <div key={intent.id} className="flex items-center gap-2 w-full">
+            <span className="text-xs text-[#0E1116] dark:text-[#e8edf4] w-auto shrink-0 whitespace-nowrap">{intent.name}</span>
+            <div className="flex-1 h-1.5 bg-gray-100 dark:bg-[#30363D] rounded-full overflow-hidden min-w-[40px]">
+              <div className="h-full bg-[#E85D2A] rounded-full transition-all duration-300" style={{ width: `${intent.percentage}%` }} />
             </div>
-          ))}
-        </div>
+            <span className="text-xs text-[#8B949E] w-8 text-right shrink-0">{intent.percentage}%</span>
+          </div>
+        ))}
       </div>
       <p className="text-sm text-[#8B949E] mt-3 pt-3 border-t border-gray-100 dark:border-[#30363D]">
         You&apos;ve saved {data.totalSaves} place{data.totalSaves !== 1 ? "s" : ""} across {data.totalCategories} categor{data.totalCategories !== 1 ? "ies" : "y"}
       </p>
+    </>
+  );
+
+  return (
+    <div className="bg-white dark:bg-[#161B22] rounded-xl p-5 border border-[#D0D7DE] dark:border-[#30363D] h-full overflow-hidden">
+      {/* Desktop: side-by-side layout */}
+      <div className="hidden lg:flex flex-row items-center gap-4">
+        {/* Left: score */}
+        <div className="flex flex-col items-center shrink-0" style={{ width: "35%" }}>
+          <span className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider">Taste Score</span>
+          <span className="text-3xl font-bold text-[#E85D2A] mt-1">{data.score}</span>
+          <span className="text-xs text-[#8B949E] mt-0.5 flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="#CA8A04" stroke="#CA8A04" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+            {label}
+          </span>
+        </div>
+        {/* Right: category bars */}
+        <div className="flex flex-col gap-2 min-w-0" style={{ width: "65%" }}>
+          {data.topIntents.map((intent) => (
+            <div key={intent.id} className="flex items-center gap-1.5 w-full">
+              <span className="text-xs text-[#0E1116] dark:text-[#e8edf4] w-auto shrink-0 whitespace-nowrap">{intent.name}</span>
+              <div className="flex-1 h-1.5 bg-gray-100 dark:bg-[#30363D] rounded-full overflow-hidden min-w-[40px]">
+                <div className="h-full bg-[#E85D2A] rounded-full transition-all duration-300" style={{ width: `${intent.percentage}%` }} />
+              </div>
+              <span className="text-xs text-[#8B949E] w-8 text-right shrink-0">{intent.percentage}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Desktop: footer */}
+      <p className="hidden lg:block text-xs text-[#8B949E] mt-3 pt-3 border-t border-gray-100 dark:border-[#30363D]">
+        You&apos;ve saved {data.totalSaves} place{data.totalSaves !== 1 ? "s" : ""} across {data.totalCategories} categor{data.totalCategories !== 1 ? "ies" : "y"}
+      </p>
+
+      {/* Mobile: score header with toggle */}
+      <div
+        className="flex items-center gap-4 cursor-pointer lg:hidden"
+        onClick={() => setExpanded((v) => !v)}
+      >
+        <div className="flex flex-col items-center min-w-[80px]">
+          <span className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider">Taste Score</span>
+          <span className="text-3xl font-bold text-[#E85D2A] mt-1">{data.score}</span>
+          <span className="text-xs text-[#8B949E] mt-0.5 flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="#CA8A04" stroke="#CA8A04" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+            {label}
+          </span>
+        </div>
+        <div className="flex-1 flex justify-end">
+          <span className="text-xs text-[#8B949E]">
+            {expanded ? "Hide breakdown \u25B4" : "See breakdown \u25BE"}
+          </span>
+        </div>
+      </div>
+
+      {/* Mobile: collapsible breakdown */}
+      <motion.div
+        className="lg:hidden overflow-hidden"
+        initial={false}
+        animate={{ height: expanded ? "auto" : 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        {breakdownContent}
+      </motion.div>
     </div>
   );
 }
