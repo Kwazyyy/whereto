@@ -82,10 +82,6 @@ export default function PlaceDetailSheet({
           if (info.offset.y > 100 || info.velocity.y > 500) onClose();
         }}
       >
-        <div className="flex justify-center pt-3 pb-2 shrink-0">
-          <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-white/20" />
-        </div>
-
         <div className="flex-1 overflow-y-auto">
           {/* Photo */}
           <div className={`h-48 relative ${!photoUrl ? `bg-gradient-to-br ${fallbackGradient}` : "bg-gray-200 dark:bg-[#1C2128]"}`}>
