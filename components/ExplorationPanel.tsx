@@ -409,7 +409,7 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
       <button
         key={hood.name}
         onClick={() => handleNeighborhoodClick(hood.name)}
-        className={`w-full flex items-center justify-between py-3 px-2 rounded-lg cursor-pointer transition-all duration-200 ${
+        className={`w-full text-left flex items-center py-3 px-2 rounded-lg cursor-pointer transition-all duration-200 ${
           isSelected
             ? "border-l-2 border-l-[#E85D2A]"
             : "border-l-2 border-l-transparent"
@@ -421,18 +421,18 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
         onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'; }}
         onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
       >
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-2 h-2 rounded-full shrink-0" style={dotStyle} />
-          <div className="min-w-0">
-            <span className="text-sm leading-tight text-left font-medium text-gray-900 dark:text-gray-100 block">
-              {hood.name}
-            </span>
-            <span className="text-xs mt-0.5 block" style={{ color: progressColor }}>
-              {progressText}
-            </span>
-          </div>
+        <div className="w-5 flex-shrink-0 flex justify-center">
+          <div className="w-2 h-2 rounded-full" style={dotStyle} />
         </div>
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex-1 min-w-0 ml-2">
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100 block text-left" style={{ lineHeight: '20px' }}>
+            {hood.name}
+          </span>
+          <span className="text-xs block" style={{ lineHeight: '16px', marginTop: 2, color: progressColor }}>
+            {progressText}
+          </span>
+        </div>
+        <div className="flex items-center gap-1 flex-shrink-0 ml-2">
           {hood.status === "unlocked" ? (
             <Check size={16} style={{ color: '#E85D2A' }} />
           ) : hood.status === "no_data" ? (

@@ -54,7 +54,7 @@ export const torontoNeighborhoods: Neighborhood[] = [
 
     // Scarborough
     { name: "Scarborough Town Centre", area: "Scarborough", center: { lat: 43.7764, lng: -79.2578 }, radius: 700, popularIntents: ["Locals Only", "Family-Friendly"] },
-    { name: "Agincourt", area: "Scarborough", center: { lat: 43.7940, lng: -79.2810 }, radius: 700, popularIntents: ["Budget Eats", "Hidden Gems"] },
+    { name: "Agincourt", area: "Scarborough", center: { lat: 43.7940, lng: -79.2810 }, radius: 1500, popularIntents: ["Budget Eats", "Hidden Gems"] },
     { name: "Birch Cliff", area: "Scarborough", center: { lat: 43.6920, lng: -79.2640 }, radius: 600, popularIntents: ["Scenic Views", "Locals Only"] },
 
     // Etobicoke
