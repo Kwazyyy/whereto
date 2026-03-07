@@ -9,6 +9,8 @@ export const DISTANCE_OPTIONS = [
     { label: "5km", value: 5000 },
     { label: "10km", value: 10000 },
     { label: "25km", value: 25000 },
+    { label: "50km", value: 50000 },
+    { label: "All Toronto", value: 0 },
 ];
 
 export function DistanceBubble({
@@ -23,6 +25,7 @@ export function DistanceBubble({
 
     const currentLabel =
         DISTANCE_OPTIONS.find((o) => o.value === radius)?.label ?? "5km";
+    const isAllToronto = radius === 0;
 
     useEffect(() => {
         if (!open) return;
@@ -63,7 +66,7 @@ export function DistanceBubble({
                     ) : (
                         <motion.div
                             key="expanded"
-                            className="flex items-center gap-0.5 px-1.5 py-1"
+                            className="flex items-center gap-0.5 px-1.5 py-1 flex-nowrap"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
@@ -71,13 +74,13 @@ export function DistanceBubble({
                         >
                             {DISTANCE_OPTIONS.map((opt) => (
                                 <button
-                                    key={opt.value}
+                                    key={opt.label}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onRadiusChange(opt.value);
                                         setOpen(false);
                                     }}
-                                    className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors duration-150 cursor-pointer ${radius === opt.value ? "bg-[#E85D2A] text-white" : "text-white/70 hover:text-white"
+                                    className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors duration-150 cursor-pointer whitespace-nowrap ${radius === opt.value ? "bg-[#E85D2A] text-white" : "text-white/70 hover:text-white"
                                         }`}
                                 >
                                     {opt.label}

@@ -513,7 +513,9 @@ export default function Home() {
           </h2>
           <p className="text-gray-500 dark:text-gray-400 text-sm max-w-[260px] leading-relaxed">
             {places.length === 0
-              ? `We couldn't find any spots for this vibe within ${radius >= 1000 ? radius / 1000 + 'km' : radius + 'm'}.`
+              ? radius === 0
+                ? "We couldn't find any spots for this vibe."
+                : `We couldn't find any spots for this vibe within ${radius >= 1000 ? radius / 1000 + 'km' : radius + 'm'}.`
               : "You've swiped through all the spots for this vibe."}
           </p>
           {places.length === 0 ? (

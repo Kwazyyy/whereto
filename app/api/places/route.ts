@@ -130,7 +130,8 @@ function mapAndFilter(
   lat: number,
   lng: number,
   radiusKm: number,
-  intent: string
+  intent: string,
+  skipDistanceFilter = false
 ) {
   return places
     .map((place) => {
@@ -210,7 +211,7 @@ function mapAndFilter(
         menuType: (place.websiteUri ? "direct" : "search") as "direct" | "search",
       };
     })
-    .filter((p) => p.distKm <= radiusKm)
+    .filter((p) => skipDistanceFilter || p.distKm <= radiusKm)
     .sort((a, b) => a.distKm - b.distKm);
 }
 
@@ -224,7 +225,9 @@ export async function GET(request: NextRequest) {
   const intent = searchParams.get("intent") ?? "coffee";
   const lat = parseFloat(searchParams.get("lat") ?? "43.6532");
   const lng = parseFloat(searchParams.get("lng") ?? "-79.3832");
-  const radius = Math.min(Math.max(parseInt(searchParams.get("radius") ?? "5000", 10), 500), 50000);
+  const rawRadius = parseInt(searchParams.get("radius") ?? "5000", 10);
+  const isAllToronto = rawRadius === 0;
+  const radius = isAllToronto ? 50000 : Math.min(Math.max(rawRadius, 500), 50000);
   const radiusKm = radius / 1000;
 
   const queries = INTENT_QUERIES[intent] ?? INTENT_QUERIES.coffee;
@@ -246,12 +249,12 @@ export async function GET(request: NextRequest) {
   try {
     // Primary search
     const primaryRaw = await searchPlaces(queries.primary, lat, lng, radius, apiKey, fieldMask);
-    const results = mapAndFilter(primaryRaw, lat, lng, radiusKm, intent);
+    const results = mapAndFilter(primaryRaw, lat, lng, radiusKm, intent, isAllToronto);
 
     // Fallback if too few results
     if (results.length < MIN_RESULTS) {
       const fallbackRaw = await searchPlaces(queries.fallback, lat, lng, radius, apiKey, fieldMask);
-      const fallbackResults = mapAndFilter(fallbackRaw, lat, lng, radiusKm, intent);
+      const fallbackResults = mapAndFilter(fallbackRaw, lat, lng, radiusKm, intent, isAllToronto);
 
       // Merge, deduplicate by placeId
       const seen = new Set(results.map((r) => r.placeId));
