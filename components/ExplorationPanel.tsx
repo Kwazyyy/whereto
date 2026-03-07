@@ -2,24 +2,39 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Compass, ChevronDown, ChevronRight, Lock, Check, ArrowLeft } from "lucide-react";
+import { Compass, ChevronDown, ChevronRight, Lock, Check, ArrowLeft, MapPin } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useTheme } from "@/components/ThemeProvider";
 import { torontoNeighborhoods } from "@/lib/neighborhoods";
 
-interface NeighborhoodStat {
+// ── Types matching /api/exploration/challenges response ──
+
+interface ChallengePlace {
+  id: string;
+  googlePlaceId: string;
   name: string;
-  area: string;
-  explored: boolean;
-  visitCount: number;
-  uniquePlaceCount: number;
+  photoUrl: string | null;
+  rating: number | null;
+  visited: boolean;
 }
 
-interface ExplorationData {
+interface NeighborhoodChallenge {
+  id: string;
+  name: string;
+  area: string;
+  totalPlacesInArea: number;
+  requiredVisits: number;
+  challengePlaces: ChallengePlace[];
+  visitedCount: number;
+  unlocked: boolean;
+  status: "undiscovered" | "in_progress" | "unlocked" | "no_data";
+}
+
+interface ChallengeData {
+  neighborhoods: NeighborhoodChallenge[];
+  totalUnlocked: number;
   totalNeighborhoods: number;
-  exploredCount: number;
-  percentage: number;
-  neighborhoods: NeighborhoodStat[];
+  overallPercentage: number;
 }
 
 interface ExplorationPanelProps {
@@ -31,7 +46,7 @@ const AREAS = ["All", "Downtown", "West End", "East End", "Midtown", "North York
 export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps) {
   const { status } = useSession();
   const { theme } = useTheme();
-  const [data, setData] = useState<ExplorationData | null>(null);
+  const [challengeData, setChallengeData] = useState<ChallengeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
   const [selectedArea, setSelectedArea] = useState("All");
@@ -71,22 +86,18 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
   const touchStartY = useRef(0);
   const touchStartScrollTop = useRef(0);
 
+  // Fetch challenge data
   useEffect(() => {
     if (status !== "authenticated") {
       setLoading(false);
       return;
     }
-    async function fetchStats() {
-      try {
-        const res = await fetch("/api/exploration-stats");
-        if (res.ok) setData(await res.json());
-      } catch {
-        // silently fail
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchStats();
+    setLoading(true);
+    fetch("/api/exploration/challenges")
+      .then((res) => res.json())
+      .then((data: ChallengeData) => setChallengeData(data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [status]);
 
   // Resolve isDark from theme setting
@@ -137,7 +148,7 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
   if (loading) return null;
 
   // Unauthenticated pill
-  if (status !== "authenticated" || !data) {
+  if (status !== "authenticated" || !challengeData) {
     return (
       <button
         className="fixed bottom-20 left-1/2 -translate-x-1/2 lg:bottom-auto lg:left-auto lg:translate-x-0 lg:top-20 lg:right-6 z-30 flex items-center gap-2 px-4 py-2.5 rounded-full cursor-pointer text-sm font-medium text-gray-900 dark:text-white hover:scale-[1.02] transition-all duration-300 shadow-lg"
@@ -149,19 +160,23 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
     );
   }
 
-  const filteredNeighborhoods = data.neighborhoods.filter(
+  // ── Derived data from challengeData ──
+
+  const filteredNeighborhoods = challengeData.neighborhoods.filter(
     (n) => selectedArea === "All" || n.area === selectedArea
   );
 
   function getAreaCounts(area: string) {
-    if (area === "All") return { explored: data!.exploredCount, total: data!.totalNeighborhoods };
-    const hoods = data!.neighborhoods.filter((n) => n.area === area);
-    return { explored: hoods.filter((n) => n.explored).length, total: hoods.length };
+    if (area === "All") return { explored: challengeData!.totalUnlocked, total: challengeData!.totalNeighborhoods };
+    const hoods = challengeData!.neighborhoods.filter((n) => n.area === area);
+    return { explored: hoods.filter((n) => n.unlocked).length, total: hoods.length };
   }
 
+  // Sort: unlocked first, then in_progress, then undiscovered, then no_data
+  const statusOrder: Record<string, number> = { unlocked: 0, in_progress: 1, undiscovered: 2, no_data: 3 };
   const sorted = [...filteredNeighborhoods].sort((a, b) => {
-    if (a.explored && !b.explored) return -1;
-    if (!a.explored && b.explored) return 1;
+    const orderDiff = (statusOrder[a.status] ?? 4) - (statusOrder[b.status] ?? 4);
+    if (orderDiff !== 0) return orderDiff;
     return a.name.localeCompare(b.name);
   });
 
@@ -186,16 +201,16 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
     }
   }
 
-  // Get selected neighborhood data
-  const selectedHoodStat = selectedNeighborhood
-    ? data.neighborhoods.find((n) => n.name === selectedNeighborhood)
+  // ── Get selected neighborhood challenge data ──
+  const selectedNbData = selectedNeighborhood
+    ? challengeData.neighborhoods.find((n) => n.name === selectedNeighborhood)
     : null;
   const selectedHoodGeo = selectedNeighborhood
     ? torontoNeighborhoods.find((n) => n.name === selectedNeighborhood)
     : null;
 
-  // ── Neighborhood detail view ──
-  const neighborhoodDetail = selectedHoodStat ? (
+  // ── Neighborhood detail view (with challenge places) ──
+  const neighborhoodDetail = selectedNbData ? (
     <div className="px-4 pb-4">
       <button
         onClick={() => setSelectedNeighborhood(null)}
@@ -206,43 +221,86 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
       </button>
 
       <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-        {selectedHoodStat.name}
+        {selectedNbData.name}
       </h3>
       <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mb-4">
         {selectedHoodGeo?.area}
       </p>
 
-      {selectedHoodStat.explored ? (
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-black/8 dark:bg-white/8">
-          <Check className="w-5 h-5 text-[#E85D2A] shrink-0" />
-          <div>
-            <p className="text-base font-medium text-[#E85D2A]">Explored!</p>
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              {selectedHoodStat.visitCount} {selectedHoodStat.visitCount === 1 ? "place" : "places"} visited
-              {selectedHoodStat.uniquePlaceCount > 0 && ` · ${selectedHoodStat.uniquePlaceCount} nearby`}
-            </p>
-            {selectedHoodStat.uniquePlaceCount > 0 && (
-              <div className="mt-2" style={{ width: '100%', height: 4, borderRadius: 9999, backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)' }}>
-                <div style={{ height: 4, borderRadius: 9999, backgroundColor: '#E85D2A', width: `${Math.min(100, Math.round((selectedHoodStat.visitCount / selectedHoodStat.uniquePlaceCount) * 100))}%`, transition: 'width 500ms ease' }} />
-              </div>
-            )}
-          </div>
+      {/* Progress section */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {selectedNbData.visitedCount}/{selectedNbData.requiredVisits} places visited
+          </span>
+          {selectedNbData.status === "unlocked" && (
+            <span className="text-xs font-medium text-[#E85D2A]">Unlocked!</span>
+          )}
+        </div>
+        <div style={{ width: '100%', height: 6, borderRadius: 9999, backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)' }}>
+          <div style={{
+            height: 6,
+            borderRadius: 9999,
+            backgroundColor: '#E85D2A',
+            width: selectedNbData.requiredVisits > 0
+              ? `${Math.min(100, Math.round((selectedNbData.visitedCount / selectedNbData.requiredVisits) * 100))}%`
+              : '0%',
+            transition: 'width 500ms ease',
+          }} />
+        </div>
+      </div>
+
+      {/* Challenge places list */}
+      {selectedNbData.status === "no_data" ? (
+        <div className="text-center py-4">
+          <p className="text-sm text-gray-500 dark:text-gray-400">No places discovered in this area yet.</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Visit any cafe or restaurant here to start exploring!</p>
         </div>
       ) : (
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-black/8 dark:bg-white/8">
-          <Lock className="w-5 h-5 text-gray-500 shrink-0" />
-          <div>
-            <p className="text-base font-normal text-gray-700 dark:text-gray-300">Undiscovered</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Visit spots here to start unlocking!</p>
-          </div>
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Places to visit:
+          </p>
+          {selectedNbData.challengePlaces.map((place) => (
+            <div key={place.id} className="flex items-center gap-3 p-3 rounded-xl bg-black/5 dark:bg-white/5">
+              {place.photoUrl ? (
+                <img src={place.photoUrl} alt={place.name} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+              ) : (
+                <div className="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-700 flex-shrink-0 flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-gray-400" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{place.name}</p>
+                {place.rating ? (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    ★ {place.rating}
+                  </p>
+                ) : null}
+              </div>
+              {place.visited ? (
+                <Check className="w-5 h-5 text-[#E85D2A] flex-shrink-0" />
+              ) : (
+                <div className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 flex-shrink-0" />
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
   ) : null;
 
   // ── Render a neighborhood row ──
-  function renderRow(hood: NeighborhoodStat, isLast: boolean) {
+  function renderRow(hood: NeighborhoodChallenge, isLast: boolean) {
     const isSelected = selectedNeighborhood === hood.name;
+
+    // Dot color based on status
+    const dotClass =
+      hood.status === "unlocked" ? "bg-[#E85D2A]"
+      : hood.status === "in_progress" ? "bg-[#CA8A04]"
+      : hood.status === "no_data" ? "bg-gray-200 dark:bg-gray-700"
+      : "bg-gray-300 dark:bg-gray-600";
+
     return (
       <button
         key={hood.name}
@@ -254,30 +312,52 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
         }`}
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <div
-            className={`w-2 h-2 rounded-full shrink-0 ${
-              hood.explored ? "bg-[#E85D2A]" : "bg-gray-400 dark:bg-gray-600"
-            }`}
-          />
-          <span
-            className={`text-base lg:text-sm truncate text-left ${
-              hood.explored
-                ? "font-medium text-gray-900 dark:text-gray-100"
-                : "font-medium text-gray-900 dark:text-gray-100"
-            }`}
-          >
-            {hood.name}
-          </span>
+          <div className={`w-2 h-2 rounded-full shrink-0 ${dotClass}`} />
+          <div className="min-w-0">
+            <span className="text-base lg:text-sm truncate text-left font-medium text-gray-900 dark:text-gray-100 block">
+              {hood.name}
+            </span>
+            {(hood.status === "in_progress" || hood.status === "unlocked") && (
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {hood.visitedCount}/{hood.requiredVisits} visited
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          {hood.explored ? (
+          {hood.status === "unlocked" ? (
             <Check size={16} className="text-[#E85D2A]" />
+          ) : hood.status === "in_progress" ? (
+            <div className="relative">
+              <Lock size={16} className="text-gray-500 dark:text-gray-500" />
+              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#E85D2A] text-white text-[9px] font-bold flex items-center justify-center">
+                {hood.visitedCount}
+              </span>
+            </div>
+          ) : hood.status === "no_data" ? (
+            <div className="relative">
+              <MapPin size={16} className="text-gray-400 dark:text-gray-500" />
+              <span className="absolute -top-1 -right-1.5 text-[10px] font-bold text-gray-400">?</span>
+            </div>
           ) : (
             <Lock size={16} className="text-gray-500 dark:text-gray-500" />
           )}
           <ChevronRight className="w-4 h-4 flex-shrink-0 text-gray-400 dark:text-gray-500" />
         </div>
       </button>
+    );
+  }
+
+  // ── Loading skeleton row ──
+  function renderSkeletonRow(key: number) {
+    return (
+      <div key={key} className="flex items-center justify-between py-3 lg:py-2 px-2">
+        <div className="flex items-center gap-2.5">
+          <div className="w-2 h-2 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+          <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-4 w-24 rounded" />
+        </div>
+        <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-4 w-8 rounded" />
+      </div>
     );
   }
 
@@ -289,7 +369,7 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
         <div className="flex items-center gap-2">
           <span className="text-lg font-bold text-gray-900 dark:text-white">Exploration</span>
           <span className="text-xs font-semibold bg-[#E85D2A]/15 text-[#E85D2A] px-2 py-0.5 rounded-full">
-            {data.percentage}%
+            {challengeData.overallPercentage}%
           </span>
         </div>
         <button
@@ -302,12 +382,12 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
 
       {/* Progress bar — pure inline styles to guarantee colors */}
       <div style={{ width: '100%', height: 6, borderRadius: 9999, backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)', marginTop: 8, marginBottom: 12 }}>
-        <div style={{ height: 6, borderRadius: 9999, backgroundColor: '#E85D2A', width: `${data.percentage}%`, transition: 'width 500ms ease' }} />
+        <div style={{ height: 6, borderRadius: 9999, backgroundColor: '#E85D2A', width: `${challengeData.overallPercentage}%`, transition: 'width 500ms ease' }} />
       </div>
 
       {/* Subtitle */}
       <p className="text-base text-gray-700 dark:text-gray-300 font-medium mb-3">
-        {data.exploredCount} of {data.totalNeighborhoods} neighborhoods discovered
+        {challengeData.totalUnlocked} of {challengeData.totalNeighborhoods} neighborhoods unlocked
       </p>
     </div>
   );
@@ -358,7 +438,7 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
     <>
       <Compass className="w-4 h-4 text-[#E85D2A] shrink-0" />
       <span className="text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">Explore Toronto</span>
-      <span className="text-xs whitespace-nowrap" style={{ color: '#8B949E' }}>{data.exploredCount}/{data.totalNeighborhoods}</span>
+      <span className="text-xs whitespace-nowrap" style={{ color: '#8B949E' }}>{challengeData.totalUnlocked}/{challengeData.totalNeighborhoods}</span>
     </>
   );
 
