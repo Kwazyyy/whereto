@@ -671,7 +671,7 @@ export function SwipeCard({
                                         fetch("/api/bookings/track", {
                                             method: "POST",
                                             headers: { "Content-Type": "application/json" },
-                                            body: JSON.stringify({ googlePlaceId: place.placeId, platform }),
+                                            body: JSON.stringify({ googlePlaceId: place.placeId, platform, source: "swipe_card" }),
                                         }).catch(() => {});
                                     }}
                                     onPointerDown={(e) => e.stopPropagation()}

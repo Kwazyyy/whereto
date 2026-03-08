@@ -285,7 +285,7 @@ export default function BoardDetailPage() {
                                                         fetch("/api/bookings/track", {
                                                             method: "POST",
                                                             headers: { "Content-Type": "application/json" },
-                                                            body: JSON.stringify({ googlePlaceId: place.placeId, platform }),
+                                                            body: JSON.stringify({ googlePlaceId: place.placeId, platform, source: "boards" }),
                                                         }).catch(() => {});
                                                     }}
                                                     className="text-[#E85D2A] hover:text-[#d14e1f] transition-colors"

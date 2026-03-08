@@ -338,3 +338,16 @@ model FeaturedPlacement {
   @@index([status, startDate, endDate])
   @@index([googlePlaceId])
 }
+
+model BookingClick {
+  id            String   @id @default(cuid())
+  googlePlaceId String
+  platform      String
+  userId        String?
+  source        String?
+  createdAt     DateTime @default(now())
+
+  @@index([googlePlaceId])
+  @@index([userId])
+  @@index([createdAt])
+}

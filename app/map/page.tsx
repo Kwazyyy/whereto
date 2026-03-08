@@ -328,7 +328,7 @@ function InfoCard({
               fetch("/api/bookings/track", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ googlePlaceId: place.placeId, platform }),
+                body: JSON.stringify({ googlePlaceId: place.placeId, platform, source: "map_popup" }),
               }).catch(() => {});
             }}
             style={{

@@ -356,8 +356,11 @@ export default function SocialPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24 max-w-6xl mx-auto px-6 pt-5">
-        <h1 className="text-2xl font-extrabold tracking-tight mb-6 lg:hidden" style={{ color: "#E85D2A" }}>Social</h1>
+      <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24 max-w-6xl mx-auto px-6 pt-8">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-[#0E1116] dark:text-white">Social</h1>
+          <p className="text-[#656D76] dark:text-[#8B949E] text-sm mt-1">See what your friends are saving</p>
+        </div>
         <div className="flex gap-8">
           <div className="w-full lg:w-[65%] space-y-3">
             <div className="h-24 bg-gray-100 dark:bg-white/5 rounded-xl animate-pulse" />
@@ -499,8 +502,11 @@ export default function SocialPage() {
   return (
     <div className="min-h-dvh bg-gray-50 dark:bg-[#0E1116] pb-24">
       {/* ── DESKTOP LAYOUT (>=1024px) ── */}
-      <div className="hidden lg:block max-w-6xl mx-auto px-6 pt-5">
-        <div className="pt-1"></div>
+      <div className="hidden lg:block max-w-6xl mx-auto px-6 pt-8">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-[#0E1116] dark:text-white">Social</h1>
+          <p className="text-[#656D76] dark:text-[#8B949E] text-sm mt-1">See what your friends are saving</p>
+        </div>
 
         <div className="flex gap-8 items-start">
           {/* Left Column (65%) */}
@@ -529,8 +535,9 @@ export default function SocialPage() {
 
       {/* ── MOBILE LAYOUT (<1024px) ── */}
       <div className="lg:hidden">
-        <header className="px-5 pt-5 pb-3">
-          <h1 className="text-2xl font-extrabold tracking-tight text-[#E85D2A]">Social</h1>
+        <header className="px-5 pt-8 pb-4">
+          <h1 className="text-2xl font-bold text-[#0E1116] dark:text-white">Social</h1>
+          <p className="text-[#656D76] dark:text-[#8B949E] text-sm mt-1">See what your friends are saving</p>
         </header>
 
         <div className="px-4 mb-4 flex gap-2">
