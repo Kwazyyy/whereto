@@ -188,15 +188,15 @@ export default function ExplorationStats({ compact = false }: { compact?: boolea
                         Explore on Map <span>→</span>
                     </Link>
                 </div>
-                <div className="flex-1 flex flex-col justify-center w-full">
-                    <div className="flex items-end justify-between mb-2">
-                        <span className="text-sm font-semibold text-[#0E1116] dark:text-white">
-                            {data.percentage}% Explored
-                        </span>
-                        <span className="text-xs font-medium text-[#8B949E]">
-                            {data.exploredCount} / {data.totalNeighborhoods} neighborhoods
-                        </span>
-                    </div>
+                <div className="flex items-end justify-between mb-2">
+                    <span className="text-sm font-semibold text-[#0E1116] dark:text-white">
+                        {data.percentage}% Explored
+                    </span>
+                    <span className="text-xs font-medium text-[#8B949E]">
+                        {data.exploredCount} / {data.totalNeighborhoods} neighborhoods
+                    </span>
+                </div>
+                <div className="flex-1 flex items-center w-full">
                     <div className="w-full h-3 bg-gray-200 dark:bg-[#1C2128] rounded-full overflow-hidden">
                         <motion.div
                             initial={{ width: 0 }}
