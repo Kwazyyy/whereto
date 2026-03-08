@@ -50,10 +50,14 @@ async function main() {
   console.log(`Using user: ${user.email} (role: ${user.role})`);
 
   // 3. Create the FeaturedPlacement
+  const endDate = new Date();
+  endDate.setFullYear(endDate.getFullYear() + 1);
+
   const placement = await prisma.featuredPlacement.create({
     data: {
       googlePlaceId: place.googlePlaceId,
-      businessUserId: user.id,
+      businessName: place.name,
+      userId: user.id,
       intents: [
         "Trending Now",
         "Date/Chill",
@@ -67,9 +71,8 @@ async function main() {
         "Outdoor/Patio",
       ],
       status: "active",
-      priority: 10,
       startDate: new Date(),
-      endDate: null,
+      endDate,
     },
   });
 
@@ -78,7 +81,6 @@ async function main() {
   console.log(`  ID: ${placement.id}`);
   console.log(`  Place: ${place.name}`);
   console.log(`  Status: ${placement.status}`);
-  console.log(`  Priority: ${placement.priority}`);
   console.log(`  Intents: ${(placement.intents as string[]).join(", ")}`);
 }
 
