@@ -29,6 +29,25 @@ export function getBookingUrl(
   return { url: googleUrl, platform: "google" };
 }
 
+const RESERVABLE_TYPES = new Set([
+  "restaurant", "italian_restaurant", "indian_restaurant", "chinese_restaurant",
+  "japanese_restaurant", "korean_restaurant", "thai_restaurant", "mexican_restaurant",
+  "vietnamese_restaurant", "french_restaurant", "greek_restaurant",
+  "mediterranean_restaurant", "middle_eastern_restaurant", "turkish_restaurant",
+  "lebanese_restaurant", "american_restaurant", "seafood_restaurant",
+  "steak_house", "steakhouse", "fine_dining", "bar", "lounge", "pub", "gastropub",
+  "brunch_restaurant", "sushi_restaurant", "bbq", "barbecue_restaurant",
+]);
+
+export function isReservable(placeType: string | null | undefined): boolean {
+  if (!placeType) return false;
+  const normalized = placeType.toLowerCase().trim();
+  if (RESERVABLE_TYPES.has(normalized)) return true;
+  // Also match if the type contains "restaurant" but isn't a fast-food variant
+  if (normalized.includes("restaurant") && !normalized.includes("fast")) return true;
+  return false;
+}
+
 export function getBookingPlatformLabel(platform: string): string {
   switch (platform) {
     case "opentable":

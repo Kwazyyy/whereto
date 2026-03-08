@@ -12,7 +12,7 @@ import MapPlaceDetail from "@/components/MapPlaceDetail";
 import { useSavePlace } from "@/lib/use-save-place";
 import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
 import { ChevronLeft, MapPin, Star, X, Bookmark, CalendarCheck } from "lucide-react";
-import { getBookingUrl } from "@/lib/booking";
+import { getBookingUrl, isReservable } from "@/lib/booking";
 
 const RECS_INTENT = "recs_from_friends";
 
@@ -274,24 +274,26 @@ export default function BoardDetailPage() {
                                                     {place.price || "$$"}
                                                 </span>
                                             </div>
-                                            <a
-                                                href={getBookingUrl(place.name, place.address || "", place.placeId).url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    const { platform } = getBookingUrl(place.name, place.address || "", place.placeId);
-                                                    fetch("/api/bookings/track", {
-                                                        method: "POST",
-                                                        headers: { "Content-Type": "application/json" },
-                                                        body: JSON.stringify({ googlePlaceId: place.placeId, platform }),
-                                                    }).catch(() => {});
-                                                }}
-                                                className="text-[#E85D2A] hover:text-[#d14e1f] transition-colors"
-                                                title="Reserve a Table"
-                                            >
-                                                <CalendarCheck size={16} />
-                                            </a>
+                                            {isReservable(place.type) && (
+                                                <a
+                                                    href={getBookingUrl(place.name, place.address || "", place.placeId).url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const { platform } = getBookingUrl(place.name, place.address || "", place.placeId);
+                                                        fetch("/api/bookings/track", {
+                                                            method: "POST",
+                                                            headers: { "Content-Type": "application/json" },
+                                                            body: JSON.stringify({ googlePlaceId: place.placeId, platform }),
+                                                        }).catch(() => {});
+                                                    }}
+                                                    className="text-[#E85D2A] hover:text-[#d14e1f] transition-colors"
+                                                    title="Reserve a Table"
+                                                >
+                                                    <CalendarCheck size={16} />
+                                                </a>
+                                            )}
                                         </div>
                                     </div>
                                 </motion.div>

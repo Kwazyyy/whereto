@@ -21,7 +21,7 @@ import FogOverlay from "@/components/FogOverlay";
 import VisitCelebration from "@/components/VisitCelebration";
 import PhotoUploadPrompt from "@/components/PhotoUploadPrompt";
 import ExplorationPanel from "@/components/ExplorationPanel";
-import { getBookingUrl } from "@/lib/booking";
+import { getBookingUrl, isReservable } from "@/lib/booking";
 
 const DEFAULT_LAT = 43.6532;
 const DEFAULT_LNG = -79.3832;
@@ -300,7 +300,7 @@ function InfoCard({
       </div>
 
       {/* View Details + Reserve */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: isReservable(place.type) ? "space-between" : "flex-end", marginTop: 10 }}>
         <button
           onClick={onViewDetails}
           style={{
@@ -318,31 +318,33 @@ function InfoCard({
         >
           View Details &rarr;
         </button>
-        <a
-          href={getBookingUrl(place.name, place.address || "", place.placeId).url}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => {
-            const { platform } = getBookingUrl(place.name, place.address || "", place.placeId);
-            fetch("/api/bookings/track", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ googlePlaceId: place.placeId, platform }),
-            }).catch(() => {});
-          }}
-          style={{
-            color: linkRest,
-            fontSize: 13,
-            fontWeight: 500,
-            cursor: "pointer",
-            transition: "color 200ms",
-            textDecoration: "none",
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = "#E85D2A"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = linkRest; }}
-        >
-          Reserve &rarr;
-        </a>
+        {isReservable(place.type) && (
+          <a
+            href={getBookingUrl(place.name, place.address || "", place.placeId).url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => {
+              const { platform } = getBookingUrl(place.name, place.address || "", place.placeId);
+              fetch("/api/bookings/track", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ googlePlaceId: place.placeId, platform }),
+              }).catch(() => {});
+            }}
+            style={{
+              color: linkRest,
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: "pointer",
+              transition: "color 200ms",
+              textDecoration: "none",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#E85D2A"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = linkRest; }}
+          >
+            Reserve &rarr;
+          </a>
+        )}
       </div>
     </div>
   );

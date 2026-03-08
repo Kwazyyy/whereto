@@ -14,7 +14,7 @@ import Link from "next/link";
 import { Place, FriendSignal } from "@/lib/types";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import CommunityVibes from "./CommunityVibes";
-import { getBookingUrl } from "@/lib/booking";
+import { getBookingUrl, isReservable } from "@/lib/booking";
 
 const SWIPE_THRESHOLD = 100;
 const TAP_MOVE_LIMIT = 10;
@@ -659,7 +659,7 @@ export function SwipeCard({
                                 </a>
                             )}
                             {/* Reserve a Table row */}
-                            {place.address && (
+                            {place.address && isReservable(place.type) && (
                                 <a
                                     href={getBookingUrl(place.name, place.address, place.placeId).url}
                                     target="_blank"
