@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     // Look up or create Stripe customer
     let customerId = user.stripeCustomerId;
     if (!customerId) {
-      const customer = await stripe.customers.create({
+      const customer = await stripe().customers.create({
         email: user.email,
         metadata: { userId: session.user.id },
       });
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
       ? `${process.env.NEXTAUTH_URL}/business/dashboard?canceled=true`
       : `${process.env.NEXTAUTH_URL}/pro?canceled=true`;
 
-    const checkoutSession = await stripe.checkout.sessions.create({
+    const checkoutSession = await stripe().checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
       line_items: [{ price: plan.priceId, quantity: 1 }],
