@@ -71,20 +71,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Validate dates — strip time so "today" always passes regardless of timezone
-  const start = new Date(startDate);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(endDate);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  if (start < today) {
+  // Validate dates — compare raw YYYY-MM-DD strings to avoid timezone issues
+  const todayStr = new Date().toISOString().split('T')[0];
+  if (startDate < todayStr) {
     return NextResponse.json({ error: "startDate must be today or in the future" }, { status: 400 });
   }
-
-  if (end <= start) {
+  if (endDate <= startDate) {
     return NextResponse.json({ error: "endDate must be after startDate" }, { status: 400 });
   }
+
+  const start = new Date(startDate + 'T00:00:00Z');
+  const end = new Date(endDate + 'T23:59:59Z');
 
   // Validate business claim ownership
   const claim = await prisma.businessClaim.findFirst({
