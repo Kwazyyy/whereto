@@ -128,11 +128,11 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
   // First-visit pulse animation
   useEffect(() => {
     try {
-      if (!localStorage.getItem("whereto-exploration-pill-seen")) {
+      if (!localStorage.getItem("savrd-exploration-pill-seen")) {
         setShowPulse(true);
         const timer = setTimeout(() => {
           setShowPulse(false);
-          localStorage.setItem("whereto-exploration-pill-seen", "1");
+          localStorage.setItem("savrd-exploration-pill-seen", "1");
         }, 3000);
         return () => clearTimeout(timer);
       }

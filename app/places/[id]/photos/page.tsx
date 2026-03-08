@@ -20,11 +20,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const { id } = await params;
     const place = await findPlace(id);
 
-    if (!place) return { title: "Photos — WhereTo" };
+    if (!place) return { title: "Photos — Savrd" };
 
     return {
-        title: `${place.name} — Community Photos | WhereTo`,
-        description: `Community photos of ${place.name} on WhereTo`,
+        title: `${place.name} — Community Photos | Savrd`,
+        description: `Community photos of ${place.name} on Savrd`,
     };
 }
 

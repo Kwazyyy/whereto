@@ -53,7 +53,7 @@ const FEATURE_CARDS = [
 ];
 
 const FAQS = [
-    { q: "When is WhereTo Pro launching?", a: "We're putting the finishing touches on Pro right now. Join the waitlist to be the first to know when it's available!" },
+    { q: "When is Savrd Pro launching?", a: "We're putting the finishing touches on Pro right now. Join the waitlist to be the first to know when it's available!" },
     { q: "Can I cancel anytime?", a: "Absolutely. Cancel your subscription at any time with no fees or penalties." },
     { q: "Will I lose my saved places if I downgrade?", a: "No — your saves are always yours. If you exceed Free tier limits, your oldest saves will be archived but never deleted." },
     { q: "Is there a free trial?", a: "We're planning a 7-day free trial for Pro. Stay tuned!" },
@@ -132,7 +132,7 @@ export default function ProPage() {
             {/* ═══ TOP NAV ═══ */}
             <nav className="fixed top-0 left-0 right-0 z-50 h-16 px-6 flex items-center justify-between bg-white/80 dark:bg-[#0E1116]/80 backdrop-blur-md border-b border-[#D0D7DE] dark:border-[#30363D]">
                 <Link href="/" className="text-xl font-bold text-[#E85D2A]">
-                    WhereTo
+                    Savrd
                 </Link>
                 <Link href="/" className="text-sm text-[#656D76] dark:text-[#8B949E] hover:text-[#0E1116] dark:hover:text-white transition-colors duration-200">
                     Back to app
@@ -169,7 +169,7 @@ export default function ProPage() {
 
                     {/* Headline */}
                     <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#0E1116] dark:text-white mt-6 leading-tight tracking-tight max-w-3xl mx-auto">
-                        Unlock the Full WhereTo Experience
+                        Unlock the Full Savrd Experience
                     </h1>
 
                     {/* Subtitle */}

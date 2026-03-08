@@ -15,7 +15,7 @@ export function useTheme() {
 
 function getStoredTheme(): Theme {
   try {
-    const raw = localStorage.getItem("whereto_prefs");
+    const raw = localStorage.getItem("savrd_prefs");
     const val = raw ? JSON.parse(raw).theme : null;
     if (val === "light" || val === "dark" || val === "system") return val;
     return "system";
@@ -56,10 +56,10 @@ export default function ThemeProvider({
   function setTheme(t: Theme) {
     setThemeState(t);
     try {
-      const raw = localStorage.getItem("whereto_prefs");
+      const raw = localStorage.getItem("savrd_prefs");
       const prefs = raw ? JSON.parse(raw) : {};
       localStorage.setItem(
-        "whereto_prefs",
+        "savrd_prefs",
         JSON.stringify({ ...prefs, theme: t })
       );
     } catch {}

@@ -457,7 +457,7 @@ export default function MapPage() {
   const [loading, setLoading] = useState(false);
   const [fogEnabled, setFogEnabled] = useState(() => {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("whereto-fog-enabled");
+      const stored = localStorage.getItem("savrd-fog-enabled");
       return stored === null ? true : stored === "true";
     }
     return true;
@@ -665,7 +665,7 @@ export default function MapPage() {
             onClick={() => {
               setFogEnabled(f => {
                 const next = !f;
-                localStorage.setItem("whereto-fog-enabled", String(next));
+                localStorage.setItem("savrd-fog-enabled", String(next));
                 return next;
               });
             }}

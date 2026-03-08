@@ -267,7 +267,7 @@ export default function PublicListView({ id }: { id: string }) {
 
                 {/* CTA Banner */}
                 <div className="bg-[#E85D2A]/10 border border-[#E85D2A]/20 rounded-xl p-6 text-center mt-8">
-                    <p className="text-white font-semibold">Discover more places on WhereTo</p>
+                    <p className="text-white font-semibold">Discover more places on Savrd</p>
                     <p className="text-gray-400 text-sm mt-1">
                         Save places, create your own lists, and explore Toronto
                     </p>
@@ -275,7 +275,7 @@ export default function PublicListView({ id }: { id: string }) {
                         href="/"
                         className="inline-block bg-[#E85D2A] text-white px-6 py-2.5 rounded-lg font-medium mt-3 hover:bg-[#d45222] transition-colors"
                     >
-                        Open WhereTo
+                        Open Savrd
                     </Link>
                 </div>
             </div>

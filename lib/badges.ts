@@ -34,9 +34,9 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     { type: "all_intents", name: "Well Rounded", description: "Save a place from every intent category", icon: "🎨", category: "collector", requirement: 9 },
 
     // STREAK
-    { type: "streak_3", name: "Getting Hooked", description: "Use WhereTo 3 days in a row", icon: "🔥", category: "streak", requirement: 3 },
-    { type: "streak_7", name: "Weekly Regular", description: "Use WhereTo 7 days in a row", icon: "⚡", category: "streak", requirement: 7 },
-    { type: "streak_30", name: "Devoted Explorer", description: "Use WhereTo 30 days in a row", icon: "💎", category: "streak", requirement: 30 },
+    { type: "streak_3", name: "Getting Hooked", description: "Use Savrd 3 days in a row", icon: "🔥", category: "streak", requirement: 3 },
+    { type: "streak_7", name: "Weekly Regular", description: "Use Savrd 7 days in a row", icon: "⚡", category: "streak", requirement: 7 },
+    { type: "streak_30", name: "Devoted Explorer", description: "Use Savrd 30 days in a row", icon: "💎", category: "streak", requirement: 30 },
 
     // PHOTOS
     { type: "first_snap", name: "First Snap", description: "Upload your first photo", icon: "📸", category: "photos", requirement: 1 },

@@ -34,7 +34,7 @@ function TopNav() {
     <header className="border-b border-white/10 bg-[#0E1116]">
       <div className="px-4 md:px-6 h-16 flex items-center justify-between">
         <Link href="/business/dashboard" className="flex items-center gap-2">
-          <span className="text-xl font-bold text-[#E85D2A]">WhereTo</span>
+          <span className="text-xl font-bold text-[#E85D2A]">Savrd</span>
           <span className="text-sm text-gray-400 font-medium">for Business</span>
         </Link>
 
@@ -118,20 +118,20 @@ function AccessDenied() {
         </div>
         <h2 className="text-xl font-bold text-white mb-2">Access Denied</h2>
         <p className="text-gray-400 mb-6">
-          This area is for verified business accounts only. If you own a business on WhereTo, please register for a business account.
+          This area is for verified business accounts only. If you own a business on Savrd, please register for a business account.
         </p>
         <div className="flex flex-col gap-3">
           <Link
             href="/for-business"
             className="px-4 py-2.5 bg-[#E85D2A] text-white rounded-lg text-sm font-medium hover:bg-[#d04e1f] transition-colors"
           >
-            Learn About WhereTo for Business
+            Learn About Savrd for Business
           </Link>
           <Link
             href="/"
             className="px-4 py-2.5 bg-white/5 text-gray-300 rounded-lg text-sm font-medium hover:bg-white/10 transition-colors"
           >
-            Back to WhereTo
+            Back to Savrd
           </Link>
         </div>
       </div>

@@ -59,8 +59,8 @@ const THEME_OPTIONS: { label: string; value: Theme }[] = [
   { label: "System", value: "system" },
 ];
 
-const PREFS_KEY = "whereto_prefs";
-const BIO_KEY = "whereto_bio";
+const PREFS_KEY = "savrd_prefs";
+const BIO_KEY = "savrd_bio";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -1163,7 +1163,7 @@ export default function ProfilePage() {
                   <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">App Version</span>
                   <span className="text-sm text-[#8B949E]">1.0.0 (Beta)</span>
                 </div>
-                <a href="mailto:hello@whereto.app?subject=WhereTo%20Feedback" className="flex items-center justify-between px-1 py-2 text-sm font-medium text-[#0E1116] dark:text-[#e8edf4] hover:bg-[#F6F8FA] dark:hover:bg-[#1C2128] rounded-lg transition-colors cursor-pointer">Send Feedback <ChevronRight /></a>
+                <a href="mailto:hello@savrd.app?subject=Savrd%20Feedback" className="flex items-center justify-between px-1 py-2 text-sm font-medium text-[#0E1116] dark:text-[#e8edf4] hover:bg-[#F6F8FA] dark:hover:bg-[#1C2128] rounded-lg transition-colors cursor-pointer">Send Feedback <ChevronRight /></a>
                 <Link href="/privacy" className="flex items-center justify-between px-1 py-2 text-sm font-medium text-[#0E1116] dark:text-[#e8edf4] hover:bg-[#F6F8FA] dark:hover:bg-[#1C2128] rounded-lg transition-colors cursor-pointer">Privacy Policy <ChevronRight /></Link>
                 <Link href="/terms" className="flex items-center justify-between px-1 py-2 text-sm font-medium text-[#0E1116] dark:text-[#e8edf4] hover:bg-[#F6F8FA] dark:hover:bg-[#1C2128] rounded-lg transition-colors cursor-pointer">Terms of Service <ChevronRight /></Link>
               </div>
@@ -1299,8 +1299,8 @@ export default function ProfilePage() {
               <SectionHeader title="About" />
               <SettingsCard>
                 <Row label="App Version"><span className="text-sm text-gray-400 dark:text-gray-500">1.0.0 (Beta)</span></Row>
-                <a href="mailto:hello@whereto.app?subject=WhereTo%20Feedback" className="flex items-center justify-between px-4 py-3.5 min-h-[52px]"><span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Send Feedback</span><ChevronRight /></a>
-                <button className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"><span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Rate WhereTo</span><ChevronRight /></button>
+                <a href="mailto:hello@savrd.app?subject=Savrd%20Feedback" className="flex items-center justify-between px-4 py-3.5 min-h-[52px]"><span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Send Feedback</span><ChevronRight /></a>
+                <button className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"><span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Rate Savrd</span><ChevronRight /></button>
                 <Link href="/privacy" className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"><span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Privacy Policy</span><ChevronRight /></Link>
                 <Link href="/terms" className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"><span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Terms of Service</span><ChevronRight /></Link>
               </SettingsCard>

@@ -1,7 +1,7 @@
-# WhereTo - Café & Restaurant Discovery App
+# Savrd - Café & Restaurant Discovery App
 
 ## What This Project Is
-WhereTo is a swipe-based café and restaurant discovery app. Users select an intent (Study, Date, Budget Eats, etc.), then swipe through café cards to save or skip. Swipe right = save, swipe left = skip, swipe up = go now (opens directions).
+Savrd is a swipe-based café and restaurant discovery app. Users select an intent (Study, Date, Budget Eats, etc.), then swipe through café cards to save or skip. Swipe right = save, swipe left = skip, swipe up = go now (opens directions).
 
 ## Tech Stack
 - Framework: Next.js 15 with App Router

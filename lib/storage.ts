@@ -1,4 +1,4 @@
-export const SKIPPED_KEY = "whereto_skipped";
+export const SKIPPED_KEY = "savrd_skipped";
 
 export function loadSkippedForIntent(intentId: string): Set<string> {
     try {

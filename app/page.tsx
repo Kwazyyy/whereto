@@ -65,7 +65,7 @@ const SWIPE_THRESHOLD = 100;
 const TAP_MOVE_LIMIT = 10;
 const TAP_TIME_LIMIT = 200;
 
-const PREFS_KEY = "whereto_prefs";
+const PREFS_KEY = "savrd_prefs";
 // --- Main Page ---
 
 export default function Home() {
@@ -103,7 +103,7 @@ export default function Home() {
   useEffect(() => {
     sessionStatusRef.current = status;
     if (status === "loading") return;
-    if (!localStorage.getItem("whereto_seen_landing")) {
+    if (!localStorage.getItem("savrd_seen_landing")) {
       router.replace("/landing");
     } else if (!localStorage.getItem("hasSeenTutorial")) {
       setShowTutorial(true);

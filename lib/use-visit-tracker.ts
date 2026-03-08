@@ -1,6 +1,6 @@
 import { haversineMeters } from "./haversine";
 
-const PENDING_KEY = "whereto_pending_visit";
+const PENDING_KEY = "savrd_pending_visit";
 const MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 const PROXIMITY_M = 200;
 

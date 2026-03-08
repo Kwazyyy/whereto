@@ -192,7 +192,7 @@ export default function LandingPage() {
 
     // Mark that this user has seen the landing page so they won't be redirected here again
     useEffect(() => {
-        localStorage.setItem("whereto_seen_landing", "true");
+        localStorage.setItem("savrd_seen_landing", "true");
     }, []);
 
     useEffect(() => {
@@ -210,7 +210,7 @@ export default function LandingPage() {
         { label: "About", id: "about" },
         { label: "How It Works", id: "how-it-works" },
         { label: "Cities", id: "cities" },
-        { label: "For Cafés", href: "/for-business" },
+        { label: "For Business", href: "/for-business" },
     ];
 
     return (
@@ -236,7 +236,7 @@ export default function LandingPage() {
                             <MapPinIcon />
                         </div>
                         <span className="text-[18px] font-extrabold tracking-tight">
-                            <span className="text-orange-500">Where</span>To
+                            <span className="text-orange-500">Sav</span>rd
                         </span>
                     </div>
 
@@ -258,10 +258,10 @@ export default function LandingPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <button onClick={() => scrollToSection("waitlist")}
+                        <Link href="/"
                             className="hidden md:block bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-full font-semibold text-sm transition-all shadow-lg shadow-orange-500/20 cursor-pointer">
-                            Join Waitlist
-                        </button>
+                            Start Swiping
+                        </Link>
                         <button onClick={() => setMobileMenu(!mobileMenu)} className="md:hidden p-2 text-zinc-400 hover:text-white cursor-pointer">
                             {mobileMenu ? <XIcon /> : <MenuIcon />}
                         </button>
@@ -273,7 +273,7 @@ export default function LandingPage() {
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
                             className="md:hidden bg-[#0E1116]/95 backdrop-blur-xl overflow-hidden">
                             <div className="p-4 flex flex-col gap-1">
-                                {[...navLinks, { label: "Join Waitlist", id: "waitlist" }].map((l) => (
+                                {navLinks.map((l) => (
                                     l.href ? (
                                         <Link key={l.label} href={l.href}
                                             className="px-4 py-3 rounded-xl text-left text-[15px] font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer">
@@ -286,6 +286,10 @@ export default function LandingPage() {
                                         </button>
                                     )
                                 ))}
+                                <Link href="/"
+                                    className="px-4 py-3 rounded-xl text-left text-[15px] font-semibold text-orange-500 hover:bg-white/5 transition-all cursor-pointer">
+                                    Start Swiping
+                                </Link>
                             </div>
                         </motion.div>
                     )}
@@ -387,7 +391,7 @@ export default function LandingPage() {
 
                                 {/* App header */}
                                 <div className="px-5 pt-6 pb-2 flex justify-between items-center shrink-0">
-                                    <span className="font-extrabold text-orange-500 text-[14px]">WhereTo</span>
+                                    <span className="font-extrabold text-orange-500 text-[14px]">Savrd</span>
                                     <span className="flex items-center gap-1 text-[10px] text-zinc-500 font-medium">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" /></svg>
                                         Toronto
@@ -662,7 +666,7 @@ export default function LandingPage() {
                                         </div>
                                         <div>
                                             <p className="font-bold text-white text-sm">Foot Traffic Increased</p>
-                                            <p className="text-zinc-300 text-xs mt-0.5">Since joining WhereTo</p>
+                                            <p className="text-zinc-300 text-xs mt-0.5">Since joining Savrd</p>
                                         </div>
                                     </div>
                                 </div>
@@ -714,7 +718,7 @@ export default function LandingPage() {
                                 <MapPinIcon />
                             </div>
                             <span className="text-lg font-extrabold tracking-tight text-zinc-500">
-                                <span className="text-orange-500">Where</span>To
+                                <span className="text-orange-500">Sav</span>rd
                             </span>
                         </div>
 
@@ -722,10 +726,10 @@ export default function LandingPage() {
                             <button onClick={() => scrollToSection("about")} className="hover:text-white transition-colors">About</button>
                             <Link href="#" className="hover:text-white transition-colors">Privacy</Link>
                             <Link href="#" className="hover:text-white transition-colors">Terms</Link>
-                            <Link href="mailto:hello@whereto.app" className="hover:text-white transition-colors">Contact</Link>
+                            <Link href="mailto:hello@savrd.app" className="hover:text-white transition-colors">Contact</Link>
                         </div>
 
-                        <span className="text-sm text-zinc-600">© {new Date().getFullYear()} WhereTo. Made with love in Toronto.</span>
+                        <span className="text-sm text-zinc-600">© {new Date().getFullYear()} Savrd. Made with love in Toronto.</span>
                     </div>
                 </div>
             </footer>

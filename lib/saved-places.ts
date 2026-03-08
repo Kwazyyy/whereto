@@ -21,7 +21,7 @@ export interface SavedPlace {
   recommendedAt?: string | null;
 }
 
-const STORAGE_KEY = "whereto_saved_places";
+const STORAGE_KEY = "savrd_saved_places";
 
 export function getSavedPlaces(): SavedPlace[] {
   if (typeof window === "undefined") return [];

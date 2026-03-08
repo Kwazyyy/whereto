@@ -170,7 +170,7 @@ export default function PricingPage() {
       {/* Bottom contact */}
       <div className="mt-12 text-center">
         <p className="text-gray-400">Have questions?</p>
-        <p className="text-[#E85D2A] mt-1">Contact us at partners@whereto.app</p>
+        <p className="text-[#E85D2A] mt-1">Contact us at partners@savrd.app</p>
       </div>
     </div>
   );

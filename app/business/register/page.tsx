@@ -68,7 +68,7 @@ export default function BusinessRegisterPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
           <Link href="/for-business" className="inline-block">
-            <span className="text-2xl font-bold text-[#E85D2A]">WhereTo</span>
+            <span className="text-2xl font-bold text-[#E85D2A]">Savrd</span>
             <span className="text-lg text-gray-400 font-medium ml-2">for Business</span>
           </Link>
           <p className="text-gray-400 text-sm mt-2">

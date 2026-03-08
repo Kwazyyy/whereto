@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WhereTo - Discover Cafés & Restaurants",
+  title: "Savrd - Discover Cafés & Restaurants",
   description: "Swipe-based café and restaurant discovery",
 };
 
@@ -35,7 +35,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var p=JSON.parse(localStorage.getItem('whereto_prefs')||'{}');var t=p.theme||'system';if(t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}})()`,
+            __html: `(function(){try{var p=JSON.parse(localStorage.getItem('savrd_prefs')||'{}');var t=p.theme||'system';if(t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}})()`,
           }}
         />
       </head>

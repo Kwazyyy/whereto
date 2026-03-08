@@ -1,4 +1,4 @@
-# WhereTo — UI Redesign Plan
+# Savrd — UI Redesign Plan
 **Created:** March 4, 2026
 **Status:** In Progress
 
@@ -32,7 +32,7 @@
 
 **Desktop (lg: breakpoint and above):**
 - Left sidebar, fixed position, full height
-- WhereTo logo at top
+- Savrd logo at top
 - Nav items with icon + label: Discover, Map, Boards, Social, Profile
 - Active state: orange highlight on icon + label
 - User avatar at bottom of sidebar
@@ -41,7 +41,7 @@
 
 **Mobile (below md: breakpoint):**
 - Keep current bottom nav bar
-- WhereTo logo in a top bar header on every page
+- Savrd logo in a top bar header on every page
 - Active tab: orange icon + label
 
 **Technical:**

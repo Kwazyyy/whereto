@@ -21,7 +21,7 @@ export function AddFriendModal({
 
     const userId = session?.user?.id ?? "";
     const inviteUrl = `https://whereto-nu.vercel.app/invite?ref=${userId}`;
-    const shareText = "Check out WhereTo — discover the best cafés and restaurants near you!";
+    const shareText = "Check out Savrd — discover the best cafés and restaurants near you!";
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();

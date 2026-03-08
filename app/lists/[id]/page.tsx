@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     });
 
     if (!list || !list.isPublic) {
-        return { title: "List not found | WhereTo" };
+        return { title: "List not found | Savrd" };
     }
 
     const description =
@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 
     return {
-        title: `${list.title} | WhereTo`,
+        title: `${list.title} | Savrd`,
         description,
         openGraph: {
             title: list.title,

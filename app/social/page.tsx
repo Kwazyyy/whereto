@@ -328,7 +328,7 @@ export default function SocialPage() {
   }
 
   const inviteUrl = `https://whereto-nu.vercel.app/invite?ref=${session?.user?.id ?? ""}`;
-  const inviteShareText = "Check out WhereTo \u2014 discover the best caf\u00e9s and restaurants near you!";
+  const inviteShareText = "Check out Savrd \u2014 discover the best caf\u00e9s and restaurants near you!";
 
   async function handleCopyInviteLink() {
     try {

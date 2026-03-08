@@ -128,7 +128,7 @@ export default function ForBusinessPage() {
       <nav className="fixed top-0 inset-x-0 bg-[#0E1116]/90 backdrop-blur-md border-b border-white/5 z-50">
         <div className="flex items-center justify-between px-4 md:px-6 py-3">
           <Link href="/for-business" className="flex items-center gap-2">
-            <span className="text-xl font-bold text-[#E85D2A]">WhereTo</span>
+            <span className="text-xl font-bold text-[#E85D2A]">Savrd</span>
             <span className="text-sm font-bold text-white">for Business</span>
           </Link>
           <div className="flex items-center gap-4">
@@ -178,7 +178,7 @@ export default function ForBusinessPage() {
             transition={{ duration: 0.7, delay: 0.15, ease }}
             className="text-lg text-gray-400 text-center max-w-2xl mx-auto mt-6"
           >
-            WhereTo helps thousands of people find their next favorite spot.
+            Savrd helps thousands of people find their next favorite spot.
             Claim your business to see how you&apos;re performing and reach more
             customers.
           </motion.p>
@@ -216,13 +216,13 @@ export default function ForBusinessPage() {
         </div>
       </motion.section>
 
-      {/* ── Why WhereTo ─────────────────────────────────────────── */}
+      {/* ── Why Savrd ───────────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-6 mt-20">
         <motion.h2
           {...fadeInView()}
           className="text-3xl font-bold text-white text-center"
         >
-          Why café owners love WhereTo
+          Why café owners love Savrd
         </motion.h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
@@ -369,7 +369,7 @@ export default function ForBusinessPage() {
             Ready to grow your business?
           </h2>
           <p className="text-gray-400 mt-2">
-            Join hundreds of Toronto cafés already on WhereTo
+            Join hundreds of Toronto cafés already on Savrd
           </p>
           <Link
             href="/business/register"
@@ -378,7 +378,7 @@ export default function ForBusinessPage() {
             Get Started Free
           </Link>
           <p className="text-gray-500 text-sm mt-4">
-            Questions? Email partners@whereto.app
+            Questions? Email partners@savrd.app
           </p>
         </div>
       </motion.section>
@@ -386,7 +386,7 @@ export default function ForBusinessPage() {
       {/* ── Footer ──────────────────────────────────────────────── */}
       <footer className="py-8 border-t border-white/5 mt-20 px-4 md:px-6">
         <p className="text-gray-500 text-sm text-center">
-          © {new Date().getFullYear()} WhereTo. Made with love in Toronto.
+          © {new Date().getFullYear()} Savrd. Made with love in Toronto.
         </p>
       </footer>
     </div>

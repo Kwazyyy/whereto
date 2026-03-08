@@ -689,7 +689,7 @@ export default function AdminAnalyticsPage() {
       <AdminSubNav />
 
       <h1 className="text-2xl font-bold text-white">Platform Analytics</h1>
-      <p className="text-gray-400 mt-1">Real-time overview of WhereTo</p>
+      <p className="text-gray-400 mt-1">Real-time overview of Savrd</p>
 
       {error && (
         <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg p-3 text-sm mt-4">
