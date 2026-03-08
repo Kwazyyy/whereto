@@ -311,7 +311,7 @@ export default function ProPage() {
                         <div className="relative space-y-4">
                             {PRO_FEATURES_LIST.map((f) => (
                                 <div key={f.text} className="flex items-center gap-3">
-                                    <Check className="w-5 h-5 text-green-600 dark:text-[#4ADE80] shrink-0" />
+                                    <Check className="w-5 h-5 text-[#E85D2A] shrink-0" />
                                     <span className={`text-base ${f.gold ? "text-[#CA8A04] font-medium" : "text-[#0E1116] dark:text-white"}`}>
                                         {f.text}
                                     </span>
@@ -353,7 +353,7 @@ export default function ProPage() {
                             {FREE_FEATURES.map((f) => (
                                 <div key={f.text} className="flex items-center gap-3">
                                     {f.included ? (
-                                        <Check className="w-5 h-5 text-green-600 dark:text-[#4ADE80] shrink-0" />
+                                        <Check className="w-5 h-5 text-[#E85D2A] shrink-0" />
                                     ) : (
                                         <X className="w-5 h-5 text-[#8B949E] shrink-0" />
                                     )}

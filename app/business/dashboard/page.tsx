@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useToast } from "@/components/Toast";
 
 interface AnalyticsBusiness {
   googlePlaceId: string;
@@ -196,6 +198,16 @@ export default function DashboardPage() {
   const [businesses, setBusinesses] = useState<AnalyticsBusiness[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const searchParams = useSearchParams();
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (searchParams.get("success") === "true") {
+      showToast("Subscription activated! Welcome to Savrd Business.");
+    } else if (searchParams.get("canceled") === "true") {
+      showToast("Checkout canceled");
+    }
+  }, [searchParams, showToast]);
 
   const fetchAnalytics = useCallback(async () => {
     setLoading(true);

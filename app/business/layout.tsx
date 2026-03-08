@@ -173,10 +173,21 @@ export default function BusinessLayout({
   const router = useRouter();
 
   const isPublicPage = pathname === "/business/login" || pathname === "/business/register";
+  const isOpenPage = pathname === "/business/pricing";
 
   // Public pages: render without auth guard or top nav
   if (isPublicPage) {
     return <>{children}</>;
+  }
+
+  // Open pages: render with layout but skip auth/role check
+  if (isOpenPage) {
+    return (
+      <div className="min-h-screen bg-[#0E1116]">
+        <TopNav />
+        <main className="max-w-7xl mx-auto px-6 py-8">{children}</main>
+      </div>
+    );
   }
 
   if (status === "loading") {
