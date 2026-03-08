@@ -16,7 +16,7 @@ const NAV_ITEMS = [
 ];
 
 // Pages that should NOT show the AppShell (sidebar)
-const EXCLUDED_PATHS = ["/landing", "/business", "/for-business", "/lists", "/pro"];
+const EXCLUDED_PATHS = ["/landing", "/business", "/for-business", "/lists", "/pro", "/privacy", "/terms"];
 const EXCLUDED_SUFFIXES = ["/photos"];
 
 function shouldShowShell(pathname: string): boolean {
@@ -64,8 +64,8 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
       {/* Logo */}
       <div className="px-4 xl:px-5 pt-6 pb-4 shrink-0 flex items-center justify-center xl:justify-start">
         <Link href="/" className="flex items-center">
-          <span className="text-xl font-bold text-[#E85D2A] xl:hidden">S</span>
-          <span className="text-xl font-bold text-[#E85D2A] hidden xl:block">Savrd</span>
+          <span className="text-2xl font-bold text-[#E85D2A] xl:hidden">S</span>
+          <span className="text-2xl font-bold text-[#E85D2A] hidden xl:block">Savrd</span>
         </Link>
       </div>
 

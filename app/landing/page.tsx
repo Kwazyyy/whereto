@@ -235,7 +235,7 @@ export default function LandingPage() {
                         <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center text-white">
                             <MapPinIcon />
                         </div>
-                        <span className="text-[18px] font-extrabold tracking-tight">
+                        <span className="text-2xl md:text-3xl font-bold tracking-tight">
                             <span className="text-orange-500">Sav</span>rd
                         </span>
                     </div>
@@ -717,15 +717,15 @@ export default function LandingPage() {
                             <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-500">
                                 <MapPinIcon />
                             </div>
-                            <span className="text-lg font-extrabold tracking-tight text-zinc-500">
+                            <span className="text-2xl font-bold tracking-tight text-zinc-500">
                                 <span className="text-orange-500">Sav</span>rd
                             </span>
                         </div>
 
                         <div className="flex flex-wrap justify-center gap-8 text-sm text-zinc-500">
                             <button onClick={() => scrollToSection("about")} className="hover:text-white transition-colors">About</button>
-                            <Link href="#" className="hover:text-white transition-colors">Privacy</Link>
-                            <Link href="#" className="hover:text-white transition-colors">Terms</Link>
+                            <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+                            <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
                             <Link href="mailto:hello@savrd.app" className="hover:text-white transition-colors">Contact</Link>
                         </div>
 

@@ -34,7 +34,7 @@ function TopNav() {
     <header className="border-b border-white/10 bg-[#0E1116]">
       <div className="px-4 md:px-6 h-16 flex items-center justify-between">
         <Link href="/business/dashboard" className="flex items-center gap-2">
-          <span className="text-xl font-bold text-[#E85D2A]">Savrd</span>
+          <span className="text-2xl font-bold text-[#E85D2A]">Savrd</span>
           <span className="text-sm text-gray-400 font-medium">for Business</span>
         </Link>
 
