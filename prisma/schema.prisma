@@ -129,7 +129,6 @@ model Place {
   vibeVotes       VibeVote[]
   curatedListItems    CuratedListItem[]
   photos              PlacePhoto[]
-  featuredPlacements  FeaturedPlacement[]
 }
 
 model Save {
@@ -326,24 +325,20 @@ model PhotoLike {
 }
 
 model FeaturedPlacement {
-  id             String    @id @default(cuid())
-  googlePlaceId  String
-  businessUserId String
-  intents        Json
-  status         String    @default("active")
-  priority       Int       @default(0)
-  startDate      DateTime  @default(now())
-  endDate        DateTime?
-  impressions    Int       @default(0)
-  swipeRights    Int       @default(0)
-  swipeLefts     Int       @default(0)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  place          Place     @relation(fields: [googlePlaceId], references: [googlePlaceId])
-  businessUser   User      @relation(fields: [businessUserId], references: [id])
+  id            String   @id @default(cuid())
+  googlePlaceId String
+  businessName  String
+  userId        String
+  intents       Json
+  startDate     DateTime
+  endDate       DateTime
+  status        String   @default("active")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id])
 
+  @@index([googlePlaceId, status])
   @@index([status, startDate, endDate])
-  @@index([googlePlaceId])
 }
 
 model BookingClick {

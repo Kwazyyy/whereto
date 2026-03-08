@@ -1,9 +1,42 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useToast } from "@/components/Toast";
+
+// --- Featured Placement Types ---
+
+interface FeaturedPlacement {
+  id: string;
+  googlePlaceId: string;
+  businessName: string;
+  userId: string;
+  intents: string[];
+  startDate: string;
+  endDate: string;
+  status: string;
+  createdAt: string;
+}
+
+interface ClaimedPlace {
+  googlePlaceId: string;
+  businessName: string;
+}
+
+const INTENT_LABELS: Record<string, string> = {
+  study_work: "Study/Work",
+  date_chill: "Date/Chill",
+  trending: "Trending Now",
+  quiet_cafes: "Quiet Cafes",
+  laptop_friendly: "Laptop-Friendly",
+  group_hangouts: "Group Hangouts",
+  budget_eats: "Budget Eats",
+  coffee_catchup: "Coffee & Catch-Up",
+  outdoor_patio: "Outdoor/Patio",
+};
+
+const ALL_INTENTS = Object.keys(INTENT_LABELS);
 
 interface AnalyticsBusiness {
   googlePlaceId: string;
@@ -192,9 +225,384 @@ function IntentBreakdown({ data }: { data: Record<string, number> }) {
   );
 }
 
+// --- Featured Placements Section ---
+
+function formatDateRange(start: string, end: string): string {
+  const s = new Date(start);
+  const e = new Date(end);
+  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+  const yearOpts: Intl.DateTimeFormatOptions = { ...opts, year: "numeric" };
+  return `${s.toLocaleDateString("en-US", opts)} – ${e.toLocaleDateString("en-US", yearOpts)}`;
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const styles: Record<string, string> = {
+    active: "bg-green-500/10 text-green-400",
+    expired: "bg-[#8B949E]/10 text-[#8B949E]",
+    revoked: "bg-red-500/10 text-red-400",
+  };
+  return (
+    <span className={`text-xs px-2 py-1 rounded-full capitalize ${styles[status] || styles.expired}`}>
+      {status}
+    </span>
+  );
+}
+
+function PlacementModal({
+  open,
+  onClose,
+  onSubmit,
+  claimedPlaces,
+  editData,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: () => void;
+  claimedPlaces: ClaimedPlace[];
+  editData?: FeaturedPlacement | null;
+}) {
+  const [selectedPlace, setSelectedPlace] = useState("");
+  const [selectedIntents, setSelectedIntents] = useState<string[]>([]);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (editData) {
+      setSelectedPlace(editData.googlePlaceId);
+      setSelectedIntents(Array.isArray(editData.intents) ? editData.intents : []);
+      setStartDate(editData.startDate.split("T")[0]);
+      setEndDate(editData.endDate.split("T")[0]);
+    } else {
+      setSelectedPlace(claimedPlaces[0]?.googlePlaceId || "");
+      setSelectedIntents([]);
+      setStartDate("");
+      setEndDate("");
+    }
+  }, [editData, claimedPlaces, open]);
+
+  if (!open) return null;
+
+  const toggleIntent = (intent: string) => {
+    setSelectedIntents((prev) =>
+      prev.includes(intent) ? prev.filter((i) => i !== intent) : [...prev, intent]
+    );
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedPlace || selectedIntents.length === 0 || !startDate || !endDate) {
+      showToast("Please fill in all fields");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const place = claimedPlaces.find((p) => p.googlePlaceId === selectedPlace);
+      const url = editData
+        ? `/api/business/featured/${editData.id}`
+        : "/api/business/featured";
+      const method = editData ? "PATCH" : "POST";
+      const body = editData
+        ? { intents: selectedIntents, startDate, endDate }
+        : {
+            googlePlaceId: selectedPlace,
+            businessName: place?.businessName || "",
+            intents: selectedIntents,
+            startDate,
+            endDate,
+          };
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        showToast(data.error || "Something went wrong");
+      } else {
+        showToast(editData ? "Placement updated" : "Placement created");
+        onSubmit();
+        onClose();
+      }
+    } catch {
+      showToast("Something went wrong");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-[#161B22] border border-[#30363D] rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-[#8B949E] hover:text-white transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <h2 className="text-lg font-bold text-white mb-5">
+          {editData ? "Edit Placement" : "New Featured Placement"}
+        </h2>
+
+        {/* Place selector */}
+        {claimedPlaces.length === 0 ? (
+          <div className="text-center py-6">
+            <p className="text-[#8B949E] text-sm mb-3">You need an approved business claim first</p>
+            <Link
+              href="/business/claim"
+              className="text-[#E85D2A] text-sm font-medium hover:text-[#ff7a45] transition-colors"
+            >
+              Claim your business
+            </Link>
+          </div>
+        ) : (
+          <>
+            {!editData && (
+              <div className="mb-4">
+                <label className="text-sm text-[#8B949E] mb-1.5 block">Business</label>
+                <select
+                  value={selectedPlace}
+                  onChange={(e) => setSelectedPlace(e.target.value)}
+                  className="w-full bg-[#1C2128] border border-[#30363D] text-white rounded-lg p-3 text-sm"
+                >
+                  {claimedPlaces.map((p) => (
+                    <option key={p.googlePlaceId} value={p.googlePlaceId}>
+                      {p.businessName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Intent chips */}
+            <div className="mb-4">
+              <label className="text-sm text-[#8B949E] mb-1.5 block">Intents</label>
+              <div className="flex flex-wrap gap-2">
+                {ALL_INTENTS.map((intent) => (
+                  <button
+                    key={intent}
+                    onClick={() => toggleIntent(intent)}
+                    className={`text-xs px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+                      selectedIntents.includes(intent)
+                        ? "bg-[#E85D2A] text-white"
+                        : "bg-[#1C2128] text-[#8B949E] border border-[#30363D]"
+                    }`}
+                  >
+                    {INTENT_LABELS[intent]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Dates */}
+            <div className="grid grid-cols-2 gap-3 mb-5">
+              <div>
+                <label className="text-sm text-[#8B949E] mb-1.5 block">Start Date</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full bg-[#1C2128] border border-[#30363D] text-white rounded-lg p-3 text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-[#8B949E] mb-1.5 block">End Date</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full bg-[#1C2128] border border-[#30363D] text-white rounded-lg p-3 text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Submit */}
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className={`w-full bg-[#E85D2A] hover:bg-[#D14E1F] text-white rounded-xl px-4 py-2.5 font-semibold transition-all duration-200 cursor-pointer ${
+                submitting ? "opacity-60 cursor-not-allowed" : ""
+              }`}
+            >
+              {submitting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  {editData ? "Updating..." : "Creating..."}
+                </span>
+              ) : editData ? "Update Placement" : "Create Placement"}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FeaturedPlacementsSection() {
+  const [placements, setPlacements] = useState<FeaturedPlacement[]>([]);
+  const [claimedPlaces, setClaimedPlaces] = useState<ClaimedPlace[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingPlacement, setEditingPlacement] = useState<FeaturedPlacement | null>(null);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
+  const { showToast } = useToast();
+
+  const fetchPlacements = useCallback(async () => {
+    try {
+      const res = await fetch("/api/business/featured");
+      if (!res.ok) return;
+      const data = await res.json();
+      setPlacements(data.placements || []);
+      setClaimedPlaces(data.claimedPlaces || []);
+    } catch {
+      // silent fail — analytics is the primary content
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPlacements();
+  }, [fetchPlacements]);
+
+  const handleRevoke = async (id: string) => {
+    try {
+      const res = await fetch(`/api/business/featured/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        showToast(data.error || "Failed to revoke");
+      } else {
+        showToast("Placement revoked");
+        fetchPlacements();
+      }
+    } catch {
+      showToast("Something went wrong");
+    }
+    setRevokingId(null);
+  };
+
+  if (loading) {
+    return (
+      <div className="mt-6">
+        <div className="h-6 w-44 bg-white/10 rounded animate-pulse mb-4" />
+        <div className="bg-[#161B22] rounded-xl p-5 border border-white/5 animate-pulse h-24" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-bold text-white">Featured Placements</h2>
+        <button
+          onClick={() => { setEditingPlacement(null); setModalOpen(true); }}
+          className="bg-[#E85D2A] hover:bg-[#D14E1F] text-white rounded-xl px-4 py-2 font-semibold transition-all duration-200 cursor-pointer text-sm"
+        >
+          + New Placement
+        </button>
+      </div>
+
+      {placements.length === 0 ? (
+        <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-8 text-center">
+          <p className="text-[#8B949E] text-sm">
+            No featured placements yet. Feature your spot to get more visibility!
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {placements.map((p) => (
+            <div key={p.id} className="bg-[#161B22] border border-[#30363D] rounded-xl p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-white font-bold text-sm truncate">{p.businessName}</h3>
+                    <StatusBadge status={p.status} />
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {(Array.isArray(p.intents) ? p.intents : []).map((intent) => (
+                      <span
+                        key={intent}
+                        className="bg-[#E85D2A]/10 text-[#E85D2A] text-xs px-2 py-1 rounded-full"
+                      >
+                        {INTENT_LABELS[intent] || intent}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-[#8B949E] text-xs">{formatDateRange(p.startDate, p.endDate)}</p>
+                </div>
+
+                {p.status === "active" && (
+                  <div className="flex items-center gap-1 shrink-0">
+                    {/* Edit button */}
+                    <button
+                      onClick={() => { setEditingPlacement(p); setModalOpen(true); }}
+                      className="p-1.5 text-[#8B949E] hover:text-white transition-colors rounded-lg hover:bg-white/5 cursor-pointer"
+                      title="Edit"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    {/* Revoke button */}
+                    {revokingId === p.id ? (
+                      <div className="flex items-center gap-1 text-xs">
+                        <span className="text-[#8B949E]">Sure?</span>
+                        <button
+                          onClick={() => setRevokingId(null)}
+                          className="text-[#8B949E] hover:text-white transition-colors cursor-pointer px-1"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => handleRevoke(p.id)}
+                          className="text-red-400 hover:text-red-300 font-medium transition-colors cursor-pointer px-1"
+                        >
+                          Revoke
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setRevokingId(p.id)}
+                        className="p-1.5 text-[#8B949E] hover:text-red-400 transition-colors rounded-lg hover:bg-white/5 cursor-pointer"
+                        title="Revoke"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <PlacementModal
+        open={modalOpen}
+        onClose={() => { setModalOpen(false); setEditingPlacement(null); }}
+        onSubmit={fetchPlacements}
+        claimedPlaces={claimedPlaces}
+        editData={editingPlacement}
+      />
+    </div>
+  );
+}
+
 // --- Main ---
 
-export default function DashboardPage() {
+function DashboardContent() {
   const [businesses, setBusinesses] = useState<AnalyticsBusiness[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -373,6 +781,17 @@ export default function DashboardPage() {
           </p>
         )}
       </div>
+
+      {/* Featured Placements */}
+      <FeaturedPlacementsSection />
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardContent />
+    </Suspense>
   );
 }
