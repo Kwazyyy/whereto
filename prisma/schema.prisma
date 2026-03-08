@@ -51,6 +51,9 @@ model User {
   // Community Photos
   photos                  PlacePhoto[]
   photoLikes              PhotoLike[]
+
+  // Featured Placements
+  featuredPlacements      FeaturedPlacement[]
 }
 
 model Follow {
@@ -117,8 +120,9 @@ model Place {
   recommendations Recommendation[]
   visits          Visit[]
   vibeVotes       VibeVote[]
-  curatedListItems CuratedListItem[]
-  photos           PlacePhoto[]
+  curatedListItems    CuratedListItem[]
+  photos              PlacePhoto[]
+  featuredPlacements  FeaturedPlacement[]
 }
 
 model Save {
@@ -312,4 +316,25 @@ model PhotoLike {
   photo     PlacePhoto @relation(fields: [photoId], references: [id], onDelete: Cascade)
 
   @@unique([userId, photoId])
+}
+
+model FeaturedPlacement {
+  id             String    @id @default(cuid())
+  googlePlaceId  String
+  businessUserId String
+  intents        Json
+  status         String    @default("active")
+  priority       Int       @default(0)
+  startDate      DateTime  @default(now())
+  endDate        DateTime?
+  impressions    Int       @default(0)
+  swipeRights    Int       @default(0)
+  swipeLefts     Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  place          Place     @relation(fields: [googlePlaceId], references: [googlePlaceId])
+  businessUser   User      @relation(fields: [businessUserId], references: [id])
+
+  @@index([status, startDate, endDate])
+  @@index([googlePlaceId])
 }

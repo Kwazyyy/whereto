@@ -97,6 +97,7 @@ export function SwipeCard({
     onSwipe,
     isTop,
     isSaved,
+    isFeatured,
     isVisited,
     visitCount,
     lastVisitedAt,
@@ -109,6 +110,7 @@ export function SwipeCard({
     onSwipe: (direction: "left" | "right") => void;
     isTop: boolean;
     isSaved: boolean;
+    isFeatured?: boolean;
     isVisited?: boolean;
     visitCount?: number;
     lastVisitedAt?: string;
@@ -306,6 +308,14 @@ export function SwipeCard({
                     )}
 
                     <div className="absolute bottom-0 left-0 right-0 p-6 z-10 pointer-events-none">
+                        {isFeatured && (
+                            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full mb-2" style={{ background: "rgba(202, 138, 4, 0.2)", border: "1px solid rgba(202, 138, 4, 0.4)", backdropFilter: "blur(8px)" }}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="#CA8A04" stroke="#CA8A04" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                </svg>
+                                <span className="text-xs font-semibold" style={{ color: "#CA8A04" }}>Featured</span>
+                            </div>
+                        )}
                         <h2 className="text-3xl font-bold text-white leading-tight">{place.name}</h2>
                         <div className="flex items-center gap-3 mt-2 text-white/80 text-sm font-medium">
                             <span>{place.distance}</span>
@@ -359,14 +369,6 @@ export function SwipeCard({
                         }`}
                     style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
                 >
-                    {/* Flip Back Button */}
-                    <button
-                        onClick={() => setIsFlipped(false)}
-                        className="absolute top-4 right-4 z-30 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/60 transition-colors shadow-lg cursor-pointer"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7" /><path d="M19 12H5" /></svg>
-                    </button>
-
                     <div
                         className="flex-1 overflow-y-auto scrollbar-none"
                         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
@@ -497,6 +499,14 @@ export function SwipeCard({
                         </div>
 
                         <div className="px-5 pt-2 relative z-10">
+                            {isFeatured && (
+                                <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full mb-2" style={{ background: "rgba(202, 138, 4, 0.2)", border: "1px solid rgba(202, 138, 4, 0.4)", backdropFilter: "blur(8px)" }}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="#CA8A04" stroke="#CA8A04" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                    </svg>
+                                    <span className="text-xs font-semibold" style={{ color: "#CA8A04" }}>Featured</span>
+                                </div>
+                            )}
                             <div className="flex items-start justify-between gap-3">
                                 <div>
                                     <h2 className="text-2xl font-bold text-[#0E1116] dark:text-[#e8edf4]">

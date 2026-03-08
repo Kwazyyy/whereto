@@ -27,7 +27,7 @@ import { useNeighborhoodReveal } from "@/components/providers/NeighborhoodReveal
 import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
 import { Theme } from "@/components/ThemeProvider";
 import Link from 'next/link';
-import { BookOpen, Heart, Flame, Coffee, Laptop, Users, DollarSign, Cake, MessageCircle, Sun } from "lucide-react";
+import { BookOpen, Heart, Flame, Coffee, Laptop, Users, DollarSign, Cake, MessageCircle, Sun, Sparkles, MapPin } from "lucide-react";
 import VisitCelebration from "@/components/VisitCelebration";
 import PhotoUploadPrompt from "@/components/PhotoUploadPrompt";
 
@@ -91,6 +91,8 @@ export default function Home() {
   const [visitData, setVisitData] = useState<Map<string, { count: number; lastVisitedAt: string }>>(new Map());
   const [celebrationPlace, setCelebrationPlace] = useState<{ placeId: string; name: string } | null>(null);
   const [photoPromptPlace, setPhotoPromptPlace] = useState<{ placeId: string; name: string } | null>(null);
+  const [featuredPlace, setFeaturedPlace] = useState<(Place & { placementId: string }) | null>(null);
+  const featuredImpressionSent = useRef<string | null>(null);
 
   const chipScrollRef = useRef<HTMLDivElement>(null);
   const locationResolved = useRef(false);
@@ -258,6 +260,39 @@ export default function Home() {
     );
   }, [prefsApplied]);
 
+  const fetchFeatured = useCallback(async (loc: { lat: number; lng: number }, intentId: string, rad: number) => {
+    try {
+      const url = `/api/featured-placements?intent=${intentId}&lat=${loc.lat}&lng=${loc.lng}&distance=${rad}`;
+      const res = await fetch(url);
+      if (!res.ok) { setFeaturedPlace(null); return; }
+      const data = await res.json();
+      if (data.placement) {
+        const p = data.placement;
+        const vibeTags = Array.isArray(p.vibeTags) ? p.vibeTags as string[] : [];
+        setFeaturedPlace({
+          placeId: p.googlePlaceId,
+          placementId: p.placementId,
+          name: p.name,
+          address: p.address ?? "",
+          location: { lat: p.lat, lng: p.lng },
+          price: p.priceLevel != null ? "$".repeat(p.priceLevel) : "$$",
+          rating: p.rating ?? 0,
+          photoRef: p.photoRef ?? null,
+          type: p.placeType ?? "restaurant",
+          openNow: true,
+          hours: [],
+          distance: "",
+          tags: vibeTags.slice(0, 3),
+        });
+      } else {
+        setFeaturedPlace(null);
+      }
+      featuredImpressionSent.current = null;
+    } catch {
+      setFeaturedPlace(null);
+    }
+  }, []);
+
   const fetchPlaces = useCallback(async (loc: { lat: number; lng: number }, intentId: string, rad: number) => {
     setLoading(true);
     try {
@@ -329,8 +364,9 @@ export default function Home() {
   useEffect(() => {
     if (userLocation && prefsApplied) {
       fetchPlaces(userLocation, intent, radius);
+      fetchFeatured(userLocation, intent, radius);
     }
-  }, [userLocation, intent, radius, fetchPlaces, prefsApplied]);
+  }, [userLocation, intent, radius, fetchPlaces, fetchFeatured, prefsApplied]);
 
   // Derived: filter by budget, then by swiped cards
   const budgetFilteredPlaces = useMemo(() => {
@@ -342,8 +378,35 @@ export default function Home() {
     const skipped = skippedPerIntent[intent] ?? new Set<string>();
     const filtered = budgetFilteredPlaces.filter(p => !skipped.has(p.placeId));
     // Recommendation cards go first; they bypass intent/budget filters
-    return [...recommendations, ...filtered];
-  }, [budgetFilteredPlaces, skippedPerIntent, intent, recommendations]);
+    const merged = [...recommendations, ...filtered];
+
+    // Insert featured card at position 3 if not already in deck
+    // Featured cards bypass skip/save history — businesses pay for visibility
+    if (
+      featuredPlace &&
+      !merged.some(p => p.placeId === featuredPlace.placeId)
+    ) {
+      const insertAt = Math.min(2, merged.length);
+      merged.splice(insertAt, 0, featuredPlace);
+    }
+
+    return merged;
+  }, [budgetFilteredPlaces, skippedPerIntent, intent, recommendations, featuredPlace]);
+
+  // Track featured impression when featured card is the top visible card
+  useEffect(() => {
+    const topPlace = visiblePlaces[0];
+    if (!topPlace || !featuredPlace) return;
+    if (topPlace.placeId !== featuredPlace.placeId) return;
+    const pid = (topPlace as Place & { placementId?: string }).placementId;
+    if (!pid || featuredImpressionSent.current === pid) return;
+    featuredImpressionSent.current = pid;
+    fetch(`/api/featured-placements/${pid}/impressions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "impression" }),
+    }).catch(() => {});
+  }, [visiblePlaces, featuredPlace]);
 
   const allDone = !loading && visiblePlaces.length === 0;
   const noBudgetMatches = !loading && places.length > 0 && budgetFilteredPlaces.length === 0;
@@ -360,6 +423,19 @@ export default function Home() {
   function handleSwipe(direction: "left" | "right") {
     const place = visiblePlaces[0];
     if (!place) return;
+
+    // Track featured placement swipe action (fire-and-forget) and clear so it doesn't re-insert
+    if (featuredPlace && place.placeId === featuredPlace.placeId) {
+      const pid = (place as Place & { placementId?: string }).placementId;
+      if (pid) {
+        fetch(`/api/featured-placements/${pid}/impressions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: direction === "right" ? "swipe_right" : "swipe_left" }),
+        }).catch(() => {});
+      }
+      setFeaturedPlace(null);
+    }
 
     // Recommendation card: mark seen, remove from recommendations state
     if (place.recommendationId) {
@@ -506,8 +582,8 @@ export default function Home() {
           animate={{ opacity: 1, scale: 1 }}
           className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-4 pb-12"
         >
-          <div className="w-24 h-24 rounded-full bg-gray-50 dark:bg-[#161B22] flex items-center justify-center text-5xl mb-2 shadow-inner border border-gray-100 dark:border-white/5">
-            {places.length === 0 ? "🗺️" : "✨"}
+          <div className="w-24 h-24 rounded-full bg-gray-50 dark:bg-[#161B22] flex items-center justify-center mb-2 shadow-inner border border-gray-100 dark:border-white/5">
+            {places.length === 0 ? <MapPin size={48} color="#E85D2A" /> : <Sparkles size={48} color="#E85D2A" />}
           </div>
           <h2 className="text-2xl font-bold text-[#0E1116] dark:text-[#e8edf4]">
             {places.length === 0 ? "Nothing nearby" : "You're all caught up!"}
@@ -553,6 +629,7 @@ export default function Home() {
                   onSwipe={handleSwipe}
                   isTop={isTop}
                   isSaved={isSaved}
+                  isFeatured={!!(place as Place & { placementId?: string }).placementId}
                   isVisited={visitedPlaceIds.has(place.placeId)}
                   visitCount={visitData.get(place.placeId)?.count}
                   lastVisitedAt={visitData.get(place.placeId)?.lastVisitedAt}
