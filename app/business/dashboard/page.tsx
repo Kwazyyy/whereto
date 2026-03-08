@@ -409,6 +409,7 @@ function PlacementModal({
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
+                  style={{ colorScheme: 'dark' }}
                   className="w-full bg-[#1C2128] border border-[#30363D] text-white rounded-lg p-3 text-sm"
                 />
               </div>
@@ -418,6 +419,7 @@ function PlacementModal({
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
+                  style={{ colorScheme: 'dark' }}
                   className="w-full bg-[#1C2128] border border-[#30363D] text-white rounded-lg p-3 text-sm"
                 />
               </div>

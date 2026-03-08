@@ -71,8 +71,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Validate dates
+  // Validate dates — strip time so "today" always passes regardless of timezone
   const start = new Date(startDate);
+  start.setHours(0, 0, 0, 0);
   const end = new Date(endDate);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
