@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
@@ -98,7 +98,7 @@ const tiers: PricingTier[] = [
   },
 ];
 
-export default function PricingPage() {
+function PricingPageContent() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const { data: session } = useSession();
   const { showToast } = useToast();
@@ -232,5 +232,13 @@ export default function PricingPage() {
         <p className="text-[#E85D2A] mt-1">Contact us at partners@savrd.app</p>
       </div>
     </div>
+  );
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense>
+      <PricingPageContent />
+    </Suspense>
   );
 }
