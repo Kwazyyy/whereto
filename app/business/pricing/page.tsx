@@ -1,5 +1,10 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useToast } from "@/components/Toast";
+
 function CheckIcon() {
   return (
     <svg className="w-4 h-4 text-green-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -19,6 +24,7 @@ interface PricingTier {
   highlighted?: boolean;
   isCurrent?: boolean;
   showBeta?: boolean;
+  planKey?: "business_starter" | "business_growth" | "business_pro";
 }
 
 const tiers: PricingTier[] = [
@@ -52,6 +58,7 @@ const tiers: PricingTier[] = [
     cta: "Start Free Trial",
     ctaStyle: "bg-[#E85D2A] text-white hover:bg-[#d4522a] font-medium",
     showBeta: true,
+    planKey: "business_starter",
   },
   {
     name: "Growth",
@@ -69,6 +76,7 @@ const tiers: PricingTier[] = [
     ctaStyle: "bg-[#E85D2A] text-white hover:bg-[#d4522a] font-medium",
     highlighted: true,
     showBeta: true,
+    planKey: "business_growth",
   },
   {
     name: "Pro",
@@ -86,10 +94,51 @@ const tiers: PricingTier[] = [
     cta: "Contact Sales",
     ctaStyle: "bg-transparent border border-white/20 text-gray-300 hover:border-white/40",
     showBeta: true,
+    planKey: "business_pro",
   },
 ];
 
 export default function PricingPage() {
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const { data: session } = useSession();
+  const { showToast } = useToast();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (searchParams.get("success") === "true") {
+      showToast("Welcome! Your subscription is active \u{1F389}");
+    } else if (searchParams.get("canceled") === "true") {
+      showToast("Checkout canceled");
+    }
+  }, [searchParams, showToast]);
+
+  const handleCheckout = async (planKey: string) => {
+    if (!session?.user) {
+      router.push("/business/login");
+      return;
+    }
+
+    setLoadingPlan(planKey);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: planKey }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        showToast(data.error || "Something went wrong");
+        setLoadingPlan(null);
+      }
+    } catch {
+      showToast("Something went wrong");
+      setLoadingPlan(null);
+    }
+  };
+
   return (
     <div className="py-4">
       {/* Header */}
@@ -158,10 +207,11 @@ export default function PricingPage() {
 
             {/* CTA */}
             <button
-              className={`w-full py-2.5 rounded-lg text-sm mt-6 transition ${tier.ctaStyle}`}
-              disabled={tier.isCurrent}
+              className={`w-full py-2.5 rounded-lg text-sm mt-6 transition ${tier.ctaStyle} ${loadingPlan === tier.planKey ? "opacity-60 cursor-not-allowed" : ""}`}
+              disabled={tier.isCurrent || loadingPlan === tier.planKey}
+              onClick={() => tier.planKey && handleCheckout(tier.planKey)}
             >
-              {tier.cta}
+              {loadingPlan === tier.planKey ? "Redirecting..." : tier.cta}
             </button>
           </div>
         ))}

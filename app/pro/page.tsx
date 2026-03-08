@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/components/Toast";
@@ -14,6 +16,7 @@ import {
     ListPlus,
     Camera,
     Sparkles,
+    Loader2,
 } from "lucide-react";
 
 /* ── Data ─────────────────────────────────────────────────────── */
@@ -119,10 +122,45 @@ const PRO_STYLES = `
 export default function ProPage() {
     const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
     const [openFaq, setOpenFaq] = useState<number | null>(null);
+    const [loading, setLoading] = useState(false);
     const { showToast } = useToast();
+    const { data: session } = useSession();
+    const searchParams = useSearchParams();
+    const router = useRouter();
 
-    const handleCta = () => {
-        showToast("Coming soon! We'll notify you when Pro launches.");
+    useEffect(() => {
+        if (searchParams.get("success") === "true") {
+            showToast("Welcome to Savrd Pro! \u{1F389}");
+        } else if (searchParams.get("canceled") === "true") {
+            showToast("Checkout canceled");
+        }
+    }, [searchParams, showToast]);
+
+    const handleCta = async () => {
+        if (!session?.user) {
+            router.push("/auth/signin?callbackUrl=/pro");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const plan = billing === "monthly" ? "pro_monthly" : "pro_yearly";
+            const res = await fetch("/api/stripe/checkout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ plan }),
+            });
+            const data = await res.json();
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                showToast(data.error || "Something went wrong");
+                setLoading(false);
+            }
+        } catch {
+            showToast("Something went wrong");
+            setLoading(false);
+        }
     };
 
     return (
@@ -255,9 +293,15 @@ export default function ProPage() {
                         {/* CTA */}
                         <button
                             onClick={handleCta}
-                            className="relative w-full bg-[#E85D2A] hover:bg-[#D14E1F] text-white font-semibold py-4 rounded-xl text-lg transition-all duration-200 mt-6 cursor-pointer"
+                            disabled={loading}
+                            className="relative w-full bg-[#E85D2A] hover:bg-[#D14E1F] text-white font-semibold py-4 rounded-xl text-lg transition-all duration-200 mt-6 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            Upgrade to Pro
+                            {loading ? (
+                                <span className="inline-flex items-center gap-2">
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    Redirecting...
+                                </span>
+                            ) : "Upgrade to Pro"}
                         </button>
 
                         {/* Divider */}
@@ -445,9 +489,15 @@ export default function ProPage() {
                 </h2>
                 <button
                     onClick={handleCta}
-                    className="w-full max-w-md mx-auto bg-[#E85D2A] hover:bg-[#D14E1F] text-white font-semibold py-4 rounded-xl text-lg transition-all duration-200 mt-6 cursor-pointer block"
+                    disabled={loading}
+                    className="w-full max-w-md mx-auto bg-[#E85D2A] hover:bg-[#D14E1F] text-white font-semibold py-4 rounded-xl text-lg transition-all duration-200 mt-6 cursor-pointer block disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                    Upgrade to Pro
+                    {loading ? (
+                        <span className="inline-flex items-center gap-2">
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Redirecting...
+                        </span>
+                    ) : "Upgrade to Pro"}
                 </button>
                 <p className="text-sm text-[#656D76] dark:text-[#8B949E] mt-3">
                     Cancel anytime. No commitment.

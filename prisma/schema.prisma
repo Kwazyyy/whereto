@@ -54,6 +54,13 @@ model User {
 
   // Featured Placements
   featuredPlacements      FeaturedPlacement[]
+
+  // Stripe Subscription
+  stripeCustomerId        String?          @unique
+  subscriptionId          String?
+  subscriptionStatus      String?          // "active", "canceled", "past_due", "trialing"
+  plan                    String?          // "pro_monthly", "pro_yearly", "business_starter", "business_growth", "business_pro"
+  planExpiresAt           DateTime?
 }
 
 model Follow {
