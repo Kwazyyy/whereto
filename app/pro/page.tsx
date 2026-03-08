@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -119,7 +119,7 @@ const PRO_STYLES = `
 
 /* ── Page ──────────────────────────────────────────────────────── */
 
-export default function ProPage() {
+function ProPageContent() {
     const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
     const [openFaq, setOpenFaq] = useState<number | null>(null);
     const [loading, setLoading] = useState(false);
@@ -504,5 +504,13 @@ export default function ProPage() {
                 </p>
             </motion.section>
         </div>
+    );
+}
+
+export default function ProPage() {
+    return (
+        <Suspense>
+            <ProPageContent />
+        </Suspense>
     );
 }
