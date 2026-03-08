@@ -186,28 +186,36 @@ function computeDistance(a: { lat: number; lng: number }, b: { lat: number; lng:
 function InfoCard({
   place,
   isSaved,
+  isDark,
   userLocation,
   onViewDetails,
   onClose,
 }: {
   place: Place | SavedPlace;
   isSaved: boolean;
+  isDark: boolean;
   userLocation?: { lat: number; lng: number };
   onViewDetails: () => void;
   onClose: () => void;
 }) {
   const displayDistance = place.distance || (userLocation && place.location ? computeDistance(userLocation, place.location) : "");
+  const muted = isDark ? "#8B949E" : "#4B5563";
+  const linkRest = isDark ? "#8B949E" : "#4B5563";
 
   return (
     <div
       style={{
         width: 260,
         fontFamily: "inherit",
-        background: "#161B22",
-        border: "1px solid #30363D",
-        borderRadius: 12,
+        background: isDark ? "rgba(22, 27, 34, 0.75)" : "rgba(255, 255, 255, 0.75)",
+        backdropFilter: "blur(16px) saturate(180%)",
+        WebkitBackdropFilter: "blur(16px) saturate(180%)",
+        border: isDark ? "1px solid rgba(255, 255, 255, 0.08)" : "1px solid rgba(0, 0, 0, 0.08)",
+        borderRadius: 16,
         padding: 12,
-        boxShadow: "0 10px 15px -3px rgba(0,0,0,0.3), 0 4px 6px -4px rgba(0,0,0,0.2)",
+        boxShadow: isDark
+          ? "0 8px 32px rgba(0, 0, 0, 0.4)"
+          : "0 8px 32px rgba(0, 0, 0, 0.12)",
         position: "relative",
       }}
     >
@@ -220,15 +228,15 @@ function InfoCard({
           right: 8,
           background: "none",
           border: "none",
-          color: "#8B949E",
+          color: muted,
           cursor: "pointer",
           padding: 4,
           lineHeight: 1,
           fontSize: 16,
           zIndex: 2,
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.color = "#FFFFFF"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.color = "#8B949E"; }}
+        onMouseEnter={(e) => { e.currentTarget.style.color = isDark ? "#FFFFFF" : "#0E1116"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.color = muted; }}
       >
         &#x2715;
       </button>
@@ -243,7 +251,7 @@ function InfoCard({
             borderRadius: 8,
             overflow: "hidden",
             flexShrink: 0,
-            background: "#1C2128",
+            background: isDark ? "#1C2128" : "#F3F4F6",
           }}
         >
           <InfoPhoto photoRef={place.photoRef} />
@@ -258,7 +266,7 @@ function InfoCard({
                 margin: 0,
                 fontWeight: 600,
                 fontSize: 15,
-                color: "#FFFFFF",
+                color: isDark ? "#FFFFFF" : "#0E1116",
                 lineHeight: 1.3,
                 whiteSpace: "nowrap",
                 overflow: "hidden",
@@ -278,13 +286,13 @@ function InfoCard({
           {place.rating > 0 && (
             <p style={{ margin: "2px 0 0", fontSize: 13, color: "#E85D2A", fontWeight: 600 }}>
               &#x2605; {place.rating.toFixed(1)}
-              {place.price && <span style={{ color: "#8B949E", fontWeight: 400, marginLeft: 6 }}>{place.price}</span>}
+              {place.price && <span style={{ color: muted, fontWeight: 400, marginLeft: 6 }}>{place.price}</span>}
             </p>
           )}
 
           {/* Distance */}
           {displayDistance && (
-            <p style={{ margin: "2px 0 0", fontSize: 13, color: "#8B949E" }}>
+            <p style={{ margin: "2px 0 0", fontSize: 13, color: muted }}>
               {displayDistance}
             </p>
           )}
@@ -298,7 +306,7 @@ function InfoCard({
           style={{
             background: "none",
             border: "none",
-            color: "#8B949E",
+            color: linkRest,
             fontSize: 13,
             fontWeight: 500,
             cursor: "pointer",
@@ -306,7 +314,7 @@ function InfoCard({
             transition: "color 200ms",
           }}
           onMouseEnter={(e) => { e.currentTarget.style.color = "#E85D2A"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = "#8B949E"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = linkRest; }}
         >
           View Details &rarr;
         </button>
@@ -323,7 +331,7 @@ function InfoCard({
             }).catch(() => {});
           }}
           style={{
-            color: "#8B949E",
+            color: linkRest,
             fontSize: 13,
             fontWeight: 500,
             cursor: "pointer",
@@ -331,7 +339,7 @@ function InfoCard({
             textDecoration: "none",
           }}
           onMouseEnter={(e) => { e.currentTarget.style.color = "#E85D2A"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = "#8B949E"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = linkRest; }}
         >
           Reserve &rarr;
         </a>
@@ -472,6 +480,7 @@ function MapMarkers({
           <InfoCard
             place={selected.place}
             isSaved={selected.isSaved}
+            isDark={isDarkMode}
             userLocation={userLocation}
             onClose={() => setSelected(null)}
             onViewDetails={() => {
