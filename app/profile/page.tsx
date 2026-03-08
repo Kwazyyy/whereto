@@ -118,6 +118,14 @@ function formatJoinDate(iso: string): string {
   });
 }
 
+const PLAN_DISPLAY: Record<string, string> = {
+  pro_monthly: "Savrd Pro (Monthly)",
+  pro_yearly: "Savrd Pro (Yearly)",
+  business_starter: "Business Starter",
+  business_growth: "Business Growth",
+  business_pro: "Business Pro",
+};
+
 // ── Sub-components ─────────────────────────────────────────────────────────
 
 function SectionHeader({ title }: { title: string }) {
@@ -632,6 +640,10 @@ export default function ProfilePage() {
   const [saves, setSaves] = useState<SavedPlace[]>([]);
   const [visitCount, setVisitCount] = useState<number>(0);
   const [isCreator, setIsCreator] = useState<boolean>(false);
+  const [userPlan, setUserPlan] = useState<string | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
+  const [planExpiresAt, setPlanExpiresAt] = useState<string | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
 
   // Modal system states
   const [friendsModalOpen, setFriendsModalOpen] = useState(false);
@@ -832,13 +844,16 @@ export default function ProfilePage() {
 
     fetch("/api/user")
       .then((r) => r.json())
-      .then((data: { createdAt?: string; isCreator?: boolean; displayName?: string; username?: string; customAvatar?: string; creatorBio?: string }) => {
+      .then((data: { createdAt?: string; isCreator?: boolean; displayName?: string; username?: string; customAvatar?: string; creatorBio?: string; plan?: string | null; subscriptionStatus?: string | null; planExpiresAt?: string | null }) => {
         if (data.createdAt) setJoinedDate(formatJoinDate(data.createdAt));
         if (data.isCreator) setIsCreator(data.isCreator);
         if (data.displayName) setDisplayName(data.displayName);
         if (data.username) setUsername(data.username);
         if (data.customAvatar) setCustomAvatar(data.customAvatar);
         if (data.creatorBio) setBio(data.creatorBio);
+        setUserPlan(data.plan ?? null);
+        setSubscriptionStatus(data.subscriptionStatus ?? null);
+        setPlanExpiresAt(data.planExpiresAt ?? null);
       })
       .catch(() => { });
 
@@ -881,6 +896,19 @@ export default function ProfilePage() {
     const t = v as Theme;
     updatePref("theme", t);
     setTheme(t);
+  }
+
+  async function handleManageSubscription() {
+    setPortalLoading(true);
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch {
+      showToast("Failed to open billing portal");
+    } finally {
+      setPortalLoading(false);
+    }
   }
 
   // Compute board groupings for the Recent Boards carousel
@@ -1093,9 +1121,9 @@ export default function ProfilePage() {
               </div>
 
               {/* Row 3: Exploration + Taste Score — side by side */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="h-full"><ExplorationStats compact /></div>
-                <div className="h-full"><TasteScoreCard /></div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+                <div><ExplorationStats compact /></div>
+                <div><TasteScoreCard /></div>
               </div>
 
               {/* Row 4: My Lists (creator only) */}
@@ -1152,6 +1180,32 @@ export default function ProfilePage() {
                   <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Joined</span>
                   <span className="text-sm text-[#8B949E]">{joinedDate ?? "—"}</span>
                 </div>
+                {/* Subscription */}
+                <div className="flex items-center justify-between px-1 py-2">
+                  <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Plan</span>
+                  {userPlan ? (
+                    <span className="text-sm text-[#8B949E]">{PLAN_DISPLAY[userPlan] ?? userPlan}</span>
+                  ) : (
+                    <Link href="/pro" className="text-sm text-[#E85D2A] font-medium hover:underline">Upgrade to Pro</Link>
+                  )}
+                </div>
+                {userPlan && planExpiresAt && (
+                  <div className="flex items-center justify-between px-1 py-2">
+                    <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">{subscriptionStatus === "canceled" ? "Access Until" : "Next Billing"}</span>
+                    <span className="text-sm text-[#8B949E]">{new Date(planExpiresAt).toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric" })}</span>
+                  </div>
+                )}
+                {userPlan && (
+                  <div className="px-1 pt-1">
+                    <button
+                      onClick={handleManageSubscription}
+                      disabled={portalLoading}
+                      className="w-full py-2 text-sm font-semibold text-gray-400 hover:text-[#E85D2A] rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      {portalLoading ? "Opening..." : "Manage Subscription"}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1292,6 +1346,28 @@ export default function ProfilePage() {
               <SectionHeader title="Account" />
               <SettingsCard>
                 {session?.user && <Row label="Joined"><span className="text-sm text-gray-400 dark:text-gray-500">{joinedDate ?? "—"}</span></Row>}
+                <Row label="Plan">
+                  {userPlan ? (
+                    <span className="text-sm text-[#8B949E]">{PLAN_DISPLAY[userPlan] ?? userPlan}</span>
+                  ) : (
+                    <Link href="/pro" className="text-sm text-[#E85D2A] font-medium hover:underline">Upgrade to Pro</Link>
+                  )}
+                </Row>
+                {userPlan && planExpiresAt && (
+                  <Row label={subscriptionStatus === "canceled" ? "Access Until" : "Next Billing"}>
+                    <span className="text-sm text-gray-400 dark:text-gray-500">{new Date(planExpiresAt).toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric" })}</span>
+                  </Row>
+                )}
+                {userPlan && (
+                  <button
+                    onClick={handleManageSubscription}
+                    disabled={portalLoading}
+                    className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left text-gray-400 hover:text-[#E85D2A] font-semibold text-sm cursor-pointer transition-colors disabled:opacity-50"
+                  >
+                    {portalLoading ? "Opening..." : "Manage Subscription"}
+                    <ChevronRight />
+                  </button>
+                )}
                 {session?.user && <button onClick={() => signOut()} className="flex items-center px-4 py-3.5 min-h-[52px] w-full text-left text-red-500 font-semibold text-sm cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">Sign Out</button>}
               </SettingsCard>
 

@@ -178,8 +178,8 @@ export default function ExplorationStats({ compact = false }: { compact?: boolea
             .slice(0, 3);
 
         return (
-            <div className="bg-white dark:bg-[#161B22] rounded-xl p-5 border border-[#D0D7DE] dark:border-[#30363D] h-full">
-                <div className="flex items-center justify-between mb-4">
+            <div className="bg-white dark:bg-[#161B22] rounded-xl p-5 border border-[#D0D7DE] dark:border-[#30363D] h-full flex flex-col">
+                <div className="flex items-center justify-between mb-2">
                     <h2 className="text-lg font-semibold text-[#0E1116] dark:text-white">Exploration</h2>
                     <Link
                         href="/map"
@@ -188,7 +188,7 @@ export default function ExplorationStats({ compact = false }: { compact?: boolea
                         Explore on Map <span>→</span>
                     </Link>
                 </div>
-                <div className="mb-1">
+                <div className="flex-1 flex flex-col justify-center w-full">
                     <div className="flex items-end justify-between mb-2">
                         <span className="text-sm font-semibold text-[#0E1116] dark:text-white">
                             {data.percentage}% Explored

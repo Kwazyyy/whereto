@@ -21,9 +21,9 @@ export function ApplyCreatorForm() {
 
     if (!isOpen) {
         return (
-            <button onClick={() => setIsOpen(true)} className="w-full flex items-center justify-between px-4 py-3.5 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-[#E85D2A]/10 dark:to-amber-500/10 rounded-xl border border-orange-100 dark:border-[#E85D2A]/20 cursor-pointer hover:opacity-90 transition-opacity mt-4">
-                <span className="text-sm font-bold text-[#E85D2A] flex items-center gap-1.5"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>Become a Creator</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+            <button onClick={() => setIsOpen(true)} className="w-full flex items-center justify-between px-4 py-3.5 text-[#E85D2A] hover:text-[#ff7a45] cursor-pointer transition-colors mt-4">
+                <span className="text-sm font-bold flex items-center gap-1.5"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>Become a Creator</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
             </button>
         );
     }

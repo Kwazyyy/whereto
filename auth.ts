@@ -74,13 +74,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = (user as { role?: string }).role ?? "user";
       }
 
-      // Fallback: if token has id but no role (e.g. old session before this change)
-      if (token.id && !token.role) {
+      // Fetch subscription fields + role fallback from DB
+      if (token.id && (!token.role || token.plan === undefined)) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { role: true },
+          select: { role: true, plan: true, subscriptionStatus: true },
         });
-        token.role = dbUser?.role ?? "user";
+        if (!token.role) token.role = dbUser?.role ?? "user";
+        token.plan = dbUser?.plan ?? null;
+        token.subscriptionStatus = dbUser?.subscriptionStatus ?? null;
       }
 
       return token;
@@ -88,6 +90,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     session({ session, token }) {
       session.user.id = token.id as string;
       session.user.role = token.role as string;
+      session.user.plan = (token.plan as string) ?? null;
+      session.user.subscriptionStatus = (token.subscriptionStatus as string) ?? null;
       return session;
     },
   },

@@ -17,6 +17,9 @@ export async function GET() {
       displayName: true,
       customAvatar: true,
       creatorBio: true,
+      plan: true,
+      subscriptionStatus: true,
+      planExpiresAt: true,
     },
   });
 
@@ -31,5 +34,8 @@ export async function GET() {
     displayName: user.displayName,
     customAvatar: user.customAvatar,
     creatorBio: user.creatorBio,
+    plan: user.plan,
+    subscriptionStatus: user.subscriptionStatus,
+    planExpiresAt: user.planExpiresAt?.toISOString() ?? null,
   });
 }
