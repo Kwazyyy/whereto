@@ -277,6 +277,95 @@ export async function GET(request: NextRequest) {
         return rest;
       });
 
+    // Enrich with featured placement data
+    const INTENT_SHORT_TO_STORED: Record<string, string[]> = {
+      study: ["study_work", "Study/Work"],
+      date: ["date_chill", "Date/Chill"],
+      trending: ["trending", "Trending Now"],
+      quiet: ["quiet_cafes", "Quiet Cafes"],
+      laptop: ["laptop_friendly", "Laptop-Friendly"],
+      group: ["group_hangouts", "Group Hangouts"],
+      budget: ["budget_eats", "Budget Eats"],
+      desserts: ["desserts", "Desserts"],
+      coffee: ["coffee_catchup", "Coffee & Catch-Up"],
+      outdoor: ["outdoor_patio", "Outdoor/Patio"],
+    };
+
+    try {
+      const now = new Date();
+      const allPlacements = await prisma.featuredPlacement.findMany({
+        where: {
+          status: "active",
+          startDate: { lte: now },
+          endDate: { gte: now },
+        },
+      });
+
+      // Filter placements that match this intent
+      const possibleValues = INTENT_SHORT_TO_STORED[intent] ?? [intent];
+      const matchingPlacements = allPlacements.filter((p) => {
+        const storedIntents = p.intents as string[];
+        if (!Array.isArray(storedIntents)) return false;
+        return storedIntents.some((si) => possibleValues.includes(si) || si === intent);
+      });
+
+      // Build a map of googlePlaceId → placementId for matched placements
+      const featuredMap = new Map<string, string>();
+      for (const p of matchingPlacements) {
+        featuredMap.set(p.googlePlaceId, p.id);
+      }
+
+      // Mark places already in results as featured
+      for (const place of final) {
+        const placementId = featuredMap.get(place.placeId);
+        if (placementId) {
+          (place as Record<string, unknown>).isFeatured = true;
+          (place as Record<string, unknown>).placementId = placementId;
+          featuredMap.delete(place.placeId);
+        }
+      }
+
+      // Add featured places not already in results (from DB Place table)
+      if (featuredMap.size > 0) {
+        const missingIds = [...featuredMap.keys()];
+        const dbPlaces = await prisma.place.findMany({
+          where: { googlePlaceId: { in: missingIds } },
+        });
+
+        for (const dbPlace of dbPlaces) {
+          const placementId = featuredMap.get(dbPlace.googlePlaceId);
+          if (!placementId) continue;
+          const vibeTags = Array.isArray(dbPlace.vibeTags) ? (dbPlace.vibeTags as string[]) : [];
+          const distKm = haversineKm(lat, lng, dbPlace.lat, dbPlace.lng);
+          final.splice(
+            Math.min(Math.floor(Math.random() * 3) + 2, final.length),
+            0,
+            {
+              placeId: dbPlace.googlePlaceId,
+              name: dbPlace.name,
+              address: dbPlace.address,
+              location: { lat: dbPlace.lat, lng: dbPlace.lng },
+              price: dbPlace.priceLevel != null ? "$".repeat(dbPlace.priceLevel) : "$$",
+              rating: dbPlace.rating ?? 0,
+              photoRef: dbPlace.photoUrl ?? null,
+              photoRefs: dbPlace.photoUrl ? [dbPlace.photoUrl] : [],
+              type: dbPlace.placeType ?? "Restaurant",
+              openNow: true,
+              hours: [],
+              distance: distKm < 1 ? `${Math.round(distKm * 1000)}m` : `${distKm.toFixed(1)}km`,
+              tags: vibeTags.slice(0, 3),
+              menuUrl: `https://www.google.com/search?q=${encodeURIComponent(dbPlace.name + " " + dbPlace.address + " menu")}`,
+              menuType: "search" as const,
+              isFeatured: true,
+              placementId,
+            } as typeof final[number]
+          );
+        }
+      }
+    } catch {
+      // Silently fallback — don't break places if featured query fails
+    }
+
     // Enrich with community photo counts (non-blocking — fallback to 0)
     try {
       const googleIds = final.map((p) => p.placeId);

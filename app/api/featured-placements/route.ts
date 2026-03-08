@@ -55,12 +55,27 @@ export async function GET(req: NextRequest) {
   // Pick random among matches
   const winner = intentMatches[Math.floor(Math.random() * intentMatches.length)];
 
+  // Enrich with Place data from DB
+  const dbPlace = await prisma.place.findUnique({
+    where: { googlePlaceId: winner.googlePlaceId },
+  });
+
+  const vibeTags = dbPlace && Array.isArray(dbPlace.vibeTags) ? (dbPlace.vibeTags as string[]) : [];
+
   return NextResponse.json({
     placement: {
       placementId: winner.id,
       featured: true,
       googlePlaceId: winner.googlePlaceId,
-      businessName: winner.businessName,
+      name: dbPlace?.name ?? winner.businessName,
+      address: dbPlace?.address ?? "",
+      lat: dbPlace?.lat ?? null,
+      lng: dbPlace?.lng ?? null,
+      rating: dbPlace?.rating ?? null,
+      photoRef: dbPlace?.photoUrl ?? null,
+      priceLevel: dbPlace?.priceLevel ?? null,
+      placeType: dbPlace?.placeType ?? "restaurant",
+      vibeTags,
     },
   });
 }
