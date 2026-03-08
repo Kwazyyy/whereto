@@ -14,6 +14,7 @@ import Link from "next/link";
 import { Place, FriendSignal } from "@/lib/types";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import CommunityVibes from "./CommunityVibes";
+import { getBookingUrl } from "@/lib/booking";
 
 const SWIPE_THRESHOLD = 100;
 const TAP_MOVE_LIMIT = 10;
@@ -646,6 +647,41 @@ export function SwipeCard({
                                     </svg>
                                     <span className="flex-1 text-sm font-medium text-[#0E1116] dark:text-white">
                                         {place.menuType === "direct" ? "View Menu" : "Search Menu"}
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" x2="21" y1="14" y2="3" />
+                                        </svg>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="m9 18 6-6-6-6" />
+                                        </svg>
+                                    </div>
+                                </a>
+                            )}
+                            {/* Reserve a Table row */}
+                            {place.address && (
+                                <a
+                                    href={getBookingUrl(place.name, place.address, place.placeId).url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-4 flex items-center gap-3 p-3.5 rounded-xl bg-gray-50 dark:bg-[#1C2128] hover:bg-gray-100 dark:hover:bg-[#252D38] transition-colors"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        const { platform } = getBookingUrl(place.name, place.address, place.placeId);
+                                        fetch("/api/bookings/track", {
+                                            method: "POST",
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({ googlePlaceId: place.placeId, platform }),
+                                        }).catch(() => {});
+                                    }}
+                                    onPointerDown={(e) => e.stopPropagation()}
+                                    onPointerUp={(e) => e.stopPropagation()}
+                                >
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M8 2v4" /><path d="M16 2v4" /><rect width="18" height="18" x="3" y="4" rx="2" /><path d="M3 10h18" /><path d="m9 16 2 2 4-4" />
+                                    </svg>
+                                    <span className="flex-1 text-sm font-medium text-[#0E1116] dark:text-white">
+                                        Reserve a Table
                                     </span>
                                     <div className="flex items-center gap-1">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

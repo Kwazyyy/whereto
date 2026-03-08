@@ -11,7 +11,8 @@ import { Place } from "@/lib/types";
 import MapPlaceDetail from "@/components/MapPlaceDetail";
 import { useSavePlace } from "@/lib/use-save-place";
 import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
-import { ChevronLeft, MapPin, Star, X, Bookmark } from "lucide-react";
+import { ChevronLeft, MapPin, Star, X, Bookmark, CalendarCheck } from "lucide-react";
+import { getBookingUrl } from "@/lib/booking";
 
 const RECS_INTENT = "recs_from_friends";
 
@@ -262,15 +263,35 @@ export default function BoardDetailPage() {
                                         <p className="text-white/60 text-xs line-clamp-1 mt-0.5">
                                             {place.address}
                                         </p>
-                                        <div className="flex items-center gap-2 mt-1.5">
-                                            <Star className="w-3.5 h-3.5 text-[#E85D2A] fill-[#E85D2A]" />
-                                            <span className="text-white text-xs font-medium">
-                                                {place.rating?.toFixed(1) || "New"}
-                                            </span>
-                                            <span className="text-white/30 text-xs">&middot;</span>
-                                            <span className="text-white/60 text-xs">
-                                                {place.price || "$$"}
-                                            </span>
+                                        <div className="flex items-center justify-between mt-1.5">
+                                            <div className="flex items-center gap-2">
+                                                <Star className="w-3.5 h-3.5 text-[#E85D2A] fill-[#E85D2A]" />
+                                                <span className="text-white text-xs font-medium">
+                                                    {place.rating?.toFixed(1) || "New"}
+                                                </span>
+                                                <span className="text-white/30 text-xs">&middot;</span>
+                                                <span className="text-white/60 text-xs">
+                                                    {place.price || "$$"}
+                                                </span>
+                                            </div>
+                                            <a
+                                                href={getBookingUrl(place.name, place.address || "", place.placeId).url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    const { platform } = getBookingUrl(place.name, place.address || "", place.placeId);
+                                                    fetch("/api/bookings/track", {
+                                                        method: "POST",
+                                                        headers: { "Content-Type": "application/json" },
+                                                        body: JSON.stringify({ googlePlaceId: place.placeId, platform }),
+                                                    }).catch(() => {});
+                                                }}
+                                                className="text-[#E85D2A] hover:text-[#d14e1f] transition-colors"
+                                                title="Reserve a Table"
+                                            >
+                                                <CalendarCheck size={16} />
+                                            </a>
                                         </div>
                                     </div>
                                 </motion.div>

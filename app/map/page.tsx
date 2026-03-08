@@ -21,6 +21,7 @@ import FogOverlay from "@/components/FogOverlay";
 import VisitCelebration from "@/components/VisitCelebration";
 import PhotoUploadPrompt from "@/components/PhotoUploadPrompt";
 import ExplorationPanel from "@/components/ExplorationPanel";
+import { getBookingUrl } from "@/lib/booking";
 
 const DEFAULT_LAT = 43.6532;
 const DEFAULT_LNG = -79.3832;
@@ -170,18 +171,33 @@ function InfoPhoto({ photoRef }: { photoRef: string | null }) {
   );
 }
 
+function computeDistance(a: { lat: number; lng: number }, b: { lat: number; lng: number }): string {
+  const R = 6371;
+  const dLat = (b.lat - a.lat) * Math.PI / 180;
+  const dLng = (b.lng - a.lng) * Math.PI / 180;
+  const sinLat = Math.sin(dLat / 2);
+  const sinLng = Math.sin(dLng / 2);
+  const h = sinLat * sinLat + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * sinLng * sinLng;
+  const km = R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+  return km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`;
+}
+
 // --- Info card rendered inside the InfoWindow ---
 function InfoCard({
   place,
   isSaved,
+  userLocation,
   onViewDetails,
   onClose,
 }: {
   place: Place | SavedPlace;
   isSaved: boolean;
+  userLocation?: { lat: number; lng: number };
   onViewDetails: () => void;
   onClose: () => void;
 }) {
+  const displayDistance = place.distance || (userLocation && place.location ? computeDistance(userLocation, place.location) : "");
+
   return (
     <div
       style={{
@@ -235,21 +251,28 @@ function InfoCard({
 
         {/* Text content */}
         <div style={{ flex: 1, minWidth: 0, paddingRight: 16 }}>
-          {/* Name */}
-          <p
-            style={{
-              margin: 0,
-              fontWeight: 600,
-              fontSize: 15,
-              color: "#FFFFFF",
-              lineHeight: 1.3,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {place.name}
-          </p>
+          {/* Name + Saved badge */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <p
+              style={{
+                margin: 0,
+                fontWeight: 600,
+                fontSize: 15,
+                color: "#FFFFFF",
+                lineHeight: 1.3,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {place.name}
+            </p>
+            {isSaved && (
+              <span style={{ fontSize: 10, fontWeight: 600, color: "#E85D2A", background: "rgba(232,93,42,0.15)", padding: "1px 6px", borderRadius: 20, whiteSpace: "nowrap", flexShrink: 0 }}>
+                Saved
+              </span>
+            )}
+          </div>
 
           {/* Rating */}
           {place.rating > 0 && (
@@ -259,22 +282,17 @@ function InfoCard({
             </p>
           )}
 
-          {/* Address / distance */}
-          {place.distance && (
+          {/* Distance */}
+          {displayDistance && (
             <p style={{ margin: "2px 0 0", fontSize: 13, color: "#8B949E" }}>
-              {place.distance}
+              {displayDistance}
             </p>
           )}
         </div>
       </div>
 
-      {/* Saved badge + View Details */}
+      {/* View Details + Reserve */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10 }}>
-        {isSaved ? (
-          <span style={{ fontSize: 11, fontWeight: 600, color: "#3B82F6", background: "#3B82F6" + "1A", padding: "2px 8px", borderRadius: 20 }}>
-            Saved
-          </span>
-        ) : <span />}
         <button
           onClick={onViewDetails}
           style={{
@@ -292,6 +310,31 @@ function InfoCard({
         >
           View Details &rarr;
         </button>
+        <a
+          href={getBookingUrl(place.name, place.address || "", place.placeId).url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => {
+            const { platform } = getBookingUrl(place.name, place.address || "", place.placeId);
+            fetch("/api/bookings/track", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ googlePlaceId: place.placeId, platform }),
+            }).catch(() => {});
+          }}
+          style={{
+            color: "#8B949E",
+            fontSize: 13,
+            fontWeight: 500,
+            cursor: "pointer",
+            transition: "color 200ms",
+            textDecoration: "none",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = "#E85D2A"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = "#8B949E"; }}
+        >
+          Reserve &rarr;
+        </a>
       </div>
     </div>
   );
@@ -360,6 +403,7 @@ function MapMarkers({
   visitedIds,
   fogEnabled,
   isDarkMode,
+  userLocation,
   onSelectPlace,
 }: {
   savedPlaces: SavedPlace[];
@@ -367,6 +411,7 @@ function MapMarkers({
   visitedIds: Set<string>;
   fogEnabled: boolean;
   isDarkMode: boolean;
+  userLocation?: { lat: number; lng: number };
   onSelectPlace: (place: Place) => void;
 }) {
   const [selected, setSelected] = useState<{
@@ -427,6 +472,7 @@ function MapMarkers({
           <InfoCard
             place={selected.place}
             isSaved={selected.isSaved}
+            userLocation={userLocation}
             onClose={() => setSelected(null)}
             onViewDetails={() => {
               onSelectPlace(selected.place as Place);
@@ -609,6 +655,7 @@ export default function MapPage() {
                   visitedIds={visitedIds}
                   fogEnabled={fogEnabled && status === "authenticated"}
                   isDarkMode={isDarkMode}
+                  userLocation={userLocation ?? undefined}
                   onSelectPlace={setDetailPlace}
                 />
                 <RecenterButton userLocation={userLocation} />
