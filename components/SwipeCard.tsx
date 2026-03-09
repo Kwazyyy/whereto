@@ -310,11 +310,12 @@ export function SwipeCard({
 
                     <div className="absolute bottom-0 left-0 right-0 p-6 z-10 pointer-events-none">
                         {isFeatured && (
-                            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full mb-2" style={{ background: "rgba(202, 138, 4, 0.2)", border: "1px solid rgba(202, 138, 4, 0.4)", backdropFilter: "blur(8px)" }}>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="#CA8A04" stroke="#CA8A04" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                            <div className="inline-flex items-center gap-1 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#CA8A04" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
+                                    <path d="M20 3v4" /><path d="M22 5h-4" /><path d="M4 17v2" /><path d="M5 18H3" />
                                 </svg>
-                                <span className="text-xs font-semibold" style={{ color: "#CA8A04" }}>Featured</span>
+                                <span>Featured</span>
                             </div>
                         )}
                         <h2 className="text-3xl font-bold text-white leading-tight">{place.name}</h2>
