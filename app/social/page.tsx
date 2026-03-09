@@ -11,6 +11,7 @@ import { useSavePlace } from "@/lib/use-save-place";
 import PlaceDetailSheet from "@/components/PlaceDetailSheet";
 import type { CompatibilityResult } from "@/lib/tasteScore";
 import type { Place } from "@/lib/types";
+import { MapPin, Bookmark, Mail, Inbox, Target, Globe } from "lucide-react";
 import { Avatar, CompatibilityDrawer, scoreBadgeClass, type Friend } from "@/components/CompatibilityDrawer";
 import { AddFriendModal } from "@/components/AddFriendModal";
 import { FriendsListModal } from "@/components/FriendsListModal";
@@ -100,7 +101,7 @@ function ActivityPlaceThumbnail({ photoRef }: { photoRef?: string | null }) {
       {url ? (
         <Image src={url} alt="" fill className="object-cover" unoptimized />
       ) : (
-        <div className="w-full h-full flex items-center justify-center text-xl">📍</div>
+        <div className="w-full h-full flex items-center justify-center"><MapPin className="w-5 h-5 text-[#8B949E]" /></div>
       )}
     </div>
   );
@@ -113,7 +114,7 @@ function MiniThumb({ photoRef }: { photoRef?: string | null }) {
       {url ? (
         <Image src={url} alt="" fill className="object-cover" unoptimized />
       ) : (
-        <div className="w-full h-full flex items-center justify-center text-[10px]">📍</div>
+        <div className="w-full h-full flex items-center justify-center"><MapPin className="w-3 h-3 text-[#8B949E]" /></div>
       )}
     </div>
   );
@@ -146,7 +147,7 @@ function ActivityCard({ item, onTap, index }: { item: ActivityItem; onTap: (p: P
               <span className="text-xs text-[#8B949E] ml-1">{relativeTime(item.createdAt)}</span>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 flex items-center gap-1.5 line-clamp-1">
-              <span className="text-base leading-none">🔖</span> {firstName} saved {isSingle ? p.name : `${count} places`}
+              <Bookmark className="w-4 h-4 text-[#E85D2A] shrink-0" /> {firstName} saved {isSingle ? p.name : `${count} places`}
             </p>
 
             {isSingle ? (
@@ -216,7 +217,7 @@ function ActivityCard({ item, onTap, index }: { item: ActivityItem; onTap: (p: P
               <span className="text-xs text-[#8B949E] ml-1">{relativeTime(item.createdAt)}</span>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 flex items-center gap-1.5 line-clamp-1">
-              <span className="text-base leading-none">💌</span> {firstName} sent a recommendation
+              <Mail className="w-4 h-4 text-[#E85D2A] shrink-0" /> {firstName} sent a recommendation
             </p>
             <div className="flex items-center gap-3">
               <ActivityPlaceThumbnail photoRef={p.photoRef} />
@@ -391,7 +392,7 @@ export default function SocialPage() {
   const SidebarInbox = (
     <div className="bg-white dark:bg-[#161B22] rounded-xl border border-gray-100 dark:border-[#30363D] p-4 mb-4">
       <div className="flex items-center gap-2 mb-3">
-        <h2 className="font-semibold text-base text-[#0E1116] dark:text-[#e8edf4]">📬 Inbox</h2>
+        <h2 className="font-semibold text-base text-[#0E1116] dark:text-[#e8edf4] flex items-center gap-1.5"><Inbox className="w-4 h-4 text-[#E85D2A]" /> Inbox</h2>
         {recs.length > 0 && <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{recs.length}</span>}
       </div>
 
@@ -422,7 +423,7 @@ export default function SocialPage() {
   const SidebarMatches = (
     <div className="bg-white dark:bg-[#161B22] rounded-xl border border-gray-100 dark:border-[#30363D] p-4 mb-4">
       <div className="mb-3">
-        <h2 className="font-semibold text-base text-[#0E1116] dark:text-[#e8edf4] flex items-center gap-1.5">🎯 It&apos;s a Match!</h2>
+        <h2 className="font-semibold text-base text-[#0E1116] dark:text-[#e8edf4] flex items-center gap-1.5"><Target className="w-4 h-4 text-[#E85D2A]" /> It&apos;s a Match!</h2>
         <p className="text-sm text-[#8B949E] mt-0.5">Places you and your friends both saved</p>
       </div>
 
@@ -514,7 +515,7 @@ export default function SocialPage() {
             <AnimatePresence mode="popLayout">
               {activity.length === 0 ? (
                 <div className="bg-white dark:bg-[#161B22] border border-gray-100 dark:border-[#30363D] rounded-xl p-12 text-center">
-                  <div className="text-4xl mb-4">🌍</div>
+                  <Globe className="w-10 h-10 text-[#8B949E] mb-4" />
                   <h3 className="text-lg font-bold text-[#0E1116] dark:text-[#e8edf4]">No activity yet</h3>
                   <p className="text-sm text-gray-500 mt-2">Add friends to see what places they are discovering!</p>
                 </div>
@@ -559,7 +560,7 @@ export default function SocialPage() {
               <motion.div key="feed" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="flex flex-col gap-3">
                 {activity.length === 0 ? (
                   <div className="text-center py-20 px-4">
-                    <div className="text-4xl mb-3">🌍</div>
+                    <Globe className="w-10 h-10 text-[#8B949E] mb-3" />
                     <p className="font-bold text-[#0E1116] dark:text-white">No activity yet</p>
                     <p className="text-sm text-gray-500 mt-1">Add friends to see their saves!</p>
                   </div>

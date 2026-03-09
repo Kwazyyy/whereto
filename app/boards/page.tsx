@@ -588,7 +588,7 @@ export default function BoardsPage() {
                 className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap cursor-pointer transition-all duration-200 ${
                   selectedCategory === cat.value
                     ? "bg-[#E85D2A] text-white"
-                    : "bg-[#F6F8FA] dark:bg-[#1C2128] text-[#656D76] dark:text-[#8B949E] border border-[#D0D7DE] dark:border-[#30363D] hover:border-[#E85D2A] hover:text-[#E85D2A]"
+                    : "bg-[#F6F8FA] dark:bg-[#1C2128] text-[#656D76] dark:text-[#8B949E] border border-gray-200 dark:border-[#30363D] hover:border-[#E85D2A] hover:text-[#E85D2A]"
                 }`}
               >
                 {cat.label}
@@ -598,8 +598,8 @@ export default function BoardsPage() {
 
           {featuredLists.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <ClipboardList className="w-12 h-12 text-[#D0D7DE] dark:text-[#30363D]" />
-              <p className="text-[#656D76] dark:text-[#8B949E] text-sm mt-4 max-w-sm">
+              <ClipboardList className="w-12 h-12 text-gray-400 dark:text-[#8B949E]" />
+              <p className="text-gray-500 dark:text-[#8B949E] text-sm mt-4 max-w-sm">
                 Lists from Toronto&apos;s best food creators are on the way!
               </p>
             </div>

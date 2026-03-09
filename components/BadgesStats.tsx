@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Lock } from "lucide-react";
 import { useBadges } from "@/components/providers/BadgeProvider";
 
 interface BadgeDefinition {
@@ -268,13 +269,13 @@ export function BadgesStats() {
                                 className={`flex items-center justify-center rounded-full text-2xl transition-all relative w-12 h-12 md:w-14 md:h-14 bg-gray-100 dark:bg-[#1E2530]
                                     ${b.earned
                                         ? "opacity-100 border-2 border-[#E85D2A] shadow-[0_0_8px_rgba(232,93,42,0.3)]"
-                                        : "opacity-40 border border-gray-300 dark:border-gray-700"
+                                        : "opacity-60 bg-gray-100 dark:bg-[#1C2128] border border-gray-200 dark:border-[#30363D]"
                                     }`}
                             >
                                 <span className="transform -translate-y-[1px]">{b.def.icon}</span>
                                 {!b.earned && (
                                     <div className="absolute right-0 bottom-0 translate-x-1 translate-y-1 w-5 h-5 rounded-full bg-gray-200 dark:bg-[#1E2530] flex items-center justify-center ring-2 ring-white dark:ring-[#0E1116] pointer-events-none">
-                                        <span className="text-[11px] transform -translate-y-[0.5px]">🔒</span>
+                                        <Lock className="w-2.5 h-2.5 text-gray-400 dark:text-gray-500" />
                                     </div>
                                 )}
                             </div>
