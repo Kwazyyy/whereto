@@ -13,6 +13,8 @@ interface ChallengePlace {
   id: string;
   googlePlaceId: string;
   name: string;
+  lat: number;
+  lng: number;
   photoUrl: string | null;
   rating: number | null;
   visited: boolean;
@@ -39,6 +41,7 @@ interface ChallengeData {
 
 interface ExplorationPanelProps {
   mapInstance?: google.maps.Map | null;
+  onHighlightPlaces?: (places: { placeId: string; name: string; lat: number; lng: number; photoUrl: string | null; rating: number | null }[]) => void;
 }
 
 const AREAS = ["All", "Downtown", "West End", "East End", "Midtown", "North York", "Scarborough", "Etobicoke"];
@@ -54,7 +57,7 @@ const AREA_VIEWS: Record<string, { lat: number; lng: number; zoom: number }> = {
   Etobicoke:    { lat: 43.6205, lng: -79.5132, zoom: 12 },
 };
 
-export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps) {
+export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: ExplorationPanelProps) {
   const { status } = useSession();
   const { theme } = useTheme();
   const [challengeData, setChallengeData] = useState<ChallengeData | null>(null);
@@ -141,10 +144,18 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
     }
   }, []);
 
-  // Click outside to close on desktop
+  // Clear highlighted markers when panel collapses
+  useEffect(() => {
+    if (!expanded) {
+      onHighlightPlaces?.([]);
+    }
+  }, [expanded, onHighlightPlaces]);
+
+  // Click outside to close on desktop (skip when viewing neighborhood places)
   useEffect(() => {
     if (!expanded) return;
     function handleClick(e: MouseEvent) {
+      if (selectedNeighborhood) return;
       const target = e.target as Node;
       const inDesktop = panelRef.current?.contains(target);
       const inMobile = mobilePanelRef.current?.contains(target);
@@ -154,7 +165,7 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, [expanded]);
+  }, [expanded, selectedNeighborhood]);
 
   // Unauthenticated — static pill, no expand
   if (status !== "authenticated") {
@@ -274,10 +285,26 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
 
   function handleNeighborhoodClick(hoodName: string) {
     setSelectedNeighborhood(hoodName);
-    const hoodGeo = torontoNeighborhoods.find((n) => n.name === hoodName);
-    if (hoodGeo && mapInstance) {
-      mapInstance.panTo({ lat: hoodGeo.center.lat, lng: hoodGeo.center.lng });
-      mapInstance.setZoom(15);
+
+    // Find challenge places for this neighborhood and highlight them on the map
+    const hood = challengeData?.neighborhoods.find((n) => n.name === hoodName);
+    const places = hood?.challengePlaces.filter((p) => p.lat && p.lng) ?? [];
+
+    if (onHighlightPlaces) {
+      onHighlightPlaces(places.map((p) => ({ placeId: p.googlePlaceId, name: p.name, lat: p.lat, lng: p.lng, photoUrl: p.photoUrl, rating: p.rating })));
+    }
+
+    // Fit bounds to show all challenge places, or fall back to neighborhood center
+    if (places.length > 0 && mapInstance) {
+      const bounds = new google.maps.LatLngBounds();
+      for (const p of places) bounds.extend({ lat: p.lat, lng: p.lng });
+      mapInstance.fitBounds(bounds, 60);
+    } else {
+      const hoodGeo = torontoNeighborhoods.find((n) => n.name === hoodName);
+      if (hoodGeo && mapInstance) {
+        mapInstance.panTo({ lat: hoodGeo.center.lat, lng: hoodGeo.center.lng });
+        mapInstance.setZoom(15);
+      }
     }
   }
 
@@ -305,7 +332,7 @@ export default function ExplorationPanel({ mapInstance }: ExplorationPanelProps)
   const neighborhoodDetail = selectedNbData ? (
     <div className="px-4 pb-4">
       <button
-        onClick={() => setSelectedNeighborhood(null)}
+        onClick={() => { setSelectedNeighborhood(null); onHighlightPlaces?.([]); }}
         className="flex items-center gap-2 mb-4 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
       >
         <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />

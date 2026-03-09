@@ -89,6 +89,8 @@ export async function GET() {
       id: p.id,
       googlePlaceId: p.googlePlaceId,
       name: p.name,
+      lat: p.lat,
+      lng: p.lng,
       photoUrl: p.photoUrl,
       rating: p.rating,
       visited: userVisitedPlaceIds.has(p.id),
