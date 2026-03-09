@@ -924,14 +924,7 @@ export default function ProfilePage() {
     .sort((a, b) => b.items.length - a.items.length); // Sort by most items for display
 
   if (status === "loading") {
-    return (
-      <div className="h-dvh bg-white dark:bg-[#0E1116] flex items-center justify-center pb-16 lg:pb-0">
-        <div
-          className="w-8 h-8 rounded-full border-3 border-t-transparent animate-spin"
-          style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
-        />
-      </div>
-    );
+    return <div className="min-h-screen bg-[#0E1116]" />;
   }
 
   return (

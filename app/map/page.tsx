@@ -613,6 +613,10 @@ export default function MapPage() {
     fetchNearby();
   }, [fetchNearby]);
 
+  if (status === "loading") {
+    return <div className="min-h-screen bg-[#0E1116]" />;
+  }
+
   return (
     <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-16 lg:pb-0">
       {/* Intent chips */}

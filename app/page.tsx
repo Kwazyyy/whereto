@@ -83,6 +83,7 @@ export default function Home() {
   const [savedPlaceIds, setSavedPlaceIds] = useState<Set<string>>(new Set());
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [pageReady, setPageReady] = useState(false);
   // skippedPerIntent: per-intent set of placeIds that have been swiped (left=persisted, right/up=session-only)
   const [skippedPerIntent, setSkippedPerIntent] = useState<Record<string, Set<string>>>({});
   const [recommendations, setRecommendations] = useState<Place[]>([]);
@@ -105,7 +106,10 @@ export default function Home() {
     if (status === "loading") return;
     if (!localStorage.getItem("savrd_seen_landing")) {
       router.replace("/landing");
-    } else if (!localStorage.getItem("hasSeenTutorial")) {
+      return;
+    }
+    setPageReady(true);
+    if (!localStorage.getItem("hasSeenTutorial")) {
       setShowTutorial(true);
     }
   }, [status, router]);
@@ -498,6 +502,10 @@ export default function Home() {
     setSkippedPerIntent(prev => ({ ...prev, [intent]: new Set() }));
   }
 
+  if (!pageReady) {
+    return <div className="min-h-screen bg-[#0E1116]" />;
+  }
+
   return (
     <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-16 lg:pb-0">
       {/* Counter */}
@@ -510,10 +518,11 @@ export default function Home() {
       )}
 
       {/* Intent Chips */}
-      <div className="shrink-0 px-5 py-3 pt-1">
+      <div className="shrink-0 py-3 pt-1">
         <div
           ref={chipScrollRef}
-          className="flex gap-2 overflow-x-auto scrollbar-none pb-2 snap-x snap-mandatory lg:justify-center lg:flex-wrap"
+          data-tour="chips"
+          className="flex gap-2 overflow-x-auto scrollbar-none pb-2 snap-x snap-mandatory px-5 lg:justify-center"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
         >
           {categories.map((cat) => (
@@ -614,7 +623,7 @@ export default function Home() {
           )}
         </motion.div>
       ) : (
-        <div className="flex-1 relative lg:max-w-[540px] lg:mx-auto lg:w-full lg:max-h-[calc(100vh-100px)]">
+        <div className="flex-1 relative lg:max-w-[540px] lg:mx-auto lg:w-full lg:max-h-[calc(100vh-100px)]" data-tour="card">
           <AnimatePresence>
             {visiblePlaces.slice(0, 3).reverse().map((place, i, arr) => {
               const isTop = i === arr.length - 1;

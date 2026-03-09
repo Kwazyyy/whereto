@@ -355,7 +355,11 @@ export default function SocialPage() {
     openNow: detailPlace.openNow, hours: detailPlace.hours, distance: detailPlace.distance,
   } : null;
 
-  if (status === "loading" || loading) {
+  if (status === "loading") {
+    return <div className="min-h-screen bg-[#0E1116]" />;
+  }
+
+  if (loading) {
     return (
       <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24 max-w-6xl mx-auto px-6 pt-8">
         <div className="mb-6">

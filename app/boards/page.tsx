@@ -395,7 +395,11 @@ export default function BoardsPage() {
   };
 
   /* ── Loading state ─────────────────────────────────────────── */
-  if (loading || status === "loading") {
+  if (status === "loading") {
+    return <div className="min-h-screen bg-[#0E1116]" />;
+  }
+
+  if (loading) {
     return (
       <div className="min-h-dvh bg-white dark:bg-[#0E1116] flex items-center justify-center pb-24">
         <div
