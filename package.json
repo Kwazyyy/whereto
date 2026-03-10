@@ -16,7 +16,9 @@
     "auto-tag": "npx tsx scripts/auto-tag-places.ts",
     "fix-vibetags": "npx tsx scripts/fix-vibetags.ts",
     "retag-date-chill": "npx tsx scripts/retag-date-chill.ts",
-    "seed-gta": "npx tsx scripts/seed-gta-places.ts"
+    "seed-gta": "npx tsx scripts/seed-gta-places.ts",
+    "retag-all": "npx tsx scripts/retag-all-places.ts",
+    "fix-romantic": "npx tsx scripts/fix-romantic.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
