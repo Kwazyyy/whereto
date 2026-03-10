@@ -23,6 +23,7 @@ import VisitCelebration from "@/components/VisitCelebration";
 import PhotoUploadPrompt from "@/components/PhotoUploadPrompt";
 import ExplorationPanel from "@/components/ExplorationPanel";
 import { getBookingUrl, isReservable } from "@/lib/booking";
+import { TabTooltip } from "@/components/onboarding/TabTooltip";
 
 const DEFAULT_LAT = 43.6532;
 const DEFAULT_LNG = -79.3832;
@@ -622,6 +623,13 @@ export default function MapPage() {
 
   return (
     <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-28 lg:pb-0">
+      <TabTooltip
+        storageKey="hasSeenMapTooltips"
+        steps={[
+          { title: "Explore Your City", description: "Visit places to uncover the map and unlock new neighborhoods.", animationKey: "map-explore" },
+          { title: "Filter What You See", description: "Use vibe chips to show only the spots that match your mood.", animationKey: "map-filter" },
+        ]}
+      />
       {/* Intent chips */}
       <div className="shrink-0 px-5 lg:pl-[88px] xl:pl-[256px] py-3 border-b border-gray-100 dark:border-[#30363D] transition-all duration-200">
         <div

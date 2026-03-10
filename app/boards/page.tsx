@@ -10,6 +10,7 @@ import { Bookmark, ClipboardList } from "lucide-react";
 import { SavedPlace } from "@/lib/saved-places";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useToast } from "@/components/Toast";
+import { TabTooltip } from "@/components/onboarding/TabTooltip";
 
 const INTENT_LABELS: Record<string, string> = {
   study: "Study / Work",
@@ -439,6 +440,12 @@ export default function BoardsPage() {
 
   return (
     <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-32 lg:pb-6">
+      <TabTooltip
+        storageKey="hasSeenBoardsTooltips"
+        steps={[
+          { title: "Your Saved Spots", description: "Every place you swipe right on lands here, sorted by vibe.", animationKey: "boards-saved" },
+        ]}
+      />
       <div className="max-w-5xl mx-auto px-4 lg:px-6">
         {/* ── Page Header ────────────────────────────────────── */}
         <div className="pt-8 lg:pt-10">

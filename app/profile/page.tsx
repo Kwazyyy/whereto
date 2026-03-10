@@ -20,6 +20,7 @@ import { type Friend } from "@/components/CompatibilityDrawer";
 import { FriendsListModal } from "@/components/FriendsListModal";
 import { CreatorMyLists } from "@/components/CreatorMyLists";
 import { VisitStatsSection } from "@/components/VisitStatsSection";
+import { TabTooltip } from "@/components/onboarding/TabTooltip";
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const INTENT_OPTIONS = [
@@ -932,6 +933,13 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-32 lg:pb-6 relative">
+      <TabTooltip
+        storageKey="hasSeenProfileTooltips"
+        steps={[
+          { title: "Your Savrd Journey", description: "Track visits, earn badges, and see your exploration stats.", animationKey: "profile-journey" },
+          { title: "Make It Yours", description: "Add a bio, set your vibes, and customize your preferences.", animationKey: "profile-customize" },
+        ]}
+      />
       {/* Gear icon — desktop lg:+ (hidden on xl: where settings column is visible) */}
       <div className="absolute top-6 right-6 z-20 hidden lg:block xl:hidden">
         <button onClick={() => setSettingsOpen(true)} className="p-2 text-gray-400 hover:text-[#E85D2A] transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer">

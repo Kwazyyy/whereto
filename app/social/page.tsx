@@ -17,6 +17,7 @@ import { AddFriendModal } from "@/components/AddFriendModal";
 import { FriendsListModal } from "@/components/FriendsListModal";
 import { useToast } from "@/components/Toast";
 import { relativeTime } from "@/lib/utils/time";
+import { TabTooltip } from "@/components/onboarding/TabTooltip";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -495,6 +496,13 @@ export default function SocialPage() {
 
   return (
     <div className="min-h-dvh bg-gray-50 dark:bg-[#0E1116] pb-32 lg:pb-6">
+      <TabTooltip
+        storageKey="hasSeenSocialTooltips"
+        steps={[
+          { title: "Your Food Crew", description: "Add friends and see how your taste compares.", animationKey: "social-crew" },
+          { title: "Recs From Friends", description: "When a friend recommends a spot, it shows up right here.", animationKey: "social-recs" },
+        ]}
+      />
       {/* ── DESKTOP LAYOUT (>=1024px) ── */}
       <div className="hidden lg:block max-w-6xl mx-auto px-6 pt-8">
         <div className="mb-6">
