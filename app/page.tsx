@@ -98,7 +98,7 @@ export default function Home() {
   const chipScrollRef = useRef<HTMLDivElement>(null);
   const locationResolved = useRef(false);
   const { handleSave, handleUnsave } = useSavePlace();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const sessionStatusRef = useRef(status);
 
   useEffect(() => {
@@ -108,11 +108,15 @@ export default function Home() {
       router.replace("/landing");
       return;
     }
+    if (session?.user && session.user.hasCompletedOnboarding === false) {
+      router.replace("/onboarding");
+      return;
+    }
     setPageReady(true);
     if (!localStorage.getItem("hasSeenTutorial")) {
       setShowTutorial(true);
     }
-  }, [status, router]);
+  }, [status, session, router]);
 
   // Apply saved preferences on first mount
   useEffect(() => {

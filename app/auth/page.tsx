@@ -22,9 +22,23 @@ export default function AuthPage() {
 
   if (status === "authenticated") return null;
 
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  function validateEmailOnBlur() {
+    if (email.trim() && !emailRegex.test(email.trim())) {
+      setFieldErrors(prev => ({ ...prev, email: "Please enter a valid email address" }));
+    }
+  }
+
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
+    if (!emailRegex.test(email.trim())) {
+      setFieldErrors({ email: "Please enter a valid email address" });
+      return;
+    }
+    setFieldErrors({});
     setLoading(true);
 
     const res = await signIn("credentials", {
@@ -45,7 +59,6 @@ export default function AuthPage() {
     e.preventDefault();
     setError("");
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const errors: typeof fieldErrors = {};
     if (!name.trim() || name.trim().length < 2) errors.name = "Please enter your name";
     if (!emailRegex.test(email.trim())) errors.email = "Please enter a valid email address";
@@ -86,7 +99,7 @@ export default function AuthPage() {
         setMode("signin");
         setLoading(false);
       } else {
-        router.replace("/");
+        router.replace("/onboarding");
       }
     } catch {
       setError("Something went wrong");
@@ -188,6 +201,7 @@ export default function AuthPage() {
               placeholder="Email address"
               value={email}
               onChange={(e) => { setEmail(e.target.value); setFieldErrors(prev => ({ ...prev, email: undefined })); }}
+              onBlur={validateEmailOnBlur}
               className={`${inputClass} ${fieldErrors.email ? "border-[#F85149]" : ""}`}
               required
             />

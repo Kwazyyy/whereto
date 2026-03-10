@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (typeof email !== "string" || !emailRegex.test(email.trim())) {
       return NextResponse.json(
         { error: "Please enter a valid email address" },

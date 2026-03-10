@@ -55,6 +55,10 @@ model User {
   // Featured Placements
   featuredPlacements      FeaturedPlacement[]
 
+  // Onboarding
+  hasCompletedOnboarding  Boolean          @default(false)
+  vibePreferences         Json?
+
   // Stripe Subscription
   stripeCustomerId        String?          @unique
   subscriptionId          String?

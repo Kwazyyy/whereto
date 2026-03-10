@@ -68,21 +68,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/profile",
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id as string;
         token.role = (user as { role?: string }).role ?? "user";
       }
 
-      // Fetch subscription fields + role fallback from DB
-      if (token.id && (!token.role || token.plan === undefined)) {
+      // Re-fetch from DB on first load, session update, or when onboarding not yet completed
+      const needsFetch = !token.role || token.plan === undefined || trigger === "update" || token.hasCompletedOnboarding === false || token.hasCompletedOnboarding === undefined;
+      if (token.id && needsFetch) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { role: true, plan: true, subscriptionStatus: true },
+          select: { role: true, plan: true, subscriptionStatus: true, hasCompletedOnboarding: true },
         });
         if (!token.role) token.role = dbUser?.role ?? "user";
         token.plan = dbUser?.plan ?? null;
         token.subscriptionStatus = dbUser?.subscriptionStatus ?? null;
+        token.hasCompletedOnboarding = dbUser?.hasCompletedOnboarding ?? true;
       }
 
       return token;
@@ -92,6 +94,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.role = token.role as string;
       session.user.plan = (token.plan as string) ?? null;
       session.user.subscriptionStatus = (token.subscriptionStatus as string) ?? null;
+      session.user.hasCompletedOnboarding = (token.hasCompletedOnboarding as boolean) ?? false;
       return session;
     },
   },

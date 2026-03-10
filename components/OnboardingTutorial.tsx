@@ -109,14 +109,22 @@ export function OnboardingTutorial({ onDismiss }: { onDismiss: () => void }) {
     const current = STEPS[step];
     const pad = 8;
 
-    // Tooltip position: below the highlighted element
+    // Tooltip position: centered on the highlighted element
     let tooltipTop = "50%";
+    let tooltipStyle: React.CSSProperties = {};
     if (rect) {
         if (current.target === "chips") {
             tooltipTop = `${rect.bottom + 16}px`;
         } else {
-            // Card: position in the lower portion so it's visible
+            // Card: vertically center on the card area
             tooltipTop = `${rect.top + rect.height * 0.55}px`;
+            // Horizontally center on the card
+            const tooltipWidth = 320; // max-w-xs = 320px
+            const centerX = rect.left + rect.width / 2;
+            let left = centerX - tooltipWidth / 2;
+            // Constrain to viewport with 24px padding
+            left = Math.max(24, Math.min(left, window.innerWidth - tooltipWidth - 24));
+            tooltipStyle = { left: `${left}px`, right: "auto" };
         }
     }
 
@@ -170,8 +178,8 @@ export function OnboardingTutorial({ onDismiss }: { onDismiss: () => void }) {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.3, ease: "easeOut" }}
-                    className="absolute left-5 right-5 max-w-xs mx-auto"
-                    style={{ top: tooltipTop, zIndex: 82 }}
+                    className={`absolute max-w-xs ${current.target === "chips" ? "left-5 right-5 mx-auto" : ""}`}
+                    style={{ top: tooltipTop, zIndex: 82, ...tooltipStyle }}
                 >
                     {/* Arrow pointing up toward highlighted element */}
                     <div className="flex justify-center -mb-px">
