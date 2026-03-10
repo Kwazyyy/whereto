@@ -1,392 +1,139 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
-const INTENT_QUERIES: Record<string, { primary: string; fallback: string }> = {
-  study: { primary: "cafe wifi", fallback: "cafe" },
-  date: { primary: "romantic restaurant bar", fallback: "restaurant" },
-  trending: { primary: "popular restaurant cafe", fallback: "restaurant cafe" },
-  quiet: { primary: "quiet cafe tea", fallback: "cafe" },
-  laptop: { primary: "cafe wifi coworking", fallback: "cafe" },
-  group: { primary: "restaurant bar group", fallback: "restaurant" },
-  budget: { primary: "cheap restaurant cafe", fallback: "restaurant cafe" },
-  desserts: { primary: "dessert cafe bakery ice cream pastry", fallback: "bakery cafe" },
-  coffee: { primary: "coffee shop cafe", fallback: "cafe" },
-  outdoor: { primary: "patio restaurant outdoor", fallback: "restaurant" },
-};
-
-const PRICE_MAP: Record<string, string> = {
-  PRICE_LEVEL_FREE: "Free",
-  PRICE_LEVEL_INEXPENSIVE: "$",
-  PRICE_LEVEL_MODERATE: "$$",
-  PRICE_LEVEL_EXPENSIVE: "$$$",
-  PRICE_LEVEL_VERY_EXPENSIVE: "$$$$",
-};
-
-interface PlacesPhoto {
-  name: string;
-  widthPx: number;
-  heightPx: number;
-}
-
-interface PlacesResult {
-  id: string;
-  displayName?: { text: string };
-  formattedAddress?: string;
-  location?: { latitude: number; longitude: number };
-  priceLevel?: string;
-  rating?: number;
-  photos?: PlacesPhoto[];
-  currentOpeningHours?: {
-    openNow?: boolean;
-    weekdayDescriptions?: string[];
-  };
-  primaryTypeDisplayName?: { text: string };
-  types?: string[];
-  websiteUri?: string;
-}
-
-function haversineKm(
-  lat1: number,
-  lng1: number,
-  lat2: number,
-  lng2: number
-): number {
-  const toRad = (v: number) => (v * Math.PI) / 180;
-  const R = 6371;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-function generateTags(place: PlacesResult, intent: string): string[] {
-  const tags: string[] = [];
-  if (place.rating && place.rating >= 4.5) tags.push("Highly Rated");
-  if (place.rating && place.rating >= 4.0 && place.rating < 4.5) tags.push("Popular");
-  if (place.currentOpeningHours?.openNow) tags.push("Open Now");
-
-  const intentTags: Record<string, string[]> = {
-    study: ["Quiet", "Wifi", "Study Spot"],
-    date: ["Romantic", "Cozy", "Aesthetic"],
-    trending: ["Trending", "Popular", "Buzzing"],
-    quiet: ["Peaceful", "Quiet", "Calm"],
-    laptop: ["Wifi", "Outlets", "Work-Friendly"],
-    group: ["Spacious", "Group-Friendly", "Lively"],
-    budget: ["Affordable", "Budget", "Good Value"],
-    desserts: ["Sweet Treats", "Bakery", "Instagrammable"],
-    coffee: ["Good Coffee", "Cozy", "Chill"],
-    outdoor: ["Patio", "Fresh Air", "Scenic"],
-  };
-
-  const pool = intentTags[intent] ?? ["Nice Spot"];
-  for (const tag of pool) {
-    if (tags.length >= 3) break;
-    if (!tags.includes(tag)) tags.push(tag);
-  }
-
-  return tags.slice(0, 3);
-}
-
-const MIN_RESULTS = 5;
-
-async function searchPlaces(
-  query: string,
-  lat: number,
-  lng: number,
-  radius: number,
-  apiKey: string,
-  fieldMask: string
-): Promise<PlacesResult[]> {
-  const res = await fetch(
-    "https://places.googleapis.com/v1/places:searchText",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Goog-Api-Key": apiKey,
-        "X-Goog-FieldMask": fieldMask,
-      },
-      body: JSON.stringify({
-        textQuery: query,
-        locationBias: {
-          circle: {
-            center: { latitude: lat, longitude: lng },
-            radius,
-          },
-        },
-        maxResultCount: 20,
-        languageCode: "en",
-      }),
-    }
-  );
-
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.places ?? [];
-}
-
-function mapAndFilter(
-  places: PlacesResult[],
-  lat: number,
-  lng: number,
-  radiusKm: number,
-  intent: string,
-  skipDistanceFilter = false
-) {
-  return places
-    .map((place) => {
-      const placeLat = place.location?.latitude ?? lat;
-      const placeLng = place.location?.longitude ?? lng;
-      const distKm = haversineKm(lat, lng, placeLat, placeLng);
-
-      let bestPhotoRef: string | null = null;
-      let photoRefs: string[] = [];
-
-      if (place.photos && place.photos.length > 0) {
-        interface GooglePhoto {
-          widthPx?: number;
-          heightPx?: number;
-          name: string;
-          authorAttributions?: Array<{ displayName: string }>;
-        }
-        const validPhotos = place.photos.slice(0, 10).filter((p: GooglePhoto) => (p.widthPx || 0) >= 400);
-
-        if (validPhotos.length > 0) {
-          const scoredPhotos = validPhotos.map((p: GooglePhoto, index: number) => {
-            let score = p.widthPx || 0;
-
-            // If multiple photos are available, Google's 1st photo is often a bad exterior shot
-            if (index === 0) {
-              score += validPhotos.length >= 3 ? -10000 : 10000;
-            }
-
-            // Indices 1-3 are usually the best interior/food shots
-            if (index >= 1 && index <= 3) {
-              score += 20000;
-            }
-
-            // Prefer landscape
-            if ((p.widthPx || 0) > (p.heightPx || 0)) {
-              score += 5000;
-            }
-
-            // Prefer owner uploads (often professional shots without attributions or with business name)
-            const isOwner = !p.authorAttributions || p.authorAttributions.length === 0 ||
-              p.authorAttributions.some((attr: { displayName: string }) => attr.displayName === place.displayName?.text);
-            if (isOwner) {
-              score += 30000;
-            }
-
-            return { name: p.name, score };
-          });
-
-          // Sort descending by score
-          scoredPhotos.sort((a: { name: string; score: number }, b: { name: string; score: number }) => b.score - a.score);
-          bestPhotoRef = scoredPhotos[0].name;
-          // Put the better ones first in the carousel order
-          photoRefs = scoredPhotos.map((p: { name: string; score: number }) => p.name);
-        } else {
-          photoRefs = place.photos.slice(0, 10).map((p: GooglePhoto) => p.name);
-          bestPhotoRef = photoRefs[0] ?? null;
-        }
-      }
-
-      return {
-        placeId: place.id,
-        name: place.displayName?.text ?? "Unknown",
-        address: place.formattedAddress ?? "",
-        location: { lat: placeLat, lng: placeLng },
-        price: PRICE_MAP[place.priceLevel ?? ""] ?? "$$",
-        rating: place.rating ?? 0,
-        photoRef: bestPhotoRef,
-        photoRefs: photoRefs,
-        type: place.primaryTypeDisplayName?.text ?? "Café",
-        openNow: place.currentOpeningHours?.openNow ?? false,
-        hours: place.currentOpeningHours?.weekdayDescriptions ?? [],
-        distKm,
-        distance: distKm < 1 ? `${Math.round(distKm * 1000)}m` : `${distKm.toFixed(1)}km`,
-        tags: generateTags(place, intent),
-        menuUrl: place.websiteUri
-          ?? `https://www.google.com/search?q=${encodeURIComponent((place.displayName?.text ?? "") + " " + (place.formattedAddress ?? "") + " menu")}`,
-        menuType: (place.websiteUri ? "direct" : "search") as "direct" | "search",
-      };
-    })
-    .filter((p) => skipDistanceFilter || p.distKm <= radiusKm)
-    .sort((a, b) => a.distKm - b.distKm);
-}
+import {
+  haversineKm,
+  calculateMatchScore,
+  INTENT_TO_TAG,
+  generateDisplayTags,
+} from "@/lib/recommendation";
 
 export async function GET(request: NextRequest) {
-  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ error: "API key not configured" }, { status: 500 });
-  }
-
   const { searchParams } = request.nextUrl;
+
   const intent = searchParams.get("intent") ?? "coffee";
   const lat = parseFloat(searchParams.get("lat") ?? "43.6532");
   const lng = parseFloat(searchParams.get("lng") ?? "-79.3832");
-  const rawRadius = parseInt(searchParams.get("radius") ?? "5000", 10);
-  const isAllToronto = rawRadius === 0;
-  const radius = isAllToronto ? 50000 : Math.min(Math.max(rawRadius, 500), 50000);
-  const radiusKm = radius / 1000;
 
-  const queries = INTENT_QUERIES[intent] ?? INTENT_QUERIES.coffee;
+  // Accept "distance" (km) or legacy "radius" (meters)
+  const distanceParam = searchParams.get("distance");
+  const radiusParam = searchParams.get("radius");
+  let maxDistKm: number | null = null;
+  if (distanceParam) {
+    const d = parseFloat(distanceParam);
+    maxDistKm = d === 0 ? null : d;
+  } else if (radiusParam) {
+    const r = parseInt(radiusParam, 10);
+    maxDistKm = r === 0 ? null : r / 1000;
+  }
 
-  const fieldMask = [
-    "places.id",
-    "places.displayName",
-    "places.formattedAddress",
-    "places.location",
-    "places.priceLevel",
-    "places.rating",
-    "places.photos",
-    "places.currentOpeningHours",
-    "places.primaryTypeDisplayName",
-    "places.types",
-    "places.websiteUri",
-  ].join(",");
+  const priceLevelParam = searchParams.get("priceLevel");
+  const priceFilter =
+    priceLevelParam && priceLevelParam !== "all"
+      ? parseInt(priceLevelParam, 10)
+      : null;
+
+  const intentTag = INTENT_TO_TAG[intent] ?? "coffee";
 
   try {
-    // Primary search
-    const primaryRaw = await searchPlaces(queries.primary, lat, lng, radius, apiKey, fieldMask);
-    const results = mapAndFilter(primaryRaw, lat, lng, radiusKm, intent, isAllToronto);
-
-    // Fallback if too few results
-    if (results.length < MIN_RESULTS) {
-      const fallbackRaw = await searchPlaces(queries.fallback, lat, lng, radius, apiKey, fieldMask);
-      const fallbackResults = mapAndFilter(fallbackRaw, lat, lng, radiusKm, intent, isAllToronto);
-
-      // Merge, deduplicate by placeId
-      const seen = new Set(results.map((r) => r.placeId));
-      for (const place of fallbackResults) {
-        if (!seen.has(place.placeId)) {
-          results.push(place);
-          seen.add(place.placeId);
-        }
-      }
-      results.sort((a, b) => a.distKm - b.distKm);
-    }
-
-    const final = results
-      .slice(0, 10)
-      .map((place) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { distKm, ...rest } = place;
-        return rest;
-      });
-
-    // Enrich with featured placement data
-    const INTENT_SHORT_TO_STORED: Record<string, string[]> = {
-      study: ["study_work", "Study/Work"],
-      date: ["date_chill", "Date/Chill"],
-      trending: ["trending", "Trending Now"],
-      quiet: ["quiet_cafes", "Quiet Cafes"],
-      laptop: ["laptop_friendly", "Laptop-Friendly"],
-      group: ["group_hangouts", "Group Hangouts"],
-      budget: ["budget_eats", "Budget Eats"],
-      desserts: ["desserts", "Desserts"],
-      coffee: ["coffee_catchup", "Coffee & Catch-Up"],
-      outdoor: ["outdoor_patio", "Outdoor/Patio"],
-    };
-
-    try {
-      const now = new Date();
-      const allPlacements = await prisma.featuredPlacement.findMany({
-        where: {
-          status: "active",
-          startDate: { lte: now },
-          endDate: { gte: now },
+    // Single query: all places with save counts + approved photo counts
+    const allPlaces = await prisma.place.findMany({
+      select: {
+        id: true,
+        googlePlaceId: true,
+        name: true,
+        lat: true,
+        lng: true,
+        address: true,
+        placeType: true,
+        priceLevel: true,
+        rating: true,
+        photoUrl: true,
+        vibeTags: true,
+        _count: {
+          select: {
+            saves: true,
+            photos: { where: { status: "approved" } },
+          },
         },
-      });
+      },
+    });
 
-      // Filter placements that match this intent
-      const possibleValues = INTENT_SHORT_TO_STORED[intent] ?? [intent];
-      const matchingPlacements = allPlacements.filter((p) => {
-        const storedIntents = p.intents as string[];
-        if (!Array.isArray(storedIntents)) return false;
-        return storedIntents.some((si) => possibleValues.includes(si) || si === intent);
-      });
+    // Filter by vibeTag matching the intent
+    let filtered = allPlaces.filter((p) => {
+      const tags = p.vibeTags;
+      if (!tags || !Array.isArray(tags)) return false;
+      return (tags as string[]).includes(intentTag);
+    });
 
-      // Build a map of googlePlaceId → placementId for matched placements
-      const featuredMap = new Map<string, string>();
-      for (const p of matchingPlacements) {
-        featuredMap.set(p.googlePlaceId, p.id);
-      }
-
-      // Mark places already in results as featured
-      for (const place of final) {
-        const placementId = featuredMap.get(place.placeId);
-        if (placementId) {
-          (place as Record<string, unknown>).isFeatured = true;
-          (place as Record<string, unknown>).placementId = placementId;
-          featuredMap.delete(place.placeId);
-        }
-      }
-
-      // Add featured places not already in results (from DB Place table)
-      if (featuredMap.size > 0) {
-        const missingIds = [...featuredMap.keys()];
-        const dbPlaces = await prisma.place.findMany({
-          where: { googlePlaceId: { in: missingIds } },
-        });
-
-        for (const dbPlace of dbPlaces) {
-          const placementId = featuredMap.get(dbPlace.googlePlaceId);
-          if (!placementId) continue;
-          const vibeTags = Array.isArray(dbPlace.vibeTags) ? (dbPlace.vibeTags as string[]) : [];
-          const distKm = haversineKm(lat, lng, dbPlace.lat, dbPlace.lng);
-          final.splice(
-            Math.min(Math.floor(Math.random() * 3) + 2, final.length),
-            0,
-            {
-              placeId: dbPlace.googlePlaceId,
-              name: dbPlace.name,
-              address: dbPlace.address,
-              location: { lat: dbPlace.lat, lng: dbPlace.lng },
-              price: dbPlace.priceLevel != null ? "$".repeat(dbPlace.priceLevel) : "$$",
-              rating: dbPlace.rating ?? 0,
-              photoRef: dbPlace.photoUrl ?? null,
-              photoRefs: dbPlace.photoUrl ? [dbPlace.photoUrl] : [],
-              type: dbPlace.placeType ?? "Restaurant",
-              openNow: true,
-              hours: [],
-              distance: distKm < 1 ? `${Math.round(distKm * 1000)}m` : `${distKm.toFixed(1)}km`,
-              tags: vibeTags.slice(0, 3),
-              menuUrl: `https://www.google.com/search?q=${encodeURIComponent(dbPlace.name + " " + dbPlace.address + " menu")}`,
-              menuType: "search" as const,
-              isFeatured: true,
-              placementId,
-            } as typeof final[number]
-          );
-        }
-      }
-    } catch {
-      // Silently fallback — don't break places if featured query fails
-    }
-
-    // Enrich with community photo counts (non-blocking — fallback to 0)
-    try {
-      const googleIds = final.map((p) => p.placeId);
-      const photoCounts = await prisma.place.findMany({
-        where: { googlePlaceId: { in: googleIds } },
-        select: {
-          googlePlaceId: true,
-          _count: { select: { photos: { where: { status: "approved" } } } },
-        },
-      });
-      const countMap = new Map(
-        photoCounts.map((p) => [p.googlePlaceId, p._count.photos])
+    // Filter by priceLevel
+    if (priceFilter !== null) {
+      filtered = filtered.filter(
+        (p) => p.priceLevel !== null && p.priceLevel <= priceFilter
       );
-      for (const place of final) {
-        (place as Record<string, unknown>).communityPhotoCount = countMap.get(place.placeId) ?? 0;
-      }
-    } catch {
-      // Silently fallback — don't break places if photo count query fails
     }
 
-    return NextResponse.json({ places: final });
+    // Calculate distance for each place
+    const withDistance = filtered.map((p) => ({
+      ...p,
+      distKm: haversineKm(lat, lng, p.lat, p.lng),
+    }));
+
+    // Filter by max distance (null = no limit / "All Toronto")
+    const inRange =
+      maxDistKm !== null
+        ? withDistance.filter((p) => p.distKm <= maxDistKm!)
+        : withDistance;
+
+    // Max saves for popularity normalization
+    const maxSaves = Math.max(1, ...inRange.map((p) => p._count.saves));
+
+    // Score each place
+    const scored = inRange.map((p) => {
+      const vibeTags = Array.isArray(p.vibeTags)
+        ? (p.vibeTags as string[])
+        : [];
+      return {
+        ...p,
+        vibeTagsArr: vibeTags,
+        matchScore: calculateMatchScore({
+          rating: p.rating,
+          distKm: p.distKm,
+          tagCount: vibeTags.length,
+          saveCount: p._count.saves,
+          maxSaves,
+        }),
+      };
+    });
+
+    // Sort by score descending, limit to 50
+    scored.sort((a, b) => b.matchScore - a.matchScore);
+    const results = scored.slice(0, 50);
+
+    // Build response
+    const places = results.map((p) => ({
+      id: p.id,
+      googlePlaceId: p.googlePlaceId,
+      name: p.name,
+      address: p.address,
+      lat: p.lat,
+      lng: p.lng,
+      rating: p.rating ?? 0,
+      priceLevel: p.priceLevel,
+      photoUrl: p.photoUrl ?? null,
+      placeType: p.placeType,
+      vibeTags: p.vibeTagsArr,
+      distance: Math.round(p.distKm * 100) / 100,
+      matchScore: p.matchScore,
+      displayTags: generateDisplayTags(p.vibeTagsArr, intentTag),
+      communityPhotoCount: p._count.photos,
+      menuUrl: `https://www.google.com/search?q=${encodeURIComponent(
+        p.name + " " + p.address + " menu"
+      )}`,
+      menuType: "search" as const,
+      savedByFriends: [] as string[],
+    }));
+
+    return NextResponse.json({ places });
   } catch (err) {
     return NextResponse.json(
       { error: "Failed to fetch places", details: String(err) },

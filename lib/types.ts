@@ -31,4 +31,6 @@ export interface Place {
   // Menu
   menuUrl?: string;
   menuType?: "direct" | "search";
+  // Match score from recommendation algorithm (0-100)
+  matchScore?: number;
 }

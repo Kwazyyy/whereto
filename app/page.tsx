@@ -32,17 +32,29 @@ import VisitCelebration from "@/components/VisitCelebration";
 import PhotoUploadPrompt from "@/components/PhotoUploadPrompt";
 
 const categories = [
-  { id: "study", icon: BookOpen, label: "Study / Work" },
-  { id: "date", icon: Heart, label: "Date / Chill" },
+  { id: "study_work", icon: BookOpen, label: "Study / Work" },
+  { id: "date_chill", icon: Heart, label: "Date / Chill" },
   { id: "trending", icon: Flame, label: "Trending Now" },
-  { id: "quiet", icon: Coffee, label: "Quiet Cafés" },
-  { id: "laptop", icon: Laptop, label: "Laptop-Friendly" },
-  { id: "group", icon: Users, label: "Group Hangouts" },
-  { id: "budget", icon: DollarSign, label: "Budget Eats" },
+  { id: "quiet_cafes", icon: Coffee, label: "Quiet Cafés" },
+  { id: "laptop_friendly", icon: Laptop, label: "Laptop-Friendly" },
+  { id: "group_hangouts", icon: Users, label: "Group Hangouts" },
+  { id: "budget_eats", icon: DollarSign, label: "Budget Eats" },
   { id: "desserts", icon: Cake, label: "Desserts" },
-  { id: "coffee", icon: MessageCircle, label: "Coffee & Catch-Up" },
-  { id: "outdoor", icon: Sun, label: "Outdoor / Patio" },
+  { id: "coffee_catch_up", icon: MessageCircle, label: "Coffee & Catch-Up" },
+  { id: "outdoor_patio", icon: Sun, label: "Outdoor / Patio" },
 ];
+
+// Migrate old intent IDs from localStorage prefs to new format
+const LEGACY_INTENT_MAP: Record<string, string> = {
+  study: "study_work",
+  date: "date_chill",
+  quiet: "quiet_cafes",
+  laptop: "laptop_friendly",
+  group: "group_hangouts",
+  budget: "budget_eats",
+  coffee: "coffee_catch_up",
+  outdoor: "outdoor_patio",
+};
 
 const FALLBACK_GRADIENTS = [
   "from-amber-800 via-orange-700 to-yellow-600",
@@ -124,7 +136,11 @@ export default function Home() {
       const raw = localStorage.getItem(PREFS_KEY);
       if (raw) {
         const p = JSON.parse(raw) as { defaultIntent?: string; defaultDistance?: number };
-        if (p.defaultIntent) setIntent(p.defaultIntent);
+        if (p.defaultIntent) {
+          // Migrate legacy intent IDs to new format
+          const migrated = LEGACY_INTENT_MAP[p.defaultIntent] ?? p.defaultIntent;
+          setIntent(migrated);
+        }
         if (p.defaultDistance) setRadius(p.defaultDistance);
       }
     } catch {
@@ -308,7 +324,29 @@ export default function Home() {
         `/api/places?intent=${intentId}&lat=${loc.lat}&lng=${loc.lng}&radius=${rad}`
       );
       const data = await res.json();
-      const rawPlaces: Place[] = data.places ?? [];
+      // Map API response to Place interface shape
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rawPlaces: Place[] = (data.places ?? []).map((p: any) => ({
+        placeId: p.googlePlaceId,
+        name: p.name,
+        address: p.address ?? "",
+        location: { lat: p.lat, lng: p.lng },
+        price: p.priceLevel != null ? "$".repeat(p.priceLevel) : "$$",
+        rating: p.rating ?? 0,
+        photoRef: p.photoUrl ?? null,
+        photoRefs: p.photoUrl ? [p.photoUrl] : undefined,
+        type: p.placeType ?? "restaurant",
+        openNow: true,
+        hours: [],
+        distance: p.distance < 1
+          ? `${Math.round(p.distance * 1000)}m`
+          : `${p.distance.toFixed(1)} km`,
+        tags: p.displayTags ?? [],
+        matchScore: p.matchScore,
+        communityPhotoCount: p.communityPhotoCount ?? 0,
+        menuUrl: p.menuUrl ?? undefined,
+        menuType: p.menuType ?? undefined,
+      }));
       setPlaces(rawPlaces);
 
       if (rawPlaces.length > 0 && sessionStatusRef.current === "authenticated") {

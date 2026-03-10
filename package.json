@@ -14,7 +14,8 @@
     "audit-vibetags": "npx tsx scripts/audit-vibetags.ts",
     "analyze-places": "npx tsx scripts/analyze-places.ts",
     "auto-tag": "npx tsx scripts/auto-tag-places.ts",
-    "fix-vibetags": "npx tsx scripts/fix-vibetags.ts"
+    "fix-vibetags": "npx tsx scripts/fix-vibetags.ts",
+    "retag-date-chill": "npx tsx scripts/retag-date-chill.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

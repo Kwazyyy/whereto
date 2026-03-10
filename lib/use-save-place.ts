@@ -6,15 +6,16 @@ import { Place } from "@/lib/types";
 import { useBadges } from "@/components/providers/BadgeProvider";
 
 const INTENT_LABELS: Record<string, string> = {
-  study: "Study / Work",
-  date: "Date / Chill",
+  study_work: "Study / Work",
+  date_chill: "Date / Chill",
   trending: "Trending Now",
-  quiet: "Quiet Cafes",
-  laptop: "Laptop-Friendly",
-  group: "Group Hangouts",
-  budget: "Budget Eats",
-  coffee: "Coffee & Catch-Up",
-  outdoor: "Outdoor / Patio",
+  quiet_cafes: "Quiet Cafes",
+  laptop_friendly: "Laptop-Friendly",
+  group_hangouts: "Group Hangouts",
+  budget_eats: "Budget Eats",
+  desserts: "Desserts",
+  coffee_catch_up: "Coffee & Catch-Up",
+  outdoor_patio: "Outdoor / Patio",
 };
 
 export function useSavePlace() {

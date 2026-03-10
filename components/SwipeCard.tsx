@@ -134,7 +134,7 @@ export function SwipeCard({
 
     const [isFlipped, setIsFlipped] = useState(false);
     const [activePhotoIndex, setActivePhotoIndex] = useState(0);
-    const matchScore = useMemo(() => Math.floor(Math.random() * 19) + 80, []);
+    const matchScore = place.matchScore ?? 0;
 
     const todayHours = useMemo(() => {
         const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
