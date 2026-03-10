@@ -104,7 +104,7 @@ export default function Home() {
   useEffect(() => {
     sessionStatusRef.current = status;
     if (status === "loading") return;
-    if (!localStorage.getItem("savrd_seen_landing")) {
+    if (status === "unauthenticated") {
       router.replace("/landing");
       return;
     }

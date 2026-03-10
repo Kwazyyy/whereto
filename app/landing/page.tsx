@@ -2,6 +2,8 @@
 
 import { motion, useScroll, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef, FormEvent } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 /* ─── Images ────────────────────────────────────────────────── */
@@ -186,9 +188,16 @@ function WaitlistForm() {
    LANDING PAGE
    ═══════════════════════════════════════════════════════════════ */
 export default function LandingPage() {
+    const { status } = useSession();
+    const router = useRouter();
     const [isScrolled, setIsScrolled] = useState(false);
     const [mobileMenu, setMobileMenu] = useState(false);
     const { scrollY } = useScroll();
+
+    // Redirect signed-in users to the app
+    useEffect(() => {
+        if (status === "authenticated") router.replace("/");
+    }, [status, router]);
 
     // Mark that this user has seen the landing page so they won't be redirected here again
     useEffect(() => {
@@ -258,7 +267,7 @@ export default function LandingPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <Link href="/"
+                        <Link href="/auth"
                             className="hidden md:block bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-full font-semibold text-sm transition-all shadow-lg shadow-orange-500/20 cursor-pointer">
                             Start Swiping
                         </Link>
@@ -286,7 +295,7 @@ export default function LandingPage() {
                                         </button>
                                     )
                                 ))}
-                                <Link href="/"
+                                <Link href="/auth"
                                     className="px-4 py-3 rounded-xl text-left text-[15px] font-semibold text-orange-500 hover:bg-white/5 transition-all cursor-pointer">
                                     Start Swiping
                                 </Link>
@@ -337,7 +346,7 @@ export default function LandingPage() {
 
                         {/* CTAs */}
                         <div className="flex flex-wrap gap-4 pt-2">
-                            <Link href="/"
+                            <Link href="/auth"
                                 className="group relative overflow-hidden bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-full font-bold text-[15px] transition-all shadow-xl shadow-orange-500/20 flex items-center gap-2">
                                 <span className="relative z-10">Start Swiping</span>
                                 <ArrowRightIcon size={18} />

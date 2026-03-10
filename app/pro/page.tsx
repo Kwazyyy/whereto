@@ -138,7 +138,7 @@ function ProPageContent() {
 
     const handleCta = async () => {
         if (!session?.user) {
-            router.push("/auth/signin?callbackUrl=/pro");
+            router.push("/auth");
             return;
         }
 

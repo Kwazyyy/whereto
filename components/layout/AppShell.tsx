@@ -16,7 +16,7 @@ const NAV_ITEMS = [
 ];
 
 // Pages that should NOT show the AppShell (sidebar)
-const EXCLUDED_PATHS = ["/landing", "/business", "/for-business", "/lists", "/pro", "/privacy", "/terms"];
+const EXCLUDED_PATHS = ["/landing", "/business", "/for-business", "/lists", "/pro", "/privacy", "/terms", "/auth"];
 const EXCLUDED_SUFFIXES = ["/photos"];
 
 function shouldShowShell(pathname: string): boolean {

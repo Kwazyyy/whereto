@@ -12,6 +12,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import { BookOpen, Heart, Flame, Coffee, Laptop, Users, DollarSign, MessageCircle, Sun } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Place } from "@/lib/types";
 import { SavedPlace, getSavedPlaces } from "@/lib/saved-places";
 import MapPlaceDetail from "@/components/MapPlaceDetail";
@@ -499,6 +500,7 @@ function MapMarkers({
 // --- Main page ---
 export default function MapPage() {
   const { status } = useSession();
+  const router = useRouter();
 
   const [intent, setIntent] = useState("trending");
 
@@ -613,7 +615,8 @@ export default function MapPage() {
     fetchNearby();
   }, [fetchNearby]);
 
-  if (status === "loading") {
+  if (status === "loading" || status === "unauthenticated") {
+    if (status === "unauthenticated") router.replace("/auth");
     return <div className="min-h-screen bg-[#0E1116]" />;
   }
 

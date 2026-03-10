@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useSession, signIn, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { SavedPlace, getSavedPlaces } from "@/lib/saved-places";
@@ -631,6 +632,7 @@ function BoardCardMini({ intent, label, items }: { intent: string, label: string
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [saveCount, setSaveCount] = useState<number | null>(null);
@@ -923,7 +925,8 @@ export default function ProfilePage() {
     .map(([intent, items]) => ({ intent, items }))
     .sort((a, b) => b.items.length - a.items.length); // Sort by most items for display
 
-  if (status === "loading") {
+  if (status === "loading" || status === "unauthenticated") {
+    if (status === "unauthenticated") router.replace("/auth");
     return <div className="min-h-screen bg-[#0E1116]" />;
   }
 
