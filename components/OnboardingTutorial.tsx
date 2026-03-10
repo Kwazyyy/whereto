@@ -108,21 +108,26 @@ export function OnboardingTutorial({ onDismiss }: { onDismiss: () => void }) {
 
     const current = STEPS[step];
     const pad = 8;
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
-    // Tooltip position: centered on the highlighted element
+    // Tooltip position
     let tooltipTop = "50%";
     let tooltipStyle: React.CSSProperties = {};
+    let tooltipClassName = `absolute max-w-xs`;
     if (rect) {
         if (current.target === "chips") {
             tooltipTop = `${rect.bottom + 16}px`;
+            tooltipClassName += " left-5 right-5 mx-auto";
+        } else if (isMobile) {
+            // Mobile: fixed center of screen for card-targeted steps
+            tooltipTop = "50%";
+            tooltipStyle = { left: "50%", transform: "translateX(-50%) translateY(-50%)", position: "fixed" };
         } else {
-            // Card: vertically center on the card area
+            // Desktop: center on the card
             tooltipTop = `${rect.top + rect.height * 0.55}px`;
-            // Horizontally center on the card
-            const tooltipWidth = 320; // max-w-xs = 320px
+            const tooltipWidth = 320;
             const centerX = rect.left + rect.width / 2;
             let left = centerX - tooltipWidth / 2;
-            // Constrain to viewport with 24px padding
             left = Math.max(24, Math.min(left, window.innerWidth - tooltipWidth - 24));
             tooltipStyle = { left: `${left}px`, right: "auto" };
         }
@@ -178,7 +183,7 @@ export function OnboardingTutorial({ onDismiss }: { onDismiss: () => void }) {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.3, ease: "easeOut" }}
-                    className={`absolute max-w-xs ${current.target === "chips" ? "left-5 right-5 mx-auto" : ""}`}
+                    className={tooltipClassName}
                     style={{ top: tooltipTop, zIndex: 82, ...tooltipStyle }}
                 >
                     {/* Arrow pointing up toward highlighted element */}

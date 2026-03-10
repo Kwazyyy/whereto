@@ -23,10 +23,30 @@ export default function AuthPage() {
   if (status === "authenticated") return null;
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const ALLOWED_DOMAINS = [
+    "gmail.com", "yahoo.com", "yahoo.ca", "hotmail.com", "hotmail.ca",
+    "outlook.com", "outlook.ca", "live.com", "live.ca", "icloud.com",
+    "me.com", "mac.com", "aol.com", "protonmail.com", "proton.me",
+    "mail.com", "zoho.com", "ymail.com", "msn.com", "bell.net",
+    "rogers.com", "shaw.ca", "telus.net", "sympatico.ca",
+    "cogeco.ca", "videotron.ca", "sasktel.net",
+    "utoronto.ca", "ryerson.ca", "torontomu.ca", "yorku.ca", "mcgill.ca",
+    "ubc.ca", "uwaterloo.ca", "queensu.ca", "uottawa.ca", "ualberta.ca",
+    "umontreal.ca", "dal.ca", "usask.ca", "ucalgary.ca",
+    "mail.utoronto.ca", "student.ubc.ca",
+  ];
+
+  function validateEmailDomain(emailValue: string): string | null {
+    if (!emailRegex.test(emailValue.trim())) return "Please enter a valid email address";
+    const domain = emailValue.trim().split("@")[1]?.toLowerCase();
+    if (domain && !ALLOWED_DOMAINS.includes(domain)) return "Please use a valid email provider (Gmail, Outlook, iCloud, etc.)";
+    return null;
+  }
 
   function validateEmailOnBlur() {
-    if (email.trim() && !emailRegex.test(email.trim())) {
-      setFieldErrors(prev => ({ ...prev, email: "Please enter a valid email address" }));
+    if (email.trim()) {
+      const err = validateEmailDomain(email);
+      if (err) setFieldErrors(prev => ({ ...prev, email: err }));
     }
   }
 
@@ -34,8 +54,9 @@ export default function AuthPage() {
     e.preventDefault();
     setError("");
 
-    if (!emailRegex.test(email.trim())) {
-      setFieldErrors({ email: "Please enter a valid email address" });
+    const emailErr = validateEmailDomain(email);
+    if (emailErr) {
+      setFieldErrors({ email: emailErr });
       return;
     }
     setFieldErrors({});
@@ -61,7 +82,8 @@ export default function AuthPage() {
 
     const errors: typeof fieldErrors = {};
     if (!name.trim() || name.trim().length < 2) errors.name = "Please enter your name";
-    if (!emailRegex.test(email.trim())) errors.email = "Please enter a valid email address";
+    const emailErr = validateEmailDomain(email);
+    if (emailErr) errors.email = emailErr;
     if (password.length < 8) errors.password = "Password must be at least 8 characters";
     if (password !== confirmPassword) errors.confirmPassword = "Passwords do not match";
 

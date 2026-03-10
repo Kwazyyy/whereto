@@ -2,6 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
+const ALLOWED_DOMAINS = [
+  "gmail.com", "yahoo.com", "yahoo.ca", "hotmail.com", "hotmail.ca",
+  "outlook.com", "outlook.ca", "live.com", "live.ca", "icloud.com",
+  "me.com", "mac.com", "aol.com", "protonmail.com", "proton.me",
+  "mail.com", "zoho.com", "ymail.com", "msn.com", "bell.net",
+  "rogers.com", "shaw.ca", "telus.net", "sympatico.ca",
+  "cogeco.ca", "videotron.ca", "sasktel.net",
+  "utoronto.ca", "ryerson.ca", "torontomu.ca", "yorku.ca", "mcgill.ca",
+  "ubc.ca", "uwaterloo.ca", "queensu.ca", "uottawa.ca", "ualberta.ca",
+  "umontreal.ca", "dal.ca", "usask.ca", "ucalgary.ca",
+  "mail.utoronto.ca", "student.ubc.ca",
+];
+
 export async function POST(req: NextRequest) {
   try {
     const { name, email, password, confirmPassword } = await req.json();
@@ -17,6 +30,14 @@ export async function POST(req: NextRequest) {
     if (typeof email !== "string" || !emailRegex.test(email.trim())) {
       return NextResponse.json(
         { error: "Please enter a valid email address" },
+        { status: 400 }
+      );
+    }
+
+    const domain = email.trim().split("@")[1].toLowerCase();
+    if (!ALLOWED_DOMAINS.includes(domain)) {
+      return NextResponse.json(
+        { error: "Please use a valid email provider (Gmail, Outlook, iCloud, etc.)" },
         { status: 400 }
       );
     }
