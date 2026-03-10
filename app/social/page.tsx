@@ -361,7 +361,7 @@ export default function SocialPage() {
 
   if (loading) {
     return (
-      <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24 max-w-6xl mx-auto px-6 pt-8">
+      <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-32 lg:pb-6 max-w-6xl mx-auto px-6 pt-8">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-[#0E1116] dark:text-white">Social</h1>
           <p className="text-[#656D76] dark:text-[#8B949E] text-sm mt-1">See what your friends are saving</p>
@@ -505,7 +505,7 @@ export default function SocialPage() {
   );
 
   return (
-    <div className="min-h-dvh bg-gray-50 dark:bg-[#0E1116] pb-24">
+    <div className="min-h-dvh bg-gray-50 dark:bg-[#0E1116] pb-32 lg:pb-6">
       {/* ── DESKTOP LAYOUT (>=1024px) ── */}
       <div className="hidden lg:block max-w-6xl mx-auto px-6 pt-8">
         <div className="mb-6">

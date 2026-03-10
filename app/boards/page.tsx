@@ -401,7 +401,7 @@ export default function BoardsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-dvh bg-white dark:bg-[#0E1116] flex items-center justify-center pb-24">
+      <div className="min-h-dvh bg-white dark:bg-[#0E1116] flex items-center justify-center pb-32 lg:pb-6">
         <div
           className="w-8 h-8 rounded-full border-3 border-t-transparent animate-spin"
           style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
@@ -413,7 +413,7 @@ export default function BoardsPage() {
   /* ── Unauthenticated state ─────────────────────────────────── */
   if (status === "unauthenticated") {
     return (
-      <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24">
+      <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-32 lg:pb-6">
         <div className="max-w-5xl mx-auto px-4 lg:px-6 pt-10">
           <h1 className="text-2xl font-bold text-[#0E1116] dark:text-white">
             My Boards
@@ -484,7 +484,7 @@ export default function BoardsPage() {
   const hasSavedLists = savedLists.length > 0;
 
   return (
-    <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24">
+    <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-32 lg:pb-6">
       <div className="max-w-5xl mx-auto px-4 lg:px-6">
         {/* ── Page Header ────────────────────────────────────── */}
         <div className="pt-8 lg:pt-10">

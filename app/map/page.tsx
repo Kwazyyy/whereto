@@ -618,7 +618,7 @@ export default function MapPage() {
   }
 
   return (
-    <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-16 lg:pb-0">
+    <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-28 lg:pb-0">
       {/* Intent chips */}
       <div className="shrink-0 px-5 lg:pl-[88px] xl:pl-[256px] py-3 border-b border-gray-100 dark:border-[#30363D] transition-all duration-200">
         <div
@@ -757,6 +757,9 @@ export default function MapPage() {
         {/* Exploration panel */}
         {userLocation && status === "authenticated" && <ExplorationPanel mapInstance={mapInstance} />}
       </div>
+
+      {/* Bottom gradient fade on mobile — blends map into nav area */}
+      <div className="fixed bottom-0 left-0 right-0 h-32 lg:hidden pointer-events-none z-10 bg-gradient-to-t from-[#0E1116] via-[#0E1116]/60 to-transparent" />
 
       {/* Place detail modal (desktop) / bottom sheet (mobile) */}
       <AnimatePresence>

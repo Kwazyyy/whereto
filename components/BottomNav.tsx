@@ -4,71 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
-
-function BoardsIcon({ color }: { color: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1" fill={color} />
-      <rect x="14" y="3" width="7" height="7" rx="1" fill={color} />
-      <rect x="3" y="14" width="7" height="7" rx="1" fill={color} />
-      <rect x="14" y="14" width="7" height="7" rx="1" fill={color} />
-    </svg>
-  );
-}
-
-function MapIcon({ color }: { color: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-      <circle cx="12" cy="10" r="3" fill={color} />
-    </svg>
-  );
-}
-
-function DiscoverIcon({ color }: { color: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill={color} />
-    </svg>
-  );
-}
-
-function FriendsIcon({ color }: { color: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" fill={color} />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-}
-
-function ProfileIcon({ color }: { color: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="8" r="5" fill={color} />
-      <path d="M20 21a8 8 0 0 0-16 0" />
-    </svg>
-  );
-}
-
-function CreatorsIcon({ color }: { color: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2v20" />
-      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-    </svg>
-  );
-}
+import { Compass, Map, LayoutGrid, Users, User } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/boards", label: "Boards", Icon: BoardsIcon },
-  { href: "/map", label: "Map", Icon: MapIcon },
-  { href: "/", label: "Discover", Icon: DiscoverIcon },
-  { href: "/social", label: "Social", Icon: FriendsIcon },
-  { href: "/profile", label: "Profile", Icon: ProfileIcon },
+  { href: "/boards", label: "Boards", Icon: LayoutGrid },
+  { href: "/map", label: "Map", Icon: Map },
+  { href: "/", label: "Discover", Icon: Compass, exact: true },
+  { href: "/social", label: "Social", Icon: Users },
+  { href: "/profile", label: "Profile", Icon: User },
 ];
 
 // Separate client island for the unseen count badge
@@ -85,7 +28,6 @@ function UnseenBadge() {
         .catch(() => { });
     }
     fetchCount();
-    // Re-fetch when tab becomes visible to keep badge fresh
     function onVisible() { if (document.visibilityState === "visible") fetchCount(); }
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
@@ -107,37 +49,37 @@ export default function BottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 lg:hidden bg-white dark:bg-[#161B22] border-t border-gray-100 dark:border-white/10 shadow-[0_-2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_-2px_8px_rgba(0,0,0,0.3)]" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-      <div className="flex items-end justify-around h-[68px] max-w-lg mx-auto px-2 pb-2">
+    <div className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 pb-8 lg:hidden" style={{ paddingBottom: `max(2rem, env(safe-area-inset-bottom))` }}>
+      <nav className="flex items-center gap-2 px-3 py-2.5 rounded-full bg-[#161B22]/90 backdrop-blur-xl border border-white/15 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
         {NAV_ITEMS.map((item) => {
-          const active = pathname === item.href;
-          const IconComponent = item.Icon;
+          const active = item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(item.href + "/");
+          const Icon = item.Icon;
           const isDiscover = item.href === "/";
 
           return (
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center justify-end flex-1 min-h-[48px]"
+              className={`
+                relative flex items-center justify-center rounded-full cursor-pointer
+                transition-all duration-300 ease-in-out
+                ${active
+                  ? "gap-2 px-4 py-2.5 border border-[#E85D2A] text-[#E85D2A]"
+                  : "w-11 h-11 text-[#8B949E] hover:text-white/70"
+                }
+              `}
             >
-              {active ? (
-                <div className="relative flex items-center justify-center w-11 h-11 rounded-full bg-[#E85D2A] shadow-md shadow-[#E85D2A]/30">
-                  <IconComponent color="white" />
-                  {isDiscover && <UnseenBadge />}
-                </div>
-              ) : (
-                <div className="relative">
-                  <IconComponent color="#9CA3AF" />
-                  {isDiscover && <UnseenBadge />}
-                </div>
+              <Icon size={20} strokeWidth={active ? 2.5 : 2} className="shrink-0" />
+              {active && (
+                <span className="text-sm font-semibold text-[#E85D2A] whitespace-nowrap overflow-hidden">
+                  {item.label}
+                </span>
               )}
-              <span className={`text-[10px] font-medium mt-0.5 ${active ? "text-[#E85D2A]" : "text-gray-400"}`}>
-                {item.label}
-              </span>
+              {isDiscover && <UnseenBadge />}
             </Link>
           );
         })}
-      </div>
-    </nav>
+      </nav>
+    </div>
   );
 }

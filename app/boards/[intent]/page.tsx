@@ -141,7 +141,7 @@ export default function BoardDetailPage() {
 
     if (loading || status === "loading") {
         return (
-            <div className="min-h-dvh bg-white dark:bg-[#0E1116] flex flex-col items-center justify-center pb-16">
+            <div className="min-h-dvh bg-white dark:bg-[#0E1116] flex flex-col items-center justify-center pb-28">
                 <div
                     className="w-8 h-8 rounded-full border-3 border-t-transparent animate-spin"
                     style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
@@ -153,7 +153,7 @@ export default function BoardDetailPage() {
     const savedPlaceIds = new Set(places.map(p => p.placeId));
 
     return (
-        <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24">
+        <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-32 lg:pb-6">
             {/* Header */}
             <div className="max-w-5xl mx-auto px-4 lg:px-6 pt-6">
                 <button

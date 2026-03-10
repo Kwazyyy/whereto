@@ -928,7 +928,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-24 lg:pb-6 relative">
+    <div className="min-h-dvh bg-white dark:bg-[#0E1116] pb-32 lg:pb-6 relative">
       {/* Gear icon — desktop lg:+ (hidden on xl: where settings column is visible) */}
       <div className="absolute top-6 right-6 z-20 hidden lg:block xl:hidden">
         <button onClick={() => setSettingsOpen(true)} className="p-2 text-gray-400 hover:text-[#E85D2A] transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer">

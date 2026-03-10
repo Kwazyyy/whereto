@@ -87,14 +87,6 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1), 0 20px 25px rgba(0,0,0,0.15)',
   };
 
-  const mobilePanelGlassStyle: React.CSSProperties = {
-    background: isDark ? 'rgba(14, 17, 22, 0.85)' : 'rgba(255, 255, 255, 0.85)',
-    backdropFilter: 'blur(40px) saturate(200%)',
-    WebkitBackdropFilter: 'blur(40px) saturate(200%)',
-    border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(255, 255, 255, 0.5)',
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1), 0 20px 25px rgba(0,0,0,0.15)',
-  };
-
   // Mobile touch refs
   const mobileScrollRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef(0);
@@ -171,7 +163,7 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
   if (status !== "authenticated") {
     return (
       <button
-        className="fixed bottom-20 left-1/2 -translate-x-1/2 lg:bottom-auto lg:left-auto lg:translate-x-0 lg:top-20 lg:right-6 z-30 flex items-center gap-2 px-4 py-2.5 rounded-full cursor-pointer text-sm font-medium text-gray-900 dark:text-white hover:scale-[1.02] transition-all duration-300 shadow-lg"
+        className="fixed bottom-36 left-1/2 -translate-x-1/2 lg:bottom-auto lg:left-auto lg:translate-x-0 lg:top-20 lg:right-6 z-30 flex items-center gap-2 px-4 py-2.5 rounded-full cursor-pointer text-sm font-medium text-gray-900 dark:text-white hover:scale-[1.02] transition-all duration-300 shadow-lg"
         style={pillGlassStyle}
       >
         <Compass className="w-4 h-4 text-[#E85D2A]" />
@@ -234,7 +226,7 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
           {!expanded ? (
             <button
               onClick={() => setExpanded(true)}
-              className="fixed bottom-20 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 px-4 py-2.5 rounded-full cursor-pointer transition-all duration-300 shadow-lg"
+              className="fixed bottom-36 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 px-4 py-2.5 rounded-full cursor-pointer transition-all duration-300 shadow-lg"
               style={pillGlassStyle}
             >
               <Compass className="w-4 h-4 text-[#E85D2A]" />
@@ -245,16 +237,17 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
               <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setExpanded(false)} />
               <div
                 ref={mobilePanelRef}
-                className="fixed bottom-0 inset-x-0 z-50 rounded-t-2xl"
-                style={{ ...mobilePanelGlassStyle, borderRadius: '16px 16px 0 0', height: '60dvh' }}
+                className="fixed bottom-20 inset-x-3 z-50 rounded-2xl flex flex-col max-h-[65vh] bg-[#161B22]/80 backdrop-blur-xl border border-white/10 shadow-xl"
               >
-                <div className="pt-3" />
-                <div className="flex justify-end px-4">
+                <div className="shrink-0 pt-3" />
+                <div className="shrink-0 flex justify-end px-4">
                   <button onClick={() => setExpanded(false)} className="p-1 rounded-md text-gray-500 dark:text-[#8B949E] hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer">
                     <ChevronDown size={20} />
                   </button>
                 </div>
-                {skeletonPanel}
+                <div className="flex-1 min-h-0 overflow-y-auto">
+                  {skeletonPanel}
+                </div>
               </div>
             </>
           )}
@@ -627,7 +620,7 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
               transition={{ duration: 0.15 }}
-              className="fixed bottom-20 left-1/2 -translate-x-1/2 z-30"
+              className="fixed bottom-36 left-1/2 -translate-x-1/2 z-30"
             >
               {showPulse && (
                 <div
@@ -662,30 +655,39 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 28, stiffness: 300 }}
-                className="fixed bottom-0 inset-x-0 z-50 rounded-t-2xl flex flex-col"
-                style={{ ...mobilePanelGlassStyle, borderRadius: '16px 16px 0 0', height: "60dvh", touchAction: "none" }}
+                className="fixed bottom-20 inset-x-3 z-50 rounded-2xl flex flex-col max-h-[65vh] bg-[#161B22]/80 backdrop-blur-xl border border-white/10 shadow-xl"
+                style={{ touchAction: "none" }}
                 onTouchStart={handleMobileTouchStart}
                 onTouchEnd={handleMobileTouchEnd}
               >
-                <div className="pt-3" />
-                <div
-                  ref={mobileScrollRef}
-                  className="flex-1 min-h-0 flex flex-col"
-                  style={{ overscrollBehavior: "contain" }}
-                >
+                {/* Drag handle — pinned */}
+                <div className="shrink-0 pt-3" />
+                {/* Header — pinned */}
+                <div className="shrink-0">
                   {headerBlock}
-                  {chipsBlock}
-                  {selectedNeighborhood ? (
-                    neighborhoodDetail
-                  ) : (
-                    <div
-                      className="flex-1 min-h-0 overflow-y-auto scrollbar-hide px-4 pb-4"
-                      style={{ touchAction: "pan-y", WebkitOverflowScrolling: "touch" }}
-                    >
-                      {sorted.map((hood, i) => renderRow(hood, i === sorted.length - 1))}
-                    </div>
-                  )}
                 </div>
+                {/* Area chips — pinned */}
+                <div className="shrink-0">
+                  {chipsBlock}
+                </div>
+                {/* Scrollable neighborhood list */}
+                {selectedNeighborhood ? (
+                  <div
+                    ref={mobileScrollRef}
+                    className="flex-1 min-h-0 overflow-y-auto scrollbar-hide pb-4"
+                    style={{ overscrollBehavior: "contain", touchAction: "pan-y", WebkitOverflowScrolling: "touch" }}
+                  >
+                    {neighborhoodDetail}
+                  </div>
+                ) : (
+                  <div
+                    ref={mobileScrollRef}
+                    className="flex-1 min-h-0 overflow-y-auto scrollbar-hide px-4 pb-4"
+                    style={{ overscrollBehavior: "contain", touchAction: "pan-y", WebkitOverflowScrolling: "touch" }}
+                  >
+                    {sorted.map((hood, i) => renderRow(hood, i === sorted.length - 1))}
+                  </div>
+                )}
               </motion.div>
             </>
           )}

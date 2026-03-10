@@ -163,7 +163,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <DesktopSidebar pathname={pathname} />
+      {/* Desktop sidebar — force hidden below lg via inline style for max specificity */}
+      <div className="contents lg:block" style={{ display: 'none' }} ref={(el) => {
+        if (el) {
+          // Override inline display:none at lg+ via matchMedia
+          const mq = window.matchMedia('(min-width: 1024px)');
+          const apply = () => { el.style.display = mq.matches ? 'block' : 'none'; };
+          apply();
+          mq.addEventListener('change', apply);
+        }
+      }}>
+        <DesktopSidebar pathname={pathname} />
+      </div>
       <main className={`transition-all duration-200 min-h-0 ${isMapPage ? "" : "lg:ml-[72px] xl:ml-[240px]"}`}>
         {children}
       </main>

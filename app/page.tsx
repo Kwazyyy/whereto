@@ -507,7 +507,7 @@ export default function Home() {
   }
 
   return (
-    <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-16 lg:pb-0">
+    <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-28 lg:pb-0">
       {/* Counter */}
       {!loading && !allDone && visiblePlaces.length > 0 && (
         <div className="shrink-0 px-5 pt-3 pb-1 flex justify-end lg:max-w-[540px] lg:mx-auto lg:w-full">
