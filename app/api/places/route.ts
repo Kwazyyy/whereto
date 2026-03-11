@@ -5,12 +5,19 @@ import {
   calculateMatchScore,
   INTENT_TO_TAG,
   generateDisplayTags,
+  generateDisplayTagsMulti,
 } from "@/lib/recommendation";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
 
-  const intent = searchParams.get("intent") ?? "coffee";
+  // Multi-intent: "intents=romantic,chill" or single "intent=romantic"
+  const intentsParam = searchParams.get("intents");
+  const intentParam = searchParams.get("intent") ?? "coffee";
+  const intentKeys = intentsParam
+    ? intentsParam.split(",").filter(Boolean)
+    : [intentParam];
+
   const lat = parseFloat(searchParams.get("lat") ?? "43.6532");
   const lng = parseFloat(searchParams.get("lng") ?? "-79.3832");
 
@@ -32,7 +39,9 @@ export async function GET(request: NextRequest) {
       ? parseInt(priceLevelParam, 10)
       : null;
 
-  const intentTag = INTENT_TO_TAG[intent] ?? "coffee";
+  // Map intent keys to vibe tags (deduplicate)
+  const intentTags = [...new Set(intentKeys.map((k) => INTENT_TO_TAG[k] ?? k))];
+  const isMulti = intentTags.length > 1;
 
   try {
     // Single query: all places with save counts + approved photo counts
@@ -58,11 +67,12 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Filter by vibeTag matching the intent
+    // Filter: place must match at least 1 of the selected tags
     let filtered = allPlaces.filter((p) => {
       const tags = p.vibeTags;
       if (!tags || !Array.isArray(tags)) return false;
-      return (tags as string[]).includes(intentTag);
+      const vt = tags as string[];
+      return intentTags.some((t) => vt.includes(t));
     });
 
     // Filter by priceLevel
@@ -87,29 +97,44 @@ export async function GET(request: NextRequest) {
     // Max saves for popularity normalization
     const maxSaves = Math.max(1, ...inRange.map((p) => p._count.saves));
 
-    // Score each place
+    // Score each place with match tier info
     const scored = inRange.map((p) => {
       const vibeTags = Array.isArray(p.vibeTags)
         ? (p.vibeTags as string[])
         : [];
+      const matchedCount = intentTags.filter((t) => vibeTags.includes(t)).length;
+      const matchTier: "full" | "partial" =
+        matchedCount === intentTags.length ? "full" : "partial";
+
       return {
         ...p,
         vibeTagsArr: vibeTags,
+        matchedCount,
+        matchTier,
         matchScore: calculateMatchScore({
           rating: p.rating,
           distKm: p.distKm,
           tagCount: vibeTags.length,
           saveCount: p._count.saves,
           maxSaves,
+          matchedTagCount: matchedCount,
+          totalSelectedTags: intentTags.length,
         }),
       };
     });
 
-    // Sort by score descending, limit to 50
-    scored.sort((a, b) => b.matchScore - a.matchScore);
+    // Sort: full matches first (by score), then partial matches (by score)
+    scored.sort((a, b) => {
+      if (a.matchTier !== b.matchTier) {
+        return a.matchTier === "full" ? -1 : 1;
+      }
+      return b.matchScore - a.matchScore;
+    });
+
     const results = scored.slice(0, 50);
 
     // Build response
+    const primaryTag = intentTags[0];
     const places = results.map((p) => ({
       id: p.id,
       googlePlaceId: p.googlePlaceId,
@@ -124,7 +149,10 @@ export async function GET(request: NextRequest) {
       vibeTags: p.vibeTagsArr,
       distance: Math.round(p.distKm * 100) / 100,
       matchScore: p.matchScore,
-      displayTags: generateDisplayTags(p.vibeTagsArr, intentTag),
+      matchTier: p.matchTier,
+      displayTags: isMulti
+        ? generateDisplayTagsMulti(p.vibeTagsArr, intentTags)
+        : generateDisplayTags(p.vibeTagsArr, primaryTag),
       communityPhotoCount: p._count.photos,
       menuUrl: `https://www.google.com/search?q=${encodeURIComponent(
         p.name + " " + p.address + " menu"

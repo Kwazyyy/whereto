@@ -57,6 +57,8 @@ export interface ScoreInput {
   tagCount: number;
   saveCount: number;
   maxSaves: number;
+  matchedTagCount?: number;
+  totalSelectedTags?: number;
 }
 
 export function calculateMatchScore(input: ScoreInput): number {
@@ -65,7 +67,15 @@ export function calculateMatchScore(input: ScoreInput): number {
   const t = tagRelevanceScore(input.tagCount) * 0.2;
   const p = popularityScore(input.saveCount, input.maxSaves) * 0.15;
   const jitter = Math.random() * 100 * 0.1;
-  return Math.min(100, Math.round(r + d + t + p + jitter));
+
+  // Tag match bonus for multi-intent
+  let tagBonus = 0;
+  const matched = input.matchedTagCount ?? 1;
+  const total = input.totalSelectedTags ?? 1;
+  if (total > 1 && matched === total) tagBonus = 15;
+  else if (total >= 3 && matched === 2) tagBonus = 8;
+
+  return Math.min(100, Math.round(r + d + t + p + jitter + tagBonus));
 }
 
 // ─── Intent → vibeTag mapping ───
@@ -133,6 +143,34 @@ export function generateDisplayTags(
   // Pad to 2 with secondary intent display tag
   if (result.length < 2 && intentDisplay && intentDisplay.length > 1) {
     result.push(intentDisplay[1]);
+  }
+
+  return result.slice(0, 3);
+}
+
+export function generateDisplayTagsMulti(
+  vibeTags: string[],
+  intentTags: string[]
+): string[] {
+  const result: string[] = [];
+  const used = new Set<string>();
+
+  // Primary display tags for selected intents
+  for (const tag of intentTags) {
+    const display = DISPLAY_TAG_MAP[tag];
+    if (display && result.length < 3) {
+      result.push(display[0]);
+      used.add(tag);
+    }
+  }
+
+  // Fill from other matching vibeTags
+  for (const tag of vibeTags) {
+    if (used.has(tag)) continue;
+    const display = DISPLAY_TAG_MAP[tag];
+    if (display && result.length < 3) {
+      result.push(display[0]);
+    }
   }
 
   return result.slice(0, 3);

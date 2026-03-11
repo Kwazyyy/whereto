@@ -30,6 +30,7 @@ import Link from 'next/link';
 import { BookOpen, Heart, Flame, Coffee, Laptop, Users, DollarSign, MessageCircle, Sun, Sparkles, MapPin, Sofa } from "lucide-react";
 import VisitCelebration from "@/components/VisitCelebration";
 import PhotoUploadPrompt from "@/components/PhotoUploadPrompt";
+import { useToast } from "@/components/Toast";
 
 const categories = [
   { id: "study_work", icon: BookOpen, label: "Study / Work" },
@@ -43,6 +44,9 @@ const categories = [
   { id: "coffee_catch_up", icon: MessageCircle, label: "Coffee & Catch-Up" },
   { id: "outdoor_patio", icon: Sun, label: "Outdoor / Patio" },
 ];
+
+const CATEGORY_LABELS: Record<string, string> = {};
+for (const c of categories) CATEGORY_LABELS[c.id] = c.label;
 
 // Migrate old intent IDs from localStorage prefs to new format
 const LEGACY_INTENT_MAP: Record<string, string> = {
@@ -80,6 +84,8 @@ const TAP_MOVE_LIMIT = 10;
 const TAP_TIME_LIMIT = 200;
 
 const PREFS_KEY = "savrd_prefs";
+const MAX_INTENTS = 3;
+
 // --- Main Page ---
 
 export default function Home() {
@@ -87,7 +93,8 @@ export default function Home() {
   const { triggerBadgeCheck } = useBadges();
   const { triggerNeighborhoodReveal } = useNeighborhoodReveal();
   const { triggerVibeVoting } = useVibeVoting();
-  const [intent, setIntent] = useState("trending");
+  const { showToast } = useToast();
+  const [selectedIntents, setSelectedIntents] = useState<string[]>(["trending"]);
   const [radius, setRadius] = useState(5000);
   const [priceFilter, setPriceFilter] = useState("All");
   const [prefsApplied, setPrefsApplied] = useState(false);
@@ -98,7 +105,7 @@ export default function Home() {
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [pageReady, setPageReady] = useState(false);
-  // skippedPerIntent: per-intent set of placeIds that have been swiped (left=persisted, right/up=session-only)
+  // skippedPerIntent: per-intent-combo set of placeIds that have been swiped
   const [skippedPerIntent, setSkippedPerIntent] = useState<Record<string, Set<string>>>({});
   const [recommendations, setRecommendations] = useState<Place[]>([]);
   const [shareModalPlace, setShareModalPlace] = useState<{ placeId: string; name: string } | null>(null);
@@ -114,6 +121,31 @@ export default function Home() {
   const { handleSave, handleUnsave } = useSavePlace();
   const { data: session, status } = useSession();
   const sessionStatusRef = useRef(status);
+
+  // Stable key for the current intent combination (sorted for consistency)
+  const intentKey = useMemo(() => [...selectedIntents].sort().join(","), [selectedIntents]);
+  // First intent used for saving and featured placements
+  const primaryIntent = selectedIntents[0];
+
+  function handleChipTap(chipId: string) {
+    setSelectedIntents((prev) => {
+      if (prev.includes(chipId)) {
+        // Deselecting — must keep at least 1
+        if (prev.length <= 1) {
+          showToast("Select at least one vibe");
+          return prev;
+        }
+        return prev.filter((id) => id !== chipId);
+      } else {
+        // Selecting — max 3
+        if (prev.length >= MAX_INTENTS) {
+          showToast("Max 3 vibes at a time");
+          return prev;
+        }
+        return [...prev, chipId];
+      }
+    });
+  }
 
   useEffect(() => {
     sessionStatusRef.current = status;
@@ -141,7 +173,7 @@ export default function Home() {
         if (p.defaultIntent) {
           // Migrate legacy intent IDs to new format
           const migrated = LEGACY_INTENT_MAP[p.defaultIntent] ?? p.defaultIntent;
-          setIntent(migrated);
+          setSelectedIntents([migrated]);
         }
         if (p.defaultDistance) setRadius(p.defaultDistance);
       }
@@ -207,16 +239,16 @@ export default function Home() {
     });
   }, [status, triggerNeighborhoodReveal, triggerBadgeCheck]);
 
-  // Load persisted skipped IDs when intent changes
+  // Load persisted skipped IDs when intent combo changes
   useEffect(() => {
-    const stored = loadSkippedForIntent(intent);
+    const stored = loadSkippedForIntent(intentKey);
     if (stored.size > 0) {
       setSkippedPerIntent(prev => ({
         ...prev,
-        [intent]: new Set([...(prev[intent] ?? new Set()), ...stored]),
+        [intentKey]: new Set([...(prev[intentKey] ?? new Set()), ...stored]),
       }));
     }
-  }, [intent]);
+  }, [intentKey]);
 
   // Load saved place IDs when authenticated
   useEffect(() => {
@@ -319,11 +351,12 @@ export default function Home() {
     }
   }, []);
 
-  const fetchPlaces = useCallback(async (loc: { lat: number; lng: number }, intentId: string, rad: number) => {
+  const fetchPlaces = useCallback(async (loc: { lat: number; lng: number }, intents: string[], rad: number) => {
     setLoading(true);
     try {
+      const intentsParam = intents.join(",");
       const res = await fetch(
-        `/api/places?intent=${intentId}&lat=${loc.lat}&lng=${loc.lng}&radius=${rad}`
+        `/api/places?intents=${intentsParam}&lat=${loc.lat}&lng=${loc.lng}&radius=${rad}`
       );
       const data = await res.json();
       // Map API response to Place interface shape
@@ -411,10 +444,10 @@ export default function Home() {
 
   useEffect(() => {
     if (userLocation && prefsApplied) {
-      fetchPlaces(userLocation, intent, radius);
-      fetchFeatured(userLocation, intent, radius);
+      fetchPlaces(userLocation, selectedIntents, radius);
+      fetchFeatured(userLocation, primaryIntent, radius);
     }
-  }, [userLocation, intent, radius, fetchPlaces, fetchFeatured, prefsApplied]);
+  }, [userLocation, intentKey, radius, fetchPlaces, fetchFeatured, prefsApplied, selectedIntents, primaryIntent]);
 
   // Derived: filter by budget, then by swiped cards
   const budgetFilteredPlaces = useMemo(() => {
@@ -423,7 +456,7 @@ export default function Home() {
   }, [places, priceFilter]);
 
   const visiblePlaces = useMemo(() => {
-    const skipped = skippedPerIntent[intent] ?? new Set<string>();
+    const skipped = skippedPerIntent[intentKey] ?? new Set<string>();
     const filtered = budgetFilteredPlaces.filter(p => !skipped.has(p.placeId));
     // Recommendation cards go first; they bypass intent/budget filters
     const merged = [...recommendations, ...filtered];
@@ -439,7 +472,7 @@ export default function Home() {
     }
 
     return merged;
-  }, [budgetFilteredPlaces, skippedPerIntent, intent, recommendations, featuredPlace]);
+  }, [budgetFilteredPlaces, skippedPerIntent, intentKey, recommendations, featuredPlace]);
 
   // Track featured impression when featured card is the top visible card
   useEffect(() => {
@@ -461,10 +494,10 @@ export default function Home() {
 
   function addToSkipped(placeId: string, persist: boolean) {
     setSkippedPerIntent(prev => {
-      const current = prev[intent] ?? new Set<string>();
+      const current = prev[intentKey] ?? new Set<string>();
       const updated = new Set([...current, placeId]);
-      if (persist) persistSkippedForIntent(intent, updated);
-      return { ...prev, [intent]: updated };
+      if (persist) persistSkippedForIntent(intentKey, updated);
+      return { ...prev, [intentKey]: updated };
     });
   }
 
@@ -495,7 +528,7 @@ export default function Home() {
       setRecommendations(prev => prev.filter(r => r.recommendationId !== place.recommendationId));
       if (direction === "right") {
         if (sessionStatusRef.current === "authenticated") {
-          handleSave(place, intent, "save", place.recommendationId);
+          handleSave(place, primaryIntent, "save", place.recommendationId);
           setSavedPlaceIds(prev => new Set([...prev, place.placeId]));
         }
       }
@@ -509,7 +542,7 @@ export default function Home() {
         setShowSignInModal(true);
         return;
       }
-      handleSave(place, intent, "save");
+      handleSave(place, primaryIntent, "save");
       setSavedPlaceIds(prev => new Set([...prev, place.placeId]));
       // Session-only skip (don't persist saves)
       addToSkipped(place.placeId, false);
@@ -530,7 +563,7 @@ export default function Home() {
       setSavedPlaceIds((prev) => { const next = new Set(prev); next.delete(place.placeId); return next; });
       return;
     }
-    handleSave(place, intent, action);
+    handleSave(place, primaryIntent, action);
     setSavedPlaceIds((prev) => new Set([...prev, place.placeId]));
     if (action === "go_now") {
       setPendingVisit(place);
@@ -542,9 +575,14 @@ export default function Home() {
   }
 
   function handleRefresh() {
-    clearSkippedForIntent(intent);
-    setSkippedPerIntent(prev => ({ ...prev, [intent]: new Set() }));
+    clearSkippedForIntent(intentKey);
+    setSkippedPerIntent(prev => ({ ...prev, [intentKey]: new Set() }));
   }
+
+  // Multi-intent label
+  const showingLabel = selectedIntents.length >= 2
+    ? selectedIntents.map((id) => CATEGORY_LABELS[id] ?? id).join(" + ")
+    : null;
 
   if (!pageReady) {
     return <div className="min-h-screen bg-[#0E1116]" />;
@@ -573,11 +611,11 @@ export default function Home() {
             <motion.button
               whileTap={{ scale: 0.95 }}
               key={cat.id}
-              onClick={() => setIntent(cat.id)}
+              onClick={() => handleChipTap(cat.id)}
               className={`
                 shrink-0 px-4 py-2 rounded-full text-sm font-semibold snap-start
                 transition-colors duration-200 cursor-pointer whitespace-nowrap
-                ${intent === cat.id
+                ${selectedIntents.includes(cat.id)
                   ? "bg-[#E85D2A] text-white shadow-sm"
                   : "bg-gray-100 dark:bg-white/10 text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-200 dark:hover:bg-white/15"
                 }
@@ -587,6 +625,11 @@ export default function Home() {
             </motion.button>
           ))}
         </div>
+        {showingLabel && (
+          <p className="text-[#8B949E] text-xs text-center mt-1">
+            Showing: {showingLabel}
+          </p>
+        )}
       </div>
 
       {/* Loading State */}
@@ -650,7 +693,7 @@ export default function Home() {
           </p>
           {places.length === 0 ? (
             <button
-              onClick={() => { setRadius(25000); setIntent("trending"); }}
+              onClick={() => { setRadius(25000); setSelectedIntents(["trending"]); }}
               className="mt-4 px-6 py-3 rounded-full font-semibold text-white bg-[#E85D2A] hover:bg-[#d04e1f] transition-colors shadow-lg shadow-[#E85D2A]/30 active:scale-95 flex items-center gap-2"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /></svg>
