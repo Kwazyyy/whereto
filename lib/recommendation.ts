@@ -71,9 +71,10 @@ export function calculateMatchScore(input: ScoreInput): number {
 // ─── Intent → vibeTag mapping ───
 
 export const INTENT_TO_TAG: Record<string, string> = {
-  // New intent names
+  // Current intent names
   study_work: "study",
-  date_chill: "date",
+  romantic: "romantic",
+  chill: "chill",
   trending: "trending",
   quiet_cafes: "quiet",
   laptop_friendly: "study",
@@ -81,14 +82,15 @@ export const INTENT_TO_TAG: Record<string, string> = {
   budget_eats: "budget",
   coffee_catch_up: "coffee",
   outdoor_patio: "outdoor",
-  // Legacy intent names (backwards compat with current frontend)
+  // Legacy intent names (backwards compat)
   study: "study",
-  date: "date",
+  date: "romantic",
+  date_chill: "romantic",
   quiet: "quiet",
   laptop: "study",
   group: "groups",
   budget: "budget",
-  desserts: "coffee", // no dedicated desserts tag; closest match
+  desserts: "coffee",
   coffee: "coffee",
   outdoor: "outdoor",
 };
@@ -97,7 +99,8 @@ export const INTENT_TO_TAG: Record<string, string> = {
 
 const DISPLAY_TAG_MAP: Record<string, string[]> = {
   study: ["Study Spot", "Laptop Friendly"],
-  date: ["Date Night", "Romantic"],
+  romantic: ["Romantic", "Date Night"],
+  chill: ["Chill Vibes", "Relaxed"],
   trending: ["Trending", "Popular"],
   quiet: ["Quiet", "Cozy"],
   groups: ["Group Friendly", "Social"],

@@ -27,19 +27,19 @@ import { useNeighborhoodReveal } from "@/components/providers/NeighborhoodReveal
 import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
 import { Theme } from "@/components/ThemeProvider";
 import Link from 'next/link';
-import { BookOpen, Heart, Flame, Coffee, Laptop, Users, DollarSign, Cake, MessageCircle, Sun, Sparkles, MapPin } from "lucide-react";
+import { BookOpen, Heart, Flame, Coffee, Laptop, Users, DollarSign, MessageCircle, Sun, Sparkles, MapPin, Sofa } from "lucide-react";
 import VisitCelebration from "@/components/VisitCelebration";
 import PhotoUploadPrompt from "@/components/PhotoUploadPrompt";
 
 const categories = [
   { id: "study_work", icon: BookOpen, label: "Study / Work" },
-  { id: "date_chill", icon: Heart, label: "Date / Chill" },
+  { id: "romantic", icon: Heart, label: "Romantic" },
+  { id: "chill", icon: Sofa, label: "Chill Vibes" },
   { id: "trending", icon: Flame, label: "Trending Now" },
   { id: "quiet_cafes", icon: Coffee, label: "Quiet Cafés" },
   { id: "laptop_friendly", icon: Laptop, label: "Laptop-Friendly" },
   { id: "group_hangouts", icon: Users, label: "Group Hangouts" },
   { id: "budget_eats", icon: DollarSign, label: "Budget Eats" },
-  { id: "desserts", icon: Cake, label: "Desserts" },
   { id: "coffee_catch_up", icon: MessageCircle, label: "Coffee & Catch-Up" },
   { id: "outdoor_patio", icon: Sun, label: "Outdoor / Patio" },
 ];
@@ -47,11 +47,13 @@ const categories = [
 // Migrate old intent IDs from localStorage prefs to new format
 const LEGACY_INTENT_MAP: Record<string, string> = {
   study: "study_work",
-  date: "date_chill",
+  date: "romantic",
+  date_chill: "romantic",
   quiet: "quiet_cafes",
   laptop: "laptop_friendly",
   group: "group_hangouts",
   budget: "budget_eats",
+  desserts: "coffee_catch_up",
   coffee: "coffee_catch_up",
   outdoor: "outdoor_patio",
 };
