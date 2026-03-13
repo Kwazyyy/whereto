@@ -99,7 +99,11 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    return NextResponse.json({ saveId: save.id });
+    const totalSaves = await prisma.save.count({
+      where: { userId: session.user.id },
+    });
+
+    return NextResponse.json({ saveId: save.id, totalSaves });
   } catch (err) {
     console.error("POST /api/saves Failed:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

@@ -18,7 +18,7 @@ const INTENT_LABELS: Record<string, string> = {
   outdoor_patio: "Outdoor / Patio",
 };
 
-export function useSavePlace() {
+export function useSavePlace(onSaveCount?: (totalSaves: number) => void) {
   const { status } = useSession();
   const { showToast } = useToast();
   const { triggerBadgeCheck } = useBadges();
@@ -41,8 +41,13 @@ export function useSavePlace() {
       return;
     }
 
+    const data = await res.json() as { saveId: string; totalSaves: number };
+
     const label = recommendationId ? "Recs from Friends" : (INTENT_LABELS[intent] ?? intent);
     showToast(`Saved to ${label}`);
+
+    // Notify caller of total save count (for nudges)
+    if (onSaveCount) onSaveCount(data.totalSaves);
 
     // Check for badges asynchronously
     triggerBadgeCheck();

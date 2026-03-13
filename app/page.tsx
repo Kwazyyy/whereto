@@ -31,6 +31,8 @@ import { BookOpen, Heart, Flame, Coffee, Laptop, Users, DollarSign, MessageCircl
 import VisitCelebration from "@/components/VisitCelebration";
 import PhotoUploadPrompt from "@/components/PhotoUploadPrompt";
 import { useToast } from "@/components/Toast";
+import { shouldShowNudge, NUDGE_10_SAVES_SHARE } from "@/lib/nudges";
+import NudgeModal from "@/components/nudges/NudgeModal";
 
 const categories = [
   { id: "study_work", icon: BookOpen, label: "Study / Work" },
@@ -115,10 +117,15 @@ export default function Home() {
   const [photoPromptPlace, setPhotoPromptPlace] = useState<{ placeId: string; name: string } | null>(null);
   const [featuredPlace, setFeaturedPlace] = useState<(Place & { placementId: string }) | null>(null);
   const featuredImpressionSent = useRef<string | null>(null);
+  const [showSavesNudge, setShowSavesNudge] = useState(false);
 
   const chipScrollRef = useRef<HTMLDivElement>(null);
   const locationResolved = useRef(false);
-  const { handleSave, handleUnsave } = useSavePlace();
+  const { handleSave, handleUnsave } = useSavePlace((totalSaves) => {
+    if (totalSaves >= 10 && shouldShowNudge(NUDGE_10_SAVES_SHARE)) {
+      setTimeout(() => setShowSavesNudge(true), 1000);
+    }
+  });
   const { data: session, status } = useSession();
   const sessionStatusRef = useRef(status);
 
@@ -787,6 +794,22 @@ export default function Home() {
         placeName={photoPromptPlace?.name ?? ""}
         isOpen={!!photoPromptPlace}
         onClose={() => setPhotoPromptPlace(null)}
+      />
+
+      {/* 10 Saves Nudge */}
+      <NudgeModal
+        isOpen={showSavesNudge}
+        onClose={() => setShowSavesNudge(false)}
+        icon={Users}
+        title="You've got great taste!"
+        description="10 spots saved! Share your discoveries with friends and see what they're into."
+        ctaText="Find Friends"
+        onCta={() => {
+          setShowSavesNudge(false);
+          router.push("/friends");
+        }}
+        secondaryText="Maybe later"
+        nudgeType={NUDGE_10_SAVES_SHARE}
       />
 
     </div>
