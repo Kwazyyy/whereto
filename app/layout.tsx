@@ -9,6 +9,7 @@ import ThemeProvider from "@/components/ThemeProvider";
 import { BadgeProvider } from "@/components/providers/BadgeProvider";
 import { NeighborhoodRevealProvider } from "@/components/providers/NeighborhoodRevealProvider";
 import { VibeVotingProvider } from "@/components/providers/VibeVotingProvider";
+import WelcomeBackNudge from "@/components/nudges/WelcomeBackNudge";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,6 +53,7 @@ export default function RootLayout({
                       {children}
                     </AppShell>
                     <BottomNav />
+                    <WelcomeBackNudge />
                   </VibeVotingProvider>
                 </BadgeProvider>
               </NeighborhoodRevealProvider>
