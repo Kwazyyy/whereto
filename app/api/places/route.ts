@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 import {
   haversineKm,
   calculateMatchScore,
@@ -44,8 +45,22 @@ export async function GET(request: NextRequest) {
   const isMulti = intentTags.length > 1;
 
   try {
+    // Exclude places the user has already saved
+    const session = await auth();
+    let excludedPlaceIds: string[] = [];
+    if (session?.user?.id) {
+      const userSaves = await prisma.save.findMany({
+        where: { userId: session.user.id },
+        select: { placeId: true },
+      });
+      excludedPlaceIds = userSaves.map((s) => s.placeId);
+    }
+
     // Single query: all places with save counts + approved photo counts
     const allPlaces = await prisma.place.findMany({
+      where: excludedPlaceIds.length > 0
+        ? { NOT: { id: { in: excludedPlaceIds } } }
+        : undefined,
       select: {
         id: true,
         googlePlaceId: true,

@@ -806,7 +806,7 @@ export default function Home() {
         ctaText="Find Friends"
         onCta={() => {
           setShowSavesNudge(false);
-          router.push("/friends");
+          router.push("/social");
         }}
         secondaryText="Maybe later"
         nudgeType={NUDGE_10_SAVES_SHARE}
