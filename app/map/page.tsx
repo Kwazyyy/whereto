@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { Place } from "@/lib/types";
 import { SavedPlace, getSavedPlaces } from "@/lib/saved-places";
 import MapPlaceDetail from "@/components/MapPlaceDetail";
+import { ShareModal } from "@/components/ShareModal";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useTheme } from "@/components/ThemeProvider";
 import FogOverlay from "@/components/FogOverlay";
@@ -556,6 +557,7 @@ export default function MapPage() {
   const [savedPlaces, setSavedPlaces] = useState<SavedPlace[]>([]);
   const [nearbyPlaces, setNearbyPlaces] = useState<Place[]>([]);
   const [detailPlace, setDetailPlace] = useState<Place | null>(null);
+  const [sharePlace, setSharePlace] = useState<{ placeId: string; name: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [visitedLocations, setVisitedLocations] = useState<{ lat: number; lng: number; placeId: string }[]>([]);
   const [visitedIds, setVisitedIds] = useState<Set<string>>(new Set());
@@ -806,6 +808,7 @@ export default function MapPage() {
             savedPlaceIds={new Set(savedPlaces.map(p => p.placeId))}
             userLocation={userLocation}
             onClose={() => setDetailPlace(null)}
+            onShare={(p) => setSharePlace(p)}
           />
         )}
       </AnimatePresence>
@@ -826,6 +829,14 @@ export default function MapPage() {
         isOpen={!!photoPromptPlace}
         onClose={() => setPhotoPromptPlace(null)}
       />
+
+      {/* Share Modal — rendered at page level to escape transforms */}
+      {sharePlace && (
+        <ShareModal
+          place={sharePlace}
+          onClose={() => setSharePlace(null)}
+        />
+      )}
     </div>
   );
 }

@@ -11,7 +11,6 @@ import { useSavePlace } from "@/lib/use-save-place";
 import { useSession } from "next-auth/react";
 import { haversineMeters } from "@/lib/haversine";
 import CommunityVibes from "./CommunityVibes";
-import { ShareModal } from "./ShareModal";
 
 // --- Photo component for individual photo refs ---
 function DetailPhoto({ photoRef, alt }: { photoRef: string; alt: string }) {
@@ -524,6 +523,7 @@ export default function MapPlaceDetail({
   userLocation,
   onClose,
   onUnsave,
+  onShare,
 }: {
   place: Place;
   intent: string;
@@ -531,11 +531,11 @@ export default function MapPlaceDetail({
   userLocation: { lat: number; lng: number } | null;
   onClose: () => void;
   onUnsave?: (placeId: string) => void;
+  onShare?: (place: { placeId: string; name: string }) => void;
 }) {
   const { handleSave, handleUnsave } = useSavePlace();
   const { status } = useSession();
   const [localSaved, setLocalSaved] = useState(savedPlaceIds.has(place.placeId));
-  const [sharePlace, setSharePlace] = useState<{ placeId: string; name: string } | null>(null);
 
   // Sync if savedPlaceIds changes
   useEffect(() => {
@@ -623,7 +623,7 @@ export default function MapPlaceDetail({
                 onSave={doSave}
                 onUnsave={doUnsave}
                 onClose={onClose}
-                onShare={() => setSharePlace({ placeId: place.placeId, name: place.name })}
+                onShare={() => onShare?.({ placeId: place.placeId, name: place.name })}
                 intent={intent}
                 userLocation={userLocation}
               />
@@ -669,7 +669,7 @@ export default function MapPlaceDetail({
               onSave={doSave}
               onUnsave={doUnsave}
               onClose={onClose}
-              onShare={() => setSharePlace({ placeId: place.placeId, name: place.name })}
+              onShare={() => onShare?.({ placeId: place.placeId, name: place.name })}
               intent={intent}
               userLocation={userLocation}
               forceDetailsOpen={mobileSheetState === "full"}
@@ -677,16 +677,6 @@ export default function MapPlaceDetail({
           </div>
         </motion.div>
       </div>
-
-      {/* Share Modal */}
-      <AnimatePresence>
-        {sharePlace && (
-          <ShareModal
-            place={sharePlace}
-            onClose={() => setSharePlace(null)}
-          />
-        )}
-      </AnimatePresence>
     </>
   );
 }

@@ -9,6 +9,7 @@ import { getSavedPlaces, SavedPlace } from "@/lib/saved-places";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { Place } from "@/lib/types";
 import MapPlaceDetail from "@/components/MapPlaceDetail";
+import { ShareModal } from "@/components/ShareModal";
 import { useSavePlace } from "@/lib/use-save-place";
 import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
 import { ChevronLeft, MapPin, Star, X, Bookmark, CalendarCheck } from "lucide-react";
@@ -100,6 +101,7 @@ export default function BoardDetailPage() {
     const [userVibes, setUserVibes] = useState<Record<string, string[]>>({});
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
     const [toast, setToast] = useState<string | null>(null);
+    const [sharePlace, setSharePlace] = useState<{ placeId: string; name: string } | null>(null);
 
     // Get user location for distance in detail modal
     useEffect(() => {
@@ -346,6 +348,7 @@ export default function BoardDetailPage() {
                         userLocation={userLocation}
                         onClose={() => setDetailPlace(null)}
                         onUnsave={handleUnsaveFromModal}
+                        onShare={(p) => setSharePlace(p)}
                     />
                 )}
             </AnimatePresence>
@@ -363,6 +366,14 @@ export default function BoardDetailPage() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Share Modal — rendered at page level to escape transforms */}
+            {sharePlace && (
+                <ShareModal
+                    place={sharePlace}
+                    onClose={() => setSharePlace(null)}
+                />
+            )}
         </div>
     );
 }
