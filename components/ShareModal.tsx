@@ -96,7 +96,7 @@ export function ShareModal({
     if (!mounted) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-[9999]">
+        <div className="fixed inset-0 z-[60]">
             {/* Overlay — full screen, click to dismiss */}
             <motion.div
                 className="absolute inset-0 bg-black/40"
