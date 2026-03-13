@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { X } from "lucide-react";
 import { useBadges } from "@/components/providers/BadgeProvider";
 
 interface Friend {
@@ -32,12 +33,10 @@ export function ShareModal({
     const [copySuccess, setCopySuccess] = useState(false);
     const { triggerBadgeCheck } = useBadges();
 
-    // SSR safety — only render portal after mount
     useEffect(() => {
         setMounted(true);
     }, []);
 
-    // Fetch friends when picking
     useEffect(() => {
         if (screen !== "pick_friend") return;
         setFriendsLoading(true);
@@ -92,35 +91,43 @@ export function ShareModal({
         exit: { x: "-30%", opacity: 0 },
     };
 
+    const isDesktop = typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches;
+
     if (!mounted) return null;
 
     return createPortal(
         <div className="fixed inset-0 z-[9999]">
-            {/* Dark overlay — covers full screen including sidebar */}
+            {/* Overlay — full screen, click to dismiss */}
             <motion.div
                 className="absolute inset-0 bg-black/40"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
                 onClick={onClose}
             />
 
-            {/* Centered modal container — offset for sidebar on desktop */}
-            <div className="absolute inset-0 flex items-end lg:items-center justify-center lg:pl-[72px] xl:pl-[240px]">
+            {/* Centering container */}
+            <div className="absolute inset-0 flex items-end md:items-center justify-center pointer-events-none">
                 <motion.div
-                    className="relative w-full lg:max-w-sm lg:mx-4 bg-white/[0.65] dark:bg-white/[0.05] rounded-t-2xl lg:rounded-2xl overflow-hidden shadow-2xl border border-black/[0.08] dark:border-white/[0.15]"
+                    className="relative pointer-events-auto w-full md:w-auto md:min-w-[400px] md:max-w-[440px] md:mx-4 bg-white/90 dark:bg-[#161B22]/90 rounded-t-2xl md:rounded-2xl overflow-hidden shadow-2xl border border-black/[0.08] dark:border-white/[0.15]"
                     style={{
-                        backdropFilter: "blur(64px) saturate(180%)",
-                        WebkitBackdropFilter: "blur(64px) saturate(180%)",
+                        backdropFilter: "blur(64px)",
+                        WebkitBackdropFilter: "blur(64px)",
                     }}
-                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    initial={isDesktop ? { opacity: 0, scale: 0.95 } : { y: "100%" }}
+                    animate={isDesktop ? { opacity: 1, scale: 1 } : { y: 0 }}
+                    exit={isDesktop ? { opacity: 0, scale: 0.95 } : { y: "100%" }}
                     transition={{ duration: 0.2 }}
                     onClick={(e) => e.stopPropagation()}
                 >
-                    {/* Handle — mobile only */}
-                    <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mt-4 mb-1 lg:hidden" />
+                    {/* X close button */}
+                    <button
+                        onClick={onClose}
+                        className="absolute top-4 right-4 z-10 text-white/60 hover:text-white cursor-pointer transition-colors duration-200"
+                    >
+                        <X size={20} />
+                    </button>
 
                     <AnimatePresence mode="wait">
                         {/* ── Menu ── */}
@@ -133,7 +140,7 @@ export function ShareModal({
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.15 }}
                             >
-                                <h2 className="text-lg font-bold text-[#0E1116] dark:text-[#e8edf4] mb-1">
+                                <h2 className="text-lg font-bold text-[#0E1116] dark:text-[#e8edf4] mb-1 pr-8">
                                     {place.name}
                                 </h2>
                                 <p className="text-sm text-gray-400 dark:text-gray-500 mb-5">
