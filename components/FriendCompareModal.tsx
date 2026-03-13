@@ -329,7 +329,7 @@ export function FriendCompareModal({ data, onClose }: FriendCompareModalProps) {
     return (
         <AnimatePresence>
             <motion.div
-                className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+                className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -337,7 +337,11 @@ export function FriendCompareModal({ data, onClose }: FriendCompareModalProps) {
                 onClick={onClose}
             >
                 <motion.div
-                    className="w-[95%] max-w-[860px] max-h-[85vh] bg-[#161B22] rounded-2xl border border-[#30363D] relative overflow-hidden flex flex-col"
+                    className="w-[95%] max-w-[860px] max-h-[85vh] bg-white/[0.65] dark:bg-white/[0.05] rounded-2xl border border-black/[0.08] dark:border-white/[0.15] shadow-2xl relative overflow-hidden flex flex-col"
+                    style={{
+                        backdropFilter: "blur(64px) saturate(180%)",
+                        WebkitBackdropFilter: "blur(64px) saturate(180%)",
+                    }}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}

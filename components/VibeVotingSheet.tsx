@@ -69,7 +69,7 @@ export default function VibeVotingSheet({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm"
+                        className="fixed inset-0 z-[200] bg-black/40"
                     />
 
                     {/* Sheet */}
@@ -78,10 +78,14 @@ export default function VibeVotingSheet({
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                        className="fixed bottom-0 left-0 right-0 z-[201] max-h-[90vh] flex flex-col bg-white dark:bg-[#0E1116] rounded-t-3xl overflow-hidden shadow-2xl"
+                        className="fixed bottom-0 left-0 right-0 z-[201] max-h-[90vh] flex flex-col bg-white/[0.65] dark:bg-white/[0.05] rounded-t-2xl overflow-hidden shadow-2xl border border-black/[0.08] dark:border-white/[0.15]"
+                        style={{
+                            backdropFilter: "blur(64px) saturate(180%)",
+                            WebkitBackdropFilter: "blur(64px) saturate(180%)",
+                        }}
                     >
                         {/* Drag Handle & Header */}
-                        <div className="shrink-0 pt-4 pb-2 px-6 border-b border-gray-100 dark:border-white/5 relative bg-white dark:bg-[#0E1116]">
+                        <div className="shrink-0 pt-4 pb-2 px-6 border-b border-gray-100 dark:border-white/5 relative">
                             <div className="w-12 h-1.5 bg-gray-200 dark:bg-white/10 rounded-full mx-auto mb-4" />
                             <div className="flex items-start justify-between">
                                 <div>

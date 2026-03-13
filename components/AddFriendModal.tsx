@@ -68,7 +68,7 @@ export function AddFriendModal({
 
     return (
         <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -76,7 +76,11 @@ export function AddFriendModal({
             onClick={onClose}
         >
             <motion.div
-                className="w-[90%] max-w-[420px] bg-[#161B22] rounded-2xl p-6 border border-[#30363D] relative"
+                className="w-[90%] max-w-[420px] bg-white/[0.65] dark:bg-white/[0.05] rounded-2xl p-6 border border-black/[0.08] dark:border-white/[0.15] shadow-2xl relative"
+                style={{
+                    backdropFilter: "blur(64px) saturate(180%)",
+                    WebkitBackdropFilter: "blur(64px) saturate(180%)",
+                }}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}

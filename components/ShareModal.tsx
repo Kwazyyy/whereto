@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useBadges } from "@/components/providers/BadgeProvider";
@@ -87,21 +88,25 @@ export function ShareModal({
         exit: { x: "-30%", opacity: 0 },
     };
 
-    return (
+    return createPortal(
         <div
-            className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-black/40"
             onClick={onClose}
         >
             <motion.div
-                className="w-full max-w-lg bg-white dark:bg-[#161B22] rounded-t-3xl overflow-hidden"
-                initial={{ y: "100%" }}
-                animate={{ y: 0 }}
-                exit={{ y: "100%" }}
+                className="w-full md:max-w-sm md:mx-4 bg-white/[0.65] dark:bg-white/[0.05] rounded-t-2xl md:rounded-2xl overflow-hidden shadow-2xl border border-black/[0.08] dark:border-white/[0.15]"
+                style={{
+                    backdropFilter: "blur(64px) saturate(180%)",
+                    WebkitBackdropFilter: "blur(64px) saturate(180%)",
+                }}
+                initial={{ y: "100%", opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: "100%", opacity: 0 }}
                 transition={{ type: "spring", damping: 22, stiffness: 380 }}
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Handle */}
-                <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mt-4 mb-1" />
+                {/* Handle — mobile only */}
+                <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mt-4 mb-1 md:hidden" />
 
                 <AnimatePresence mode="wait">
                     {/* ── Menu ── */}
@@ -297,6 +302,7 @@ export function ShareModal({
                     )}
                 </AnimatePresence>
             </motion.div>
-        </div>
+        </div>,
+        document.body
     );
 }

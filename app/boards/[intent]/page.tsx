@@ -16,6 +16,20 @@ import { getBookingUrl, isReservable } from "@/lib/booking";
 
 const RECS_INTENT = "recs_from_friends";
 
+const NORMALIZE_INTENT: Record<string, string> = {
+    study: "study_work",
+    date: "romantic",
+    date_chill: "romantic",
+    "Date / Chill": "romantic",
+    quiet: "quiet_cafes",
+    laptop: "laptop_friendly",
+    group: "group_hangouts",
+    budget: "budget_eats",
+    desserts: "coffee_catch_up",
+    coffee: "coffee_catch_up",
+    outdoor: "outdoor_patio",
+};
+
 const INTENT_LABELS: Record<string, string> = {
     [RECS_INTENT]: "Recs from Friends",
     // Current intent IDs
@@ -105,7 +119,10 @@ export default function BoardDetailPage() {
                 .then((r) => r.json())
                 .then((data: SavedPlace[]) => {
                     if (Array.isArray(data)) {
-                        setPlaces(data.filter((s) => (s.intent || "uncategorized") === intent));
+                        setPlaces(data.filter((s) => {
+                            const raw = s.intent || "uncategorized";
+                            return (NORMALIZE_INTENT[raw] || raw) === intent;
+                        }));
                     } else {
                         setPlaces([]);
                     }
@@ -129,7 +146,10 @@ export default function BoardDetailPage() {
 
         } else {
             const allSaves = getSavedPlaces();
-            setPlaces(allSaves.filter((s) => (s.intent || "uncategorized") === intent));
+            setPlaces(allSaves.filter((s) => {
+                const raw = s.intent || "uncategorized";
+                return (NORMALIZE_INTENT[raw] || raw) === intent;
+            }));
             setLoading(false);
         }
     }, [status, intent]);

@@ -87,11 +87,15 @@ export function FriendsListModal({ onClose }: { onClose: () => void }) {
 
     return (
         <div
-            className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4"
+            className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4"
             onClick={onClose}
         >
             <div
-                className="w-full max-w-sm bg-white dark:bg-[#161B22] rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[85dvh]"
+                className="w-full max-w-sm bg-white/[0.65] dark:bg-white/[0.05] rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[85dvh] border border-black/[0.08] dark:border-white/[0.15]"
+                style={{
+                    backdropFilter: "blur(64px) saturate(180%)",
+                    WebkitBackdropFilter: "blur(64px) saturate(180%)",
+                }}
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="px-5 pt-5 pb-3 border-b border-gray-100 dark:border-white/10 flex items-center justify-between">
@@ -214,11 +218,15 @@ export function FriendsListModal({ onClose }: { onClose: () => void }) {
 
             {friendToRemove && (
                 <div
-                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4"
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4"
                     onClick={() => setFriendToRemove(null)}
                 >
                     <div
-                        className="w-full max-w-sm bg-white dark:bg-[#1C2128] rounded-3xl p-6 shadow-2xl flex flex-col items-center text-center"
+                        className="w-full max-w-sm bg-white/[0.65] dark:bg-white/[0.05] rounded-2xl p-6 shadow-2xl flex flex-col items-center text-center border border-black/[0.08] dark:border-white/[0.15]"
+                        style={{
+                            backdropFilter: "blur(64px) saturate(180%)",
+                            WebkitBackdropFilter: "blur(64px) saturate(180%)",
+                        }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h3 className="text-lg font-bold text-[#0E1116] dark:text-[#e8edf4] mb-2">

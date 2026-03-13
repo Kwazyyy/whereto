@@ -6,11 +6,15 @@ import { signIn } from "next-auth/react";
 export function SignInModal({ onClose }: { onClose: () => void }) {
     return (
         <div
-            className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40"
             onClick={onClose}
         >
             <motion.div
-                className="w-full max-w-lg bg-white dark:bg-[#161B22] rounded-t-3xl px-6 pt-4 pb-12"
+                className="w-full max-w-lg bg-white/[0.65] dark:bg-white/[0.05] rounded-t-2xl px-6 pt-4 pb-12 shadow-2xl border border-black/[0.08] dark:border-white/[0.15]"
+                style={{
+                    backdropFilter: "blur(64px) saturate(180%)",
+                    WebkitBackdropFilter: "blur(64px) saturate(180%)",
+                }}
                 initial={{ y: "100%" }}
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}

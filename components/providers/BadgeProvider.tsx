@@ -119,7 +119,7 @@ export function BadgeProvider({ children }: { children: ReactNode }) {
                     >
                         {/* Dim Backdrop */}
                         <div
-                            className="absolute inset-0 bg-black/60 backdrop-blur-sm cursor-pointer"
+                            className="absolute inset-0 bg-black/40 cursor-pointer"
                             onClick={handleClose}
                         />
 
@@ -132,7 +132,11 @@ export function BadgeProvider({ children }: { children: ReactNode }) {
 
                         {/* Pop up Card */}
                         <motion.div
-                            className="relative z-10 bg-white dark:bg-[#161B22] rounded-3xl px-8 py-10 w-full max-w-sm text-center shadow-2xl"
+                            className="relative z-10 bg-white/[0.65] dark:bg-white/[0.05] rounded-2xl px-8 py-10 w-full max-w-sm text-center shadow-2xl border border-black/[0.08] dark:border-white/[0.15]"
+                            style={{
+                                backdropFilter: "blur(64px) saturate(180%)",
+                                WebkitBackdropFilter: "blur(64px) saturate(180%)",
+                            }}
                             initial={{ scale: 0.8, y: 50 }}
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.8, opacity: 0, y: 20 }}

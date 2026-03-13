@@ -84,7 +84,7 @@ export default function PlaceDetailSheet({
   return (
     <>
       <motion.div
-        className="fixed inset-0 bg-black/50 z-[55]"
+        className="fixed inset-0 bg-black/40 z-[55]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -92,8 +92,8 @@ export default function PlaceDetailSheet({
       />
 
       <motion.div
-        className="fixed inset-x-0 bottom-0 z-[60] bg-white dark:bg-[#161B22] rounded-t-3xl overflow-hidden"
-        style={{ height: "95dvh", touchAction: sheetState === "partial" ? "none" : "auto" }}
+        className="fixed inset-x-0 bottom-0 z-[60] bg-white/[0.65] dark:bg-white/[0.05] rounded-t-2xl overflow-hidden shadow-2xl border border-black/[0.08] dark:border-white/[0.15]"
+        style={{ height: "95dvh", touchAction: sheetState === "partial" ? "none" : "auto", backdropFilter: "blur(64px) saturate(180%)", WebkitBackdropFilter: "blur(64px) saturate(180%)" }}
         initial={{ y: "100%" }}
         animate={{ y: sheetState === "full" ? "5vh" : "35vh" }}
         exit={{ y: "100%" }}
