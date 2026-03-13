@@ -64,8 +64,9 @@ export default function FogOverlay({
                 if (!map || !projection || !this.ctx) return;
 
                 const div = map.getDiv();
-                const width = div.clientWidth;
-                const height = div.clientHeight;
+                const PAD = 200; // extra px on every side to prevent edge gaps during pan/zoom
+                const width = div.clientWidth + PAD * 2;
+                const height = div.clientHeight + PAD * 2;
 
                 // Sync canvas resolution and size
                 if (this.canvas.width !== width || this.canvas.height !== height) {
@@ -81,7 +82,7 @@ export default function FogOverlay({
                 const centerDivPx = projection.fromLatLngToDivPixel(center);
                 if (!centerDivPx) return;
 
-                // Position canvas so its center aligns exactly with the viewport center
+                // Position canvas so its center aligns with viewport center, minus padding offset
                 const left = centerDivPx.x - width / 2;
                 const top = centerDivPx.y - height / 2;
                 this.canvas.style.left = left + "px";
@@ -97,7 +98,7 @@ export default function FogOverlay({
 
                 // 1. Base Dense Fog
                 ctx.fillStyle = isDark
-                    ? "rgba(14, 17, 22, 0.92)"
+                    ? "rgba(14, 17, 22, 0.99)"
                     : "rgba(180, 185, 195, 0.85)";
                 ctx.fillRect(0, 0, width, height);
 

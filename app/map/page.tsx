@@ -353,59 +353,102 @@ function InfoCard({
   );
 }
 
-// --- Re-center button — must be inside Map context to use useMap ---
-function RecenterButton({
-  userLocation,
-}: {
-  userLocation: { lat: number; lng: number };
-}) {
-  const map = useMap();
-
-  return (
-    <button
-      onClick={() => map?.panTo(userLocation)}
-      title="Re-centre map"
-      style={{
-        position: "absolute",
-        bottom: 24,
-        right: 16,
-        zIndex: 10,
-        width: 48,
-        height: 48,
-        borderRadius: "50%",
-        background: "var(--color-btn-bg)",
-        border: "1px solid var(--color-btn-border)",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-      }}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="var(--color-navy)"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <circle cx="12" cy="12" r="3" />
-        <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
-      </svg>
-    </button>
-  );
-}
-
 // --- Bridge to extract map instance from inside <Map> context ---
 function MapInstanceBridge({ onMapReady }: { onMapReady: (map: google.maps.Map) => void }) {
   const map = useMap();
   useEffect(() => {
     if (map) onMapReady(map);
   }, [map, onMapReady]);
+  return null;
+}
+
+// --- Pulsing "My Location" dot rendered via OverlayView (floatPane) ---
+function UserLocationDot({
+  mapInstance,
+  userLocation,
+}: {
+  mapInstance: google.maps.Map | null;
+  userLocation: { lat: number; lng: number };
+}) {
+  const overlayRef = useRef<google.maps.OverlayView | null>(null);
+  const locationRef = useRef(userLocation);
+
+  useEffect(() => {
+    locationRef.current = userLocation;
+    if (overlayRef.current) overlayRef.current.draw();
+  }, [userLocation]);
+
+  useEffect(() => {
+    if (!mapInstance) return;
+
+    // Inject pulse keyframes once
+    const STYLE_ID = "savrd-pulse-ring";
+    if (!document.getElementById(STYLE_ID)) {
+      const style = document.createElement("style");
+      style.id = STYLE_ID;
+      style.textContent = `@keyframes savrd-pulse{0%{transform:scale(1);opacity:.6}100%{transform:scale(2.2);opacity:0}}`;
+      document.head.appendChild(style);
+    }
+
+    class DotOverlay extends google.maps.OverlayView {
+      div: HTMLDivElement | null = null;
+
+      onAdd() {
+        const container = document.createElement("div");
+        container.style.position = "absolute";
+        container.style.pointerEvents = "none";
+
+        // Pulse ring
+        const ring = document.createElement("div");
+        ring.style.cssText =
+          "position:absolute;left:50%;top:50%;width:28px;height:28px;" +
+          "margin-left:-14px;margin-top:-14px;border-radius:50%;" +
+          "background:rgba(232,93,42,0.3);animation:savrd-pulse 2s ease-out infinite";
+
+        // Solid dot
+        const dot = document.createElement("div");
+        dot.style.cssText =
+          "position:absolute;left:50%;top:50%;width:12px;height:12px;" +
+          "margin-left:-6px;margin-top:-6px;border-radius:50%;" +
+          "background:#E85D2A;box-shadow:0 0 4px rgba(232,93,42,0.5);" +
+          "border:2px solid white";
+
+        container.appendChild(ring);
+        container.appendChild(dot);
+        this.div = container;
+
+        // floatPane sits above overlayMouseTarget (fog) and markers
+        const panes = this.getPanes();
+        if (panes) panes.floatPane.appendChild(container);
+      }
+
+      draw() {
+        const projection = this.getProjection();
+        if (!projection || !this.div) return;
+        const pos = projection.fromLatLngToDivPixel(
+          new google.maps.LatLng(locationRef.current.lat, locationRef.current.lng)
+        );
+        if (!pos) return;
+        this.div.style.left = pos.x + "px";
+        this.div.style.top = pos.y + "px";
+      }
+
+      onRemove() {
+        if (this.div?.parentNode) this.div.parentNode.removeChild(this.div);
+        this.div = null;
+      }
+    }
+
+    const overlay = new DotOverlay();
+    overlay.setMap(mapInstance);
+    overlayRef.current = overlay;
+
+    return () => {
+      overlay.setMap(null);
+      overlayRef.current = null;
+    };
+  }, [mapInstance]);
+
   return null;
 }
 
@@ -614,7 +657,7 @@ export default function MapPage() {
   }
 
   return (
-    <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-28 lg:pb-0">
+    <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden">
       <TabTooltip
         storageKey="hasSeenMapTooltips"
         steps={[
@@ -622,28 +665,27 @@ export default function MapPage() {
           { title: "Filter What You See", description: "Use vibe chips to show only the spots that match your mood.", animationKey: "map-filter" },
         ]}
       />
-      {/* Intent chips */}
-      <div className="shrink-0 px-5 lg:pl-[88px] xl:pl-[256px] py-3 border-b border-gray-100 dark:border-[#30363D] transition-all duration-200">
-        <div
-          className="flex justify-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-1"
-        >
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setIntent(cat.id)}
-              className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-200 cursor-pointer whitespace-nowrap ${intent === cat.id
-                ? "bg-[#E85D2A] text-white shadow-sm"
-                : "bg-gray-100 dark:bg-white/10 text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-200 dark:hover:bg-white/15"
-                }`}
-            >
-              <cat.icon size={14} className="mr-1 inline-block" />{cat.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Map area */}
       <div className="flex-1 relative" ref={mapContainerRef}>
+        {/* Floating intent chips over the map */}
+        <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none pt-8 lg:pt-6 px-3 lg:pl-[88px] xl:pl-[256px]">
+          <div
+            className="flex gap-2 overflow-x-auto lg:flex-wrap lg:justify-center lg:overflow-x-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setIntent(cat.id)}
+                className={`pointer-events-auto shrink-0 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200 cursor-pointer ${intent === cat.id
+                  ? "bg-[#E85D2A] text-white shadow-md"
+                  : "bg-white/85 dark:bg-[#1C2128]/85 backdrop-blur-sm text-[#656D76] dark:text-[#8B949E] border border-black/[0.08] dark:border-white/[0.12] shadow-sm"
+                  }`}
+              >
+                <cat.icon size={14} className="mr-1 inline-block" />{cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
         {!userLocation ? (
           /* Location loading spinner */
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
@@ -675,7 +717,6 @@ export default function MapPage() {
                   userLocation={userLocation ?? undefined}
                   onSelectPlace={setDetailPlace}
                 />
-                <RecenterButton userLocation={userLocation} />
               </Map>
             </APIProvider>
             {/* Fog canvas — SIBLING of the map, NOT inside it */}
@@ -687,7 +728,32 @@ export default function MapPage() {
               isDark={isDarkMode}
               containerRef={mapContainerRef}
             />
+            {/* Pulsing user location dot — above fog */}
+            {userLocation && (
+              <UserLocationDot mapInstance={mapInstance} userLocation={userLocation} />
+            )}
           </>
+        )}
+
+        {/* Recenter button — above fog, outside conditional so it's a direct child of relative container */}
+        {userLocation && (
+          <button
+            onClick={() => mapInstance?.panTo(userLocation)}
+            title="Re-centre map"
+            className="absolute bottom-36 right-4 lg:bottom-6 lg:right-6 z-20 w-12 h-12 rounded-full flex items-center justify-center cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.15)]"
+            style={{
+              background: "var(--color-btn-bg)",
+              border: "1px solid var(--color-btn-border)",
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-navy)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <line x1="12" y1="2" x2="12" y2="6" />
+              <line x1="12" y1="18" x2="12" y2="22" />
+              <line x1="2" y1="12" x2="6" y2="12" />
+              <line x1="18" y1="12" x2="22" y2="12" />
+            </svg>
+          </button>
         )}
 
         {/* Searching overlay */}
@@ -697,7 +763,7 @@ export default function MapPage() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/95 dark:bg-[#161B22]/95 backdrop-blur-md shadow-md border border-gray-100 dark:border-white/10"
+              className="absolute top-14 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/95 dark:bg-[#161B22]/95 backdrop-blur-md shadow-md border border-gray-100 dark:border-white/10"
             >
               <div className="w-3.5 h-3.5 rounded-full border-[2px] border-t-transparent animate-spin" style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }} />
               <span className="text-xs font-semibold text-[#0E1116] dark:text-[#e8edf4]">Searching...</span>
@@ -707,7 +773,7 @@ export default function MapPage() {
 
         {/* Legend */}
         {userLocation && (
-          <div className="absolute top-3 left-3 z-30 flex flex-col gap-2 bg-white/95 dark:bg-[#161B22]/95 backdrop-blur-sm rounded-xl px-3 py-2.5 shadow-md border border-gray-100 dark:border-[#30363D]">
+          <div className="absolute bottom-52 lg:bottom-20 right-3 z-30 flex flex-col gap-2 bg-white/95 dark:bg-[#161B22]/95 backdrop-blur-sm rounded-xl px-3 py-2.5 shadow-md border border-gray-100 dark:border-[#30363D]">
             <div className="flex items-center gap-2">
               <div className="w-3.5 h-3.5 rounded-full bg-[#E85D2A] shadow-sm shrink-0" />
               <span className="text-[11px] font-semibold text-[#0E1116] dark:text-[#e8edf4]">Visited</span>
@@ -729,7 +795,7 @@ export default function MapPage() {
       </div>
 
       {/* Bottom gradient fade on mobile — blends map into nav area */}
-      <div className="fixed bottom-0 left-0 right-0 h-32 lg:hidden pointer-events-none z-10 bg-gradient-to-t from-[#0E1116] via-[#0E1116]/60 to-transparent" />
+      <div className="fixed bottom-0 left-0 right-0 h-32 lg:hidden pointer-events-none z-10 bg-gradient-to-t from-white via-white/60 dark:from-[#0E1116] dark:via-[#0E1116]/60 to-transparent" />
 
       {/* Place detail modal (desktop) / bottom sheet (mobile) */}
       <AnimatePresence>

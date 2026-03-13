@@ -50,7 +50,7 @@ export default function BottomNav() {
 
   return (
     <div className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 pb-8 lg:hidden" style={{ paddingBottom: `max(2rem, env(safe-area-inset-bottom))` }}>
-      <nav className="flex items-center gap-2 px-3 py-2.5 rounded-full bg-[#161B22]/90 backdrop-blur-xl border border-white/15 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+      <nav className="flex items-center gap-2 px-3 py-2.5 rounded-full bg-white/80 dark:bg-[#161B22]/90 backdrop-blur-xl border border-black/[0.08] dark:border-white/15 shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
         {NAV_ITEMS.map((item) => {
           const active = item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(item.href + "/");
           const Icon = item.Icon;
@@ -65,7 +65,7 @@ export default function BottomNav() {
                 transition-all duration-300 ease-in-out
                 ${active
                   ? "gap-2 px-4 py-2.5 border border-[#E85D2A] text-[#E85D2A]"
-                  : "w-11 h-11 text-[#8B949E] hover:text-white/70"
+                  : "w-11 h-11 text-[#656D76] dark:text-[#8B949E] hover:text-[#0E1116]/70 dark:hover:text-white/70"
                 }
               `}
             >
