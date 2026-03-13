@@ -112,7 +112,7 @@ export async function GET(req: Request) {
                 const tagDef = getVibeByLabel(tag);
                 return {
                     tag,
-                    emoji: tagDef?.emoji || "✨", // Fallback emoji
+                    iconName: tagDef?.iconName || "Sparkles",
                     count,
                     percentage: totalVoters > 0 ? Math.round((count / totalVoters) * 100) : 0
                 };

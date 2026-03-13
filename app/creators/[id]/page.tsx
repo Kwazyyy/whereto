@@ -8,6 +8,7 @@ import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useToast } from "@/components/Toast";
 import { SavedPlace } from "@/lib/saved-places";
 import { motion } from "framer-motion";
+import { getVibeByLabel, getVibeIcon } from "@/lib/vibeTags";
 
 const INTENT_LABELS: Record<string, string> = {
     study: "Study / Work",
@@ -224,7 +225,7 @@ export default function CreatorProfilePage() {
                         <div className="flex flex-wrap gap-2">
                             {topVibes.map((v, i) => (
                                 <div key={i} className="px-3 py-1.5 rounded-full bg-orange-50 dark:bg-[#E85D2A]/10 text-[#E85D2A] text-xs font-bold border border-orange-100 dark:border-[#E85D2A]/20">
-                                    {v.emoji} {v.tag}
+                                    {(() => { const def = getVibeByLabel(v.tag); const Icon = def ? getVibeIcon(def.iconName) : undefined; return Icon ? <Icon size={12} className="inline-block mr-1" /> : null; })()}{v.tag}
                                 </div>
                             ))}
                         </div>

@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getVibeByLabel, getVibeIcon } from "@/lib/vibeTags";
 
 interface Vibe {
     tag: string;
-    emoji: string;
+    iconName?: string;
     count: number;
     percentage: number;
 }
@@ -12,6 +13,13 @@ interface Vibe {
 interface CommunityVibesProps {
     placeId: string;
     limit?: number;
+}
+
+function VibeIcon({ tag, iconName }: { tag: string; iconName?: string }) {
+    const name = iconName || getVibeByLabel(tag)?.iconName;
+    if (!name) return null;
+    const Icon = getVibeIcon(name);
+    return Icon ? <Icon size={12} className="shrink-0" /> : null;
 }
 
 export default function CommunityVibes({ placeId, limit = 5 }: CommunityVibesProps) {
@@ -54,7 +62,7 @@ export default function CommunityVibes({ placeId, limit = 5 }: CommunityVibesPro
                         key={v.tag}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-[#161B22] border border-gray-200 dark:border-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-300"
                     >
-                        <span>{v.emoji}</span>
+                        <VibeIcon tag={v.tag} iconName={v.iconName} />
                         <span>{v.tag}</span>
                         <span className="text-[10px] opacity-50 ml-0.5">{v.count}</span>
                     </div>

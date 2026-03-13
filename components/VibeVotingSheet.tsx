@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { X, Loader2 } from "lucide-react";
-import { VIBE_CATEGORIES, VIBE_TAGS, VibeTagDef } from "@/lib/vibeTags";
+import { VIBE_CATEGORIES, VIBE_TAGS, getVibeIcon } from "@/lib/vibeTags";
 
 interface VibeVotingSheetProps {
     isOpen: boolean;
@@ -127,7 +127,7 @@ export default function VibeVotingSheet({
                                                                 : "bg-gray-50 dark:bg-[#161B22] border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600"
                                                             }`}
                                                     >
-                                                        <span>{tagDef.emoji}</span>
+                                                        {(() => { const Icon = getVibeIcon(tagDef.iconName); return Icon ? <Icon size={14} /> : null; })()}
                                                         <span>{tagDef.label}</span>
                                                     </button>
                                                 );

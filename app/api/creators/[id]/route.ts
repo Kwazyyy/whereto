@@ -73,7 +73,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             .slice(0, 5)
             .map(([tag]) => {
                 const def = getVibeByLabel(tag);
-                return def ? { tag, emoji: def.emoji } : { tag, emoji: "✨" };
+                return def ? { tag, iconName: def.iconName } : { tag, iconName: "Sparkles" };
             });
 
         return NextResponse.json({

@@ -788,6 +788,7 @@ export default function Home() {
         isOpen={!!photoPromptPlace}
         onClose={() => setPhotoPromptPlace(null)}
       />
+
     </div>
   );
 }
