@@ -13,16 +13,41 @@ import { useToast } from "@/components/Toast";
 import { TabTooltip } from "@/components/onboarding/TabTooltip";
 
 const INTENT_LABELS: Record<string, string> = {
-  study: "Study / Work",
-  date: "Date / Chill",
+  // Current intent IDs
+  study_work: "Study / Work",
+  romantic: "Romantic",
+  chill: "Chill Vibes",
   trending: "Trending Now",
-  quiet: "Quiet Cafes",
+  quiet_cafes: "Quiet Cafés",
+  laptop_friendly: "Laptop-Friendly",
+  group_hangouts: "Group Hangouts",
+  budget_eats: "Budget Eats",
+  coffee_catch_up: "Coffee & Catch-Up",
+  outdoor_patio: "Outdoor / Patio",
+  // Legacy intent IDs
+  study: "Study / Work",
+  date: "Romantic",
+  date_chill: "Romantic",
+  quiet: "Quiet Cafés",
   laptop: "Laptop-Friendly",
   group: "Group Hangouts",
   budget: "Budget Eats",
-  desserts: "Desserts",
+  desserts: "Coffee & Catch-Up",
   coffee: "Coffee & Catch-Up",
   outdoor: "Outdoor / Patio",
+  // Display-name passthrough
+  "Study / Work": "Study / Work",
+  "Romantic": "Romantic",
+  "Chill Vibes": "Chill Vibes",
+  "Date / Chill": "Romantic",
+  "Trending Now": "Trending Now",
+  "Quiet Cafés": "Quiet Cafés",
+  "Quiet Cafes": "Quiet Cafés",
+  "Laptop-Friendly": "Laptop-Friendly",
+  "Group Hangouts": "Group Hangouts",
+  "Budget Eats": "Budget Eats",
+  "Coffee & Catch-Up": "Coffee & Catch-Up",
+  "Outdoor / Patio": "Outdoor / Patio",
 };
 
 interface CreatorInfo {
@@ -47,7 +72,8 @@ interface CuratedListSummary {
 
 const CATEGORIES = [
   { label: "All", value: "All" },
-  { label: "Date Night", value: "date_night" },
+  { label: "Romantic", value: "romantic" },
+  { label: "Chill Vibes", value: "chill" },
   { label: "Study Spots", value: "study_spots" },
   { label: "Budget Eats", value: "budget_eats" },
   { label: "Hidden Gems", value: "hidden_gems" },
@@ -419,11 +445,25 @@ export default function BoardsPage() {
     return <div className="min-h-screen bg-[#0E1116]" />;
   }
 
-  /* ── Group saves by intent ─────────────────────────────────── */
+  /* ── Group saves by intent (normalize legacy → current) ───── */
+  const NORMALIZE_INTENT: Record<string, string> = {
+    study: "study_work",
+    date: "romantic",
+    date_chill: "romantic",
+    "Date / Chill": "romantic",
+    quiet: "quiet_cafes",
+    laptop: "laptop_friendly",
+    group: "group_hangouts",
+    budget: "budget_eats",
+    desserts: "coffee_catch_up",
+    coffee: "coffee_catch_up",
+    outdoor: "outdoor_patio",
+  };
   const groupedSaves: Record<string, SavedPlace[]> = {};
   saves.forEach((save) => {
     if (save.intent === "recs_from_friends") return;
-    const intent = save.intent || "uncategorized";
+    const raw = save.intent || "uncategorized";
+    const intent = NORMALIZE_INTENT[raw] || raw;
     if (!groupedSaves[intent]) groupedSaves[intent] = [];
     groupedSaves[intent].push(save);
   });

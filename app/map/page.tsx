@@ -10,7 +10,7 @@ import {
 } from "@vis.gl/react-google-maps";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
-import { BookOpen, Heart, Flame, Coffee, Laptop, Users, DollarSign, MessageCircle, Sun } from "lucide-react";
+import { BookOpen, Heart, Flame, Coffee, Laptop, Users, DollarSign, MessageCircle, Sun, Sofa } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Place } from "@/lib/types";
@@ -80,15 +80,16 @@ const DARK_MAP_STYLES: Array<{ featureType?: string; elementType?: string; style
 ];
 
 const categories = [
-  { id: "study", icon: BookOpen, label: "Study / Work" },
-  { id: "date", icon: Heart, label: "Date / Chill" },
+  { id: "study_work", icon: BookOpen, label: "Study / Work" },
+  { id: "romantic", icon: Heart, label: "Romantic" },
+  { id: "chill", icon: Sofa, label: "Chill Vibes" },
   { id: "trending", icon: Flame, label: "Trending Now" },
-  { id: "quiet", icon: Coffee, label: "Quiet Caf\u00E9s" },
-  { id: "laptop", icon: Laptop, label: "Laptop-Friendly" },
-  { id: "group", icon: Users, label: "Group Hangouts" },
-  { id: "budget", icon: DollarSign, label: "Budget Eats" },
-  { id: "coffee", icon: MessageCircle, label: "Coffee & Catch-Up" },
-  { id: "outdoor", icon: Sun, label: "Outdoor / Patio" },
+  { id: "quiet_cafes", icon: Coffee, label: "Quiet Cafés" },
+  { id: "laptop_friendly", icon: Laptop, label: "Laptop-Friendly" },
+  { id: "group_hangouts", icon: Users, label: "Group Hangouts" },
+  { id: "budget_eats", icon: DollarSign, label: "Budget Eats" },
+  { id: "coffee_catch_up", icon: MessageCircle, label: "Coffee & Catch-Up" },
+  { id: "outdoor_patio", icon: Sun, label: "Outdoor / Patio" },
 ];
 
 // SVG teardrop pin as a data-URL icon for standard Marker (no mapId needed).
@@ -413,7 +414,6 @@ function MapMarkers({
   savedPlaces,
   nearbyPlaces,
   visitedIds,
-  fogEnabled,
   isDarkMode,
   userLocation,
   onSelectPlace,
@@ -421,7 +421,6 @@ function MapMarkers({
   savedPlaces: SavedPlace[];
   nearbyPlaces: Place[];
   visitedIds: Set<string>;
-  fogEnabled: boolean;
   isDarkMode: boolean;
   userLocation?: { lat: number; lng: number };
   onSelectPlace: (place: Place) => void;
@@ -442,7 +441,7 @@ function MapMarkers({
           <Marker
             key={`nearby-${place.placeId}`}
             position={place.location}
-            icon={fogEnabled ? (isDarkMode ? NEARBY_CRACKED_PIN_DARK : NEARBY_CRACKED_PIN_LIGHT) : (isDarkMode ? NEARBY_PIN_DARK : NEARBY_PIN_LIGHT)}
+            icon={isDarkMode ? NEARBY_CRACKED_PIN_DARK : NEARBY_CRACKED_PIN_LIGHT}
             zIndex={9998}
             onClick={() => setSelected({ place, isSaved: false })}
           />
@@ -455,7 +454,7 @@ function MapMarkers({
           <Marker
             key={`visited-${place.placeId}`}
             position={place.location}
-            icon={fogEnabled ? VISITED_CRACKED_PIN : VISITED_PIN}
+            icon={VISITED_CRACKED_PIN}
             zIndex={10000}
             onClick={() => setSelected({ place, isSaved: false })}
           />
@@ -466,7 +465,7 @@ function MapMarkers({
         <Marker
           key={`saved-${place.placeId}`}
           position={place.location}
-          icon={fogEnabled ? SAVED_CRACKED_PIN : SAVED_PIN}
+          icon={SAVED_CRACKED_PIN}
           zIndex={9999}
           onClick={() => setSelected({ place, isSaved: true })}
         />
@@ -515,13 +514,6 @@ export default function MapPage() {
   const [nearbyPlaces, setNearbyPlaces] = useState<Place[]>([]);
   const [detailPlace, setDetailPlace] = useState<Place | null>(null);
   const [loading, setLoading] = useState(false);
-  const [fogEnabled, setFogEnabled] = useState(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("savrd-fog-enabled");
-      return stored === null ? true : stored === "true";
-    }
-    return true;
-  });
   const [visitedLocations, setVisitedLocations] = useState<{ lat: number; lng: number; placeId: string }[]>([]);
   const [visitedIds, setVisitedIds] = useState<Set<string>>(new Set());
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
@@ -679,7 +671,6 @@ export default function MapPage() {
                   savedPlaces={savedPlaces.filter(p => p.intent === intent)}
                   nearbyPlaces={nearbyPlaces}
                   visitedIds={visitedIds}
-                  fogEnabled={fogEnabled && status === "authenticated"}
                   isDarkMode={isDarkMode}
                   userLocation={userLocation ?? undefined}
                   onSelectPlace={setDetailPlace}
@@ -692,7 +683,7 @@ export default function MapPage() {
               mapInstance={mapInstance}
               visitedLocations={visitedLocations}
               userLocation={userLocation}
-              enabled={fogEnabled && status === "authenticated"}
+              enabled={status === "authenticated"}
               isDark={isDarkMode}
               containerRef={mapContainerRef}
             />
@@ -732,38 +723,6 @@ export default function MapPage() {
           </div>
         )}
 
-        {/* Fog toggle button — small circle near recenter */}
-        {userLocation && status === "authenticated" && (
-          <button
-            onClick={() => {
-              setFogEnabled(f => {
-                const next = !f;
-                localStorage.setItem("savrd-fog-enabled", String(next));
-                return next;
-              });
-            }}
-            title={fogEnabled ? "Hide fog" : "Show fog"}
-            style={{
-              position: "absolute",
-              bottom: 80,
-              right: 16,
-              zIndex: 30,
-              width: 48,
-              height: 48,
-              borderRadius: "50%",
-              background: fogEnabled ? "#0E1116" : "var(--color-btn-bg)",
-              border: `1px solid ${fogEnabled ? "#0E1116" : "var(--color-btn-border)"}`,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 20,
-              cursor: "pointer",
-            }}
-          >
-            {fogEnabled ? "🌫️" : "🗺️"}
-          </button>
-        )}
 
         {/* Exploration panel */}
         {userLocation && status === "authenticated" && <ExplorationPanel mapInstance={mapInstance} />}

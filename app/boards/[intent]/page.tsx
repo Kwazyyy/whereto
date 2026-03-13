@@ -18,13 +18,26 @@ const RECS_INTENT = "recs_from_friends";
 
 const INTENT_LABELS: Record<string, string> = {
     [RECS_INTENT]: "Recs from Friends",
-    study: "Study / Work",
-    date: "Date / Chill",
+    // Current intent IDs
+    study_work: "Study / Work",
+    romantic: "Romantic",
+    chill: "Chill Vibes",
     trending: "Trending Now",
-    quiet: "Quiet Cafes",
+    quiet_cafes: "Quiet Cafés",
+    laptop_friendly: "Laptop-Friendly",
+    group_hangouts: "Group Hangouts",
+    budget_eats: "Budget Eats",
+    coffee_catch_up: "Coffee & Catch-Up",
+    outdoor_patio: "Outdoor / Patio",
+    // Legacy intent IDs
+    study: "Study / Work",
+    date: "Romantic",
+    date_chill: "Romantic",
+    quiet: "Quiet Cafés",
     laptop: "Laptop-Friendly",
     group: "Group Hangouts",
     budget: "Budget Eats",
+    desserts: "Coffee & Catch-Up",
     coffee: "Coffee & Catch-Up",
     outdoor: "Outdoor / Patio",
 };
