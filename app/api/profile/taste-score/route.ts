@@ -1,19 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-
-const INTENT_LABELS: Record<string, string> = {
-  study: "Study / Work",
-  date: "Date / Chill",
-  trending: "Trending Now",
-  quiet: "Quiet Cafes",
-  laptop: "Laptop-Friendly",
-  group: "Group Hangouts",
-  budget: "Budget Eats",
-  coffee: "Coffee & Catch-Up",
-  outdoor: "Outdoor / Patio",
-  recs_from_friends: "Friend Recs",
-};
+import { normalizeIntent, intentLabel } from "@/lib/intents";
 
 export async function GET() {
   const session = await auth();
@@ -35,10 +23,11 @@ export async function GET() {
     });
   }
 
-  // Count saves per intent
+  // Count saves per normalized intent
   const intentCounts: Record<string, number> = {};
   for (const s of saves) {
-    intentCounts[s.intent] = (intentCounts[s.intent] || 0) + 1;
+    const key = normalizeIntent(s.intent);
+    intentCounts[key] = (intentCounts[key] || 0) + 1;
   }
 
   const totalSaves = saves.length;
@@ -54,7 +43,7 @@ export async function GET() {
     .sort((a, b) => b[1] - a[1])
     .map(([intent, count]) => ({
       id: intent,
-      name: INTENT_LABELS[intent] || intent,
+      name: intentLabel(intent),
       percentage: Math.round((count / totalSaves) * 100),
     }));
 

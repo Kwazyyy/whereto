@@ -21,6 +21,7 @@ import { FriendsListModal } from "@/components/FriendsListModal";
 import { CreatorMyLists } from "@/components/CreatorMyLists";
 import { VisitStatsSection } from "@/components/VisitStatsSection";
 import { TabTooltip } from "@/components/onboarding/TabTooltip";
+import { normalizeIntent, intentLabel } from "@/lib/intents";
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const INTENT_OPTIONS = [
@@ -34,18 +35,6 @@ const INTENT_OPTIONS = [
   { id: "coffee", label: "Coffee & Catch-Up" },
   { id: "outdoor", label: "Outdoor / Patio" },
 ];
-
-const INTENT_LABELS: Record<string, string> = {
-  study: "Study / Work",
-  date: "Date / Chill",
-  trending: "Trending Now",
-  quiet: "Quiet Cafes",
-  laptop: "Laptop-Friendly",
-  group: "Group Hangouts",
-  budget: "Budget Eats",
-  coffee: "Coffee & Catch-Up",
-  outdoor: "Outdoor / Patio",
-};
 
 const DISTANCE_OPTIONS = [
   { label: "1 km", value: 1000 },
@@ -914,11 +903,12 @@ export default function ProfilePage() {
     }
   }
 
-  // Compute board groupings for the Recent Boards carousel
+  // Compute board groupings for the Recent Boards carousel (normalize intents)
   const boardGroups = saves.reduce((acc, save) => {
     if (!save.intent) return acc;
-    if (!acc[save.intent]) acc[save.intent] = [];
-    acc[save.intent].push(save);
+    const key = normalizeIntent(save.intent);
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(save);
     return acc;
   }, {} as Record<string, SavedPlace[]>);
 
@@ -1112,7 +1102,7 @@ export default function ProfilePage() {
                   <BoardCardMini
                     key={board.intent}
                     intent={board.intent}
-                    label={INTENT_LABELS[board.intent] || board.intent}
+                    label={intentLabel(board.intent)}
                     items={board.items}
                   />
                 ))}

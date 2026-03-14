@@ -14,48 +14,9 @@ import { useSavePlace } from "@/lib/use-save-place";
 import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
 import { ChevronLeft, MapPin, Star, X, Bookmark, CalendarCheck } from "lucide-react";
 import { getBookingUrl, isReservable } from "@/lib/booking";
+import { normalizeIntent, intentLabel } from "@/lib/intents";
 
 const RECS_INTENT = "recs_from_friends";
-
-const NORMALIZE_INTENT: Record<string, string> = {
-    study: "study_work",
-    date: "romantic",
-    date_chill: "romantic",
-    "Date / Chill": "romantic",
-    quiet: "quiet_cafes",
-    laptop: "laptop_friendly",
-    group: "group_hangouts",
-    budget: "budget_eats",
-    desserts: "coffee_catch_up",
-    coffee: "coffee_catch_up",
-    outdoor: "outdoor_patio",
-};
-
-const INTENT_LABELS: Record<string, string> = {
-    [RECS_INTENT]: "Recs from Friends",
-    // Current intent IDs
-    study_work: "Study / Work",
-    romantic: "Romantic",
-    chill: "Chill Vibes",
-    trending: "Trending Now",
-    quiet_cafes: "Quiet Cafés",
-    laptop_friendly: "Laptop-Friendly",
-    group_hangouts: "Group Hangouts",
-    budget_eats: "Budget Eats",
-    coffee_catch_up: "Coffee & Catch-Up",
-    outdoor_patio: "Outdoor / Patio",
-    // Legacy intent IDs
-    study: "Study / Work",
-    date: "Romantic",
-    date_chill: "Romantic",
-    quiet: "Quiet Cafés",
-    laptop: "Laptop-Friendly",
-    group: "Group Hangouts",
-    budget: "Budget Eats",
-    desserts: "Coffee & Catch-Up",
-    coffee: "Coffee & Catch-Up",
-    outdoor: "Outdoor / Patio",
-};
 
 function PlaceCardPhoto({ photoRef, alt }: { photoRef: string | null; alt: string }) {
     const photoUrl = usePhotoUrl(photoRef);
@@ -90,7 +51,7 @@ export default function BoardDetailPage() {
     const router = useRouter();
     const intent = typeof params.intent === "string" ? params.intent : "uncategorized";
     const isRecs = intent === RECS_INTENT;
-    const label = INTENT_LABELS[intent] || intent;
+    const label = intentLabel(intent);
 
     const [places, setPlaces] = useState<SavedPlace[]>([]);
     const [loading, setLoading] = useState(true);
@@ -123,7 +84,7 @@ export default function BoardDetailPage() {
                     if (Array.isArray(data)) {
                         setPlaces(data.filter((s) => {
                             const raw = s.intent || "uncategorized";
-                            return (NORMALIZE_INTENT[raw] || raw) === intent;
+                            return normalizeIntent(raw) === intent;
                         }));
                     } else {
                         setPlaces([]);
@@ -150,7 +111,7 @@ export default function BoardDetailPage() {
             const allSaves = getSavedPlaces();
             setPlaces(allSaves.filter((s) => {
                 const raw = s.intent || "uncategorized";
-                return (NORMALIZE_INTENT[raw] || raw) === intent;
+                return normalizeIntent(raw) === intent;
             }));
             setLoading(false);
         }

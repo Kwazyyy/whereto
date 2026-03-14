@@ -11,44 +11,7 @@ import { SavedPlace } from "@/lib/saved-places";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useToast } from "@/components/Toast";
 import { TabTooltip } from "@/components/onboarding/TabTooltip";
-
-const INTENT_LABELS: Record<string, string> = {
-  // Current intent IDs
-  study_work: "Study / Work",
-  romantic: "Romantic",
-  chill: "Chill Vibes",
-  trending: "Trending Now",
-  quiet_cafes: "Quiet Cafés",
-  laptop_friendly: "Laptop-Friendly",
-  group_hangouts: "Group Hangouts",
-  budget_eats: "Budget Eats",
-  coffee_catch_up: "Coffee & Catch-Up",
-  outdoor_patio: "Outdoor / Patio",
-  // Legacy intent IDs
-  study: "Study / Work",
-  date: "Romantic",
-  date_chill: "Romantic",
-  quiet: "Quiet Cafés",
-  laptop: "Laptop-Friendly",
-  group: "Group Hangouts",
-  budget: "Budget Eats",
-  desserts: "Coffee & Catch-Up",
-  coffee: "Coffee & Catch-Up",
-  outdoor: "Outdoor / Patio",
-  // Display-name passthrough
-  "Study / Work": "Study / Work",
-  "Romantic": "Romantic",
-  "Chill Vibes": "Chill Vibes",
-  "Date / Chill": "Romantic",
-  "Trending Now": "Trending Now",
-  "Quiet Cafés": "Quiet Cafés",
-  "Quiet Cafes": "Quiet Cafés",
-  "Laptop-Friendly": "Laptop-Friendly",
-  "Group Hangouts": "Group Hangouts",
-  "Budget Eats": "Budget Eats",
-  "Coffee & Catch-Up": "Coffee & Catch-Up",
-  "Outdoor / Patio": "Outdoor / Patio",
-};
+import { normalizeIntent, intentLabel } from "@/lib/intents";
 
 interface CreatorInfo {
   id: string;
@@ -446,24 +409,11 @@ export default function BoardsPage() {
   }
 
   /* ── Group saves by intent (normalize legacy → current) ───── */
-  const NORMALIZE_INTENT: Record<string, string> = {
-    study: "study_work",
-    date: "romantic",
-    date_chill: "romantic",
-    "Date / Chill": "romantic",
-    quiet: "quiet_cafes",
-    laptop: "laptop_friendly",
-    group: "group_hangouts",
-    budget: "budget_eats",
-    desserts: "coffee_catch_up",
-    coffee: "coffee_catch_up",
-    outdoor: "outdoor_patio",
-  };
   const groupedSaves: Record<string, SavedPlace[]> = {};
   saves.forEach((save) => {
     if (save.intent === "recs_from_friends") return;
     const raw = save.intent || "uncategorized";
-    const intent = NORMALIZE_INTENT[raw] || raw;
+    const intent = normalizeIntent(raw);
     if (!groupedSaves[intent]) groupedSaves[intent] = [];
     groupedSaves[intent].push(save);
   });
@@ -471,10 +421,6 @@ export default function BoardsPage() {
   const intents = Object.keys(groupedSaves).sort((a, b) =>
     a.localeCompare(b)
   );
-
-  const BOARD_LABELS: Record<string, string> = {
-    ...INTENT_LABELS,
-  };
 
   const hasSavedLists = savedLists.length > 0;
 
@@ -518,7 +464,7 @@ export default function BoardsPage() {
             >
               {intents.map((intent, i) => {
                 const items = groupedSaves[intent];
-                const label = BOARD_LABELS[intent] || intent;
+                const label = intentLabel(intent);
                 return (
                   <BoardCard
                     key={intent}
@@ -578,7 +524,7 @@ export default function BoardsPage() {
             </h2>
             <Link
               href="/lists"
-              className="text-[#656D76] dark:text-[#8B949E] hover:text-[#E85D2A] text-sm cursor-pointer transition-colors duration-200"
+              className="text-[#656D76] dark:text-[#8B949E] hover:text-[#E85D2A] dark:hover:text-[#E85D2A] text-sm cursor-pointer transition-colors duration-200"
             >
               See all &rarr;
             </Link>
