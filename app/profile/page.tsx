@@ -402,7 +402,7 @@ function MyPhotosSection() {
 
       {photos.length === 0 ? (
         <div className="py-8 text-center">
-          <Camera size={32} className="text-[#E85D2A] mb-2 mx-auto" />
+          <Camera size={32} className="text-[#8B949E] mb-2 mx-auto" />
           <p className="text-[#8B949E] text-sm">Share photos of places you&apos;ve visited</p>
           <Link href="/" className="text-[#E85D2A] text-sm font-medium hover:underline cursor-pointer mt-2 inline-block">
             Visit a place to start

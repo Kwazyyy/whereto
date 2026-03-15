@@ -447,7 +447,7 @@ export default function BoardsPage() {
         <div className="mt-8">
           {intents.length === 0 ? (
             <div className="flex flex-col items-center text-center py-12">
-              <Compass size={48} className="text-[#E85D2A] mb-4 mx-auto" />
+              <Compass size={48} className="text-[#8B949E] mb-4 mx-auto" />
               <h2 className="text-xl font-semibold text-[#0E1116] dark:text-white mb-2">
                 Start discovering
               </h2>

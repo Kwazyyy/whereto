@@ -496,7 +496,7 @@ export default function SocialPage() {
             <AnimatePresence mode="popLayout">
               {activity.length === 0 ? (
                 <div className="flex flex-col items-center text-center py-12">
-                  <Users size={48} className="text-[#E85D2A] mb-4 mx-auto" />
+                  <Users size={48} className="text-[#8B949E] mb-4 mx-auto" />
                   <h2 className="text-xl font-semibold text-[#0E1116] dark:text-white mb-2">Your feed is waiting</h2>
                   <p className="text-[#8B949E] text-sm max-w-[300px] mx-auto mb-6">Add friends to see what places they&apos;re discovering around the city.</p>
                   <button onClick={() => setAddFriendOpen(true)} className="bg-[#E85D2A] hover:bg-[#D14E1F] text-white px-6 py-3 rounded-xl font-medium cursor-pointer transition-all duration-200 inline-flex items-center gap-2">
@@ -545,7 +545,7 @@ export default function SocialPage() {
               <motion.div key="feed" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="flex flex-col gap-3">
                 {activity.length === 0 ? (
                   <div className="flex flex-col items-center text-center py-12">
-                    <Users size={48} className="text-[#E85D2A] mb-4 mx-auto" />
+                    <Users size={48} className="text-[#8B949E] mb-4 mx-auto" />
                     <h2 className="text-xl font-semibold text-[#0E1116] dark:text-white mb-2">Your feed is waiting</h2>
                     <p className="text-[#8B949E] text-sm max-w-[300px] mx-auto mb-6">Add friends to see what places they&apos;re discovering around the city.</p>
                     <button onClick={() => setAddFriendOpen(true)} className="bg-[#E85D2A] hover:bg-[#D14E1F] text-white px-6 py-3 rounded-xl font-medium cursor-pointer transition-all duration-200 inline-flex items-center gap-2">
