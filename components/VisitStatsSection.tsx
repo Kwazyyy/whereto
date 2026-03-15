@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { MapPin } from "lucide-react";
 
 interface VisitStatsPlace {
     id: string;
@@ -86,9 +87,13 @@ export function VisitStatsSection() {
                 </div>
 
                 {regularSpots.length === 0 ? (
-                    <p className="text-xs text-gray-400 dark:text-gray-500 px-1">
-                        Visit a place 3+ times to make it your regular!
-                    </p>
+                    <div className="py-8 text-center">
+                        <MapPin size={32} className="text-[#E85D2A] mb-2 mx-auto" />
+                        <p className="text-[#8B949E] text-sm">Visit a place 3+ times to make it your regular</p>
+                        <Link href="/map" className="text-[#E85D2A] text-sm font-medium hover:underline cursor-pointer mt-2 inline-block">
+                            Start exploring
+                        </Link>
+                    </div>
                 ) : (
                     <div
                         className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory"

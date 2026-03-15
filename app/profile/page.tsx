@@ -22,6 +22,7 @@ import { CreatorMyLists } from "@/components/CreatorMyLists";
 import { VisitStatsSection } from "@/components/VisitStatsSection";
 import { TabTooltip } from "@/components/onboarding/TabTooltip";
 import { normalizeIntent, intentLabel } from "@/lib/intents";
+import { Camera } from "lucide-react";
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const INTENT_OPTIONS = [
@@ -400,9 +401,13 @@ function MyPhotosSection() {
       </div>
 
       {photos.length === 0 ? (
-        <p className="text-xs text-gray-400 dark:text-gray-500 px-1">
-          Share photos of places you&apos;ve visited
-        </p>
+        <div className="py-8 text-center">
+          <Camera size={32} className="text-[#E85D2A] mb-2 mx-auto" />
+          <p className="text-[#8B949E] text-sm">Share photos of places you&apos;ve visited</p>
+          <Link href="/" className="text-[#E85D2A] text-sm font-medium hover:underline cursor-pointer mt-2 inline-block">
+            Visit a place to start
+          </Link>
+        </div>
       ) : (
         <>
           <div
