@@ -11,7 +11,7 @@ import { useSavePlace } from "@/lib/use-save-place";
 import PlaceDetailSheet from "@/components/PlaceDetailSheet";
 import type { CompatibilityResult } from "@/lib/tasteScore";
 import type { Place } from "@/lib/types";
-import { MapPin, Bookmark, Mail, Inbox, Target, Globe } from "lucide-react";
+import { MapPin, Bookmark, Mail, Inbox, Target, Globe, Users, UserPlus } from "lucide-react";
 import { Avatar, CompatibilityDrawer, scoreBadgeClass, type Friend } from "@/components/CompatibilityDrawer";
 import { AddFriendModal } from "@/components/AddFriendModal";
 import { FriendsListModal } from "@/components/FriendsListModal";
@@ -495,10 +495,14 @@ export default function SocialPage() {
           <div className="w-[65%] flex flex-col gap-3 pb-10">
             <AnimatePresence mode="popLayout">
               {activity.length === 0 ? (
-                <div className="bg-white dark:bg-[#161B22] border border-gray-100 dark:border-[#30363D] rounded-xl p-12 text-center">
-                  <Globe className="w-10 h-10 text-[#8B949E] mb-4" />
-                  <h3 className="text-lg font-bold text-[#0E1116] dark:text-[#e8edf4]">No activity yet</h3>
-                  <p className="text-sm text-gray-500 mt-2">Add friends to see what places they are discovering!</p>
+                <div className="flex flex-col items-center text-center py-12">
+                  <Users size={48} className="text-[#E85D2A] mb-4 mx-auto" />
+                  <h2 className="text-xl font-semibold text-[#0E1116] dark:text-white mb-2">Your feed is waiting</h2>
+                  <p className="text-[#8B949E] text-sm max-w-[300px] mx-auto mb-6">Add friends to see what places they&apos;re discovering around the city.</p>
+                  <button onClick={() => setAddFriendOpen(true)} className="bg-[#E85D2A] hover:bg-[#D14E1F] text-white px-6 py-3 rounded-xl font-medium cursor-pointer transition-all duration-200 inline-flex items-center gap-2">
+                    <UserPlus size={16} />
+                    Add a friend
+                  </button>
                 </div>
               ) : (
                 activity.map((item, idx) => <ActivityCard key={item.id} item={item} onTap={setDetailPlace} index={idx} />)
@@ -540,10 +544,14 @@ export default function SocialPage() {
             {tab === "feed" && (
               <motion.div key="feed" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="flex flex-col gap-3">
                 {activity.length === 0 ? (
-                  <div className="text-center py-20 px-4">
-                    <Globe className="w-10 h-10 text-[#8B949E] mb-3" />
-                    <p className="font-bold text-[#0E1116] dark:text-white">No activity yet</p>
-                    <p className="text-sm text-gray-500 mt-1">Add friends to see their saves!</p>
+                  <div className="flex flex-col items-center text-center py-12">
+                    <Users size={48} className="text-[#E85D2A] mb-4 mx-auto" />
+                    <h2 className="text-xl font-semibold text-[#0E1116] dark:text-white mb-2">Your feed is waiting</h2>
+                    <p className="text-[#8B949E] text-sm max-w-[300px] mx-auto mb-6">Add friends to see what places they&apos;re discovering around the city.</p>
+                    <button onClick={() => setAddFriendOpen(true)} className="bg-[#E85D2A] hover:bg-[#D14E1F] text-white px-6 py-3 rounded-xl font-medium cursor-pointer transition-all duration-200 inline-flex items-center gap-2">
+                      <UserPlus size={16} />
+                      Add a friend
+                    </button>
                   </div>
                 ) : (
                   activity.map((item, idx) => <ActivityCard key={item.id} item={item} onTap={setDetailPlace} index={idx} />)

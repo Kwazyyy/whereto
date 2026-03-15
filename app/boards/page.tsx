@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Bookmark, ClipboardList } from "lucide-react";
+import { Bookmark, ClipboardList, Compass, ArrowRight } from "lucide-react";
 import { SavedPlace } from "@/lib/saved-places";
 import { usePhotoUrl } from "@/lib/use-photo-url";
 import { useToast } from "@/components/Toast";
@@ -446,15 +446,20 @@ export default function BoardsPage() {
         {/* ── Section 1: My Boards ───────────────────────────── */}
         <div className="mt-8">
           {intents.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <Bookmark className="w-12 h-12 text-[#D0D7DE] dark:text-[#30363D]" />
-              <h2 className="text-lg font-semibold text-[#0E1116] dark:text-white mt-4">
-                No boards yet
+            <div className="flex flex-col items-center text-center py-12">
+              <Compass size={48} className="text-[#E85D2A] mb-4 mx-auto" />
+              <h2 className="text-xl font-semibold text-[#0E1116] dark:text-white mb-2">
+                Start discovering
               </h2>
-              <p className="text-[#656D76] dark:text-[#8B949E] text-sm mt-1 max-w-sm">
-                Save places while discovering to automatically create boards
-                based on your intentions!
+              <p className="text-[#8B949E] text-sm max-w-[300px] mx-auto mb-6">
+                Swipe right on places you love and they&apos;ll appear here, organized by mood.
               </p>
+              <Link href="/">
+                <div className="bg-[#E85D2A] hover:bg-[#D14E1F] text-white px-6 py-3 rounded-xl font-medium cursor-pointer transition-all duration-200 inline-flex items-center gap-2">
+                  Explore now
+                  <ArrowRight size={16} />
+                </div>
+              </Link>
             </div>
           ) : (
             <motion.div
