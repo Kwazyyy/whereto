@@ -640,7 +640,29 @@ export default function MapPage() {
       );
       if (res.ok) {
         const data = await res.json();
-        setNearbyPlaces(data.places ?? []);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const mapped: Place[] = (data.places ?? []).map((p: any) => ({
+          placeId: p.googlePlaceId,
+          name: p.name,
+          address: p.address ?? "",
+          location: { lat: p.lat, lng: p.lng },
+          price: p.priceLevel != null ? "$".repeat(p.priceLevel) : "$$",
+          rating: p.rating ?? 0,
+          photoRef: p.photoUrl ?? null,
+          photoRefs: p.photoUrl ? [p.photoUrl] : undefined,
+          type: p.placeType ?? "restaurant",
+          openNow: true,
+          hours: [],
+          distance: p.distance < 1
+            ? `${Math.round(p.distance * 1000)}m`
+            : `${p.distance.toFixed(1)} km`,
+          tags: p.displayTags ?? [],
+          matchScore: p.matchScore,
+          communityPhotoCount: p.communityPhotoCount ?? 0,
+          menuUrl: p.menuUrl ?? undefined,
+          menuType: p.menuType ?? undefined,
+        }));
+        setNearbyPlaces(mapped);
       }
     } catch {
       setNearbyPlaces([]);

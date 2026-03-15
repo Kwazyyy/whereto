@@ -176,7 +176,7 @@ export function ShareModal({
 
                                     <button
                                         onClick={() => setScreen("pick_friend")}
-                                        className="flex items-center gap-4 w-full px-4 py-4 rounded-2xl bg-violet-50 dark:bg-violet-950/40 hover:bg-violet-100 dark:hover:bg-violet-900/40 transition-colors text-left"
+                                        className="flex items-center gap-4 w-full px-4 py-4 rounded-2xl bg-gray-50 dark:bg-[#1C2128] hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-left"
                                     >
                                         <div className="w-10 h-10 rounded-full bg-[#E85D2A] flex items-center justify-center shrink-0">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
