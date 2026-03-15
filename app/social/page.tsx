@@ -448,7 +448,7 @@ export default function SocialPage() {
       </div>
 
       {friends.length === 0 ? (
-        <button onClick={() => setAddFriendOpen(true)} className="w-full py-2 bg-gray-100 dark:bg-white/10 rounded-lg text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4]">Add Friend</button>
+        <button onClick={() => setAddFriendOpen(true)} className="w-full py-2 bg-gray-100 dark:bg-white/10 rounded-lg text-sm font-semibold text-[#0E1116] dark:text-[#e8edf4] border border-transparent hover:border-[#E85D2A] transition-colors duration-200 cursor-pointer">Add Friend</button>
       ) : (
         <div className="flex flex-col">
           {friends.slice(0, 5).map(f => {
@@ -570,7 +570,7 @@ export default function SocialPage() {
                 </button>
 
                 {/* Friends List */}
-                <div className="bg-white dark:bg-[#161B22] rounded-xl border border-gray-100 dark:border-[#30363D] p-4">
+                <div className="p-4 border-b border-[#30363D]/50 pb-4 mb-4">
                   <h2 className="font-semibold text-base text-[#0E1116] dark:text-[#e8edf4] mb-3">
                     Friends <span className="text-[#8B949E] text-sm ml-1">{friends.length}</span>
                   </h2>
@@ -601,14 +601,74 @@ export default function SocialPage() {
                 </div>
 
                 {/* It's a Match! */}
-                {SidebarMatches}
+                <div className="p-4">
+                  <div className="mb-3">
+                    <h2 className="font-semibold text-base text-[#0E1116] dark:text-[#e8edf4] flex items-center gap-1.5"><Target className="w-4 h-4 text-[#E85D2A]" /> It&apos;s a Match!</h2>
+                    <p className="text-sm text-[#8B949E] mt-0.5">Places you and your friends both saved</p>
+                  </div>
+                  {matches.length === 0 ? (
+                    <p className="text-sm text-[#8B949E]">Save more places to discover matches with friends!</p>
+                  ) : (
+                    <div className="flex flex-col gap-4">
+                      {matches.slice(0, 5).map(m => {
+                        const fName = m.friends[0]?.name?.split(" ")[0] ?? "Friend";
+                        const friendText = m.friends.length > 1 ? `You & ${m.friends.length} friends` : `You & ${fName}`;
+                        return (
+                          <div key={m.place.placeId} className="flex items-center gap-3 cursor-pointer group" onClick={() => setDetailPlace(m.place)}>
+                            <div className="relative shrink-0">
+                              <ActivityPlaceThumbnail photoRef={m.place.photoRef} />
+                              <div className="absolute -bottom-2 -right-2 ring-2 ring-white dark:ring-[#161B22] rounded-full">
+                                <Avatar image={m.friends[0]?.image} name={m.friends[0]?.name} size={24} />
+                              </div>
+                            </div>
+                            <div className="flex-1 min-w-0 pl-1">
+                              <p className="text-xs font-bold text-[#E85D2A] mb-0.5">{friendText}</p>
+                              <p className="text-[13px] font-semibold text-[#0E1116] dark:text-[#e8edf4] truncate">{m.place.name}</p>
+                              <div className="flex items-center justify-between mt-1 text-xs">
+                                <span className="text-gray-500 dark:text-gray-400 truncate pr-2">{m.place.tags?.[0] ?? "Spot"}</span>
+                                <span className="text-[#E85D2A] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Plan It &rarr;</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
 
               </motion.div>
             )}
 
             {tab === "inbox" && (
               <motion.div key="inbox" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
-                {SidebarInbox}
+                {recs.length === 0 ? (
+                  <div className="flex flex-col items-center text-center py-12">
+                    <Inbox size={40} className="text-[#8B949E] mb-4 mx-auto" />
+                    <h2 className="text-lg font-semibold text-[#0E1116] dark:text-white mb-2">No recommendations yet</h2>
+                    <p className="text-[#8B949E] text-sm max-w-[280px] mx-auto mb-6">When friends send you places, they&apos;ll show up here.</p>
+                    <button onClick={() => setTab("friends")} className="text-[#E85D2A] text-sm font-medium hover:underline cursor-pointer">
+                      Send a recommendation
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    {recs.map(rec => (
+                      <div key={rec.recommendationId} className="flex items-start gap-3">
+                        <Avatar image={rec.sender.image} name={rec.sender.name} size={32} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] text-[#0E1116] dark:text-[#e8edf4] leading-snug">
+                            <span className="font-semibold">{rec.sender.name?.split(" ")[0] ?? "A friend"}</span> recommends <span className="font-semibold cursor-pointer hover:underline" onClick={() => setDetailPlace(rec.place)}>{rec.place.name}</span>
+                          </p>
+                          {rec.note && <p className="text-xs text-gray-500 italic mt-0.5 line-clamp-2">&ldquo;{rec.note}&rdquo;</p>}
+                          <div className="flex items-center gap-2 mt-2">
+                            <button onClick={() => handleSaveRec(rec)} className="bg-[#E85D2A] text-white text-xs font-semibold px-3 py-1.5 rounded-full hover:bg-[#d65222] transition-colors">Save</button>
+                            <button onClick={() => handleDismissRec(rec)} className="bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 text-xs font-semibold px-3 py-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-white/15 transition-colors">Dismiss</button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
