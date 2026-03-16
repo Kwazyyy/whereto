@@ -151,13 +151,13 @@ function WaitlistForm() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 disabled={status === "loading"}
-                                className="flex-1 bg-[#0E1116] border border-[#30363D] rounded-full px-6 py-4 text-white placeholder-[#8B949E] focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200 disabled:opacity-50"
+                                className="flex-1 bg-[#0E1116] border border-[#30363D] rounded-full px-6 py-3 text-white placeholder-[#8B949E] focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200 disabled:opacity-50"
                                 required
                             />
                             <button
                                 type="submit"
                                 disabled={status === "loading"}
-                                className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-4 rounded-full font-bold transition-all shadow-lg shadow-orange-500/20 whitespace-nowrap"
+                                className="bg-[#E85D2A] hover:bg-[#D14E1F] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-8 py-3 rounded-full shadow-[0_0_20px_rgba(232,93,42,0.4)] transition-all whitespace-nowrap"
                             >
                                 {status === "loading"
                                     ? <span className="flex items-center gap-2 justify-center"><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />Joining...</span>
@@ -223,7 +223,7 @@ export default function LandingPage() {
     ];
 
     return (
-        <div className="bg-[#0E1116] text-white min-h-screen w-full overflow-x-hidden selection:bg-orange-500 selection:text-white" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+        <div className="bg-[#0E1116] text-white min-h-screen w-full overflow-x-hidden selection:bg-[#E85D2A] selection:text-white" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
             {/* eslint-disable-next-line @next/next/no-page-custom-font */}
             <link rel="preconnect" href="https://fonts.googleapis.com" />
             {/* eslint-disable-next-line @next/next/no-page-custom-font */}
@@ -261,7 +261,7 @@ export default function LandingPage() {
 
                     <div className="flex items-center gap-3">
                         <Link href="/auth"
-                            className="hidden md:block bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-full font-semibold text-sm transition-all shadow-lg shadow-orange-500/20 cursor-pointer">
+                            className="hidden md:block bg-[#E85D2A] hover:bg-[#D14E1F] text-white px-5 py-2.5 rounded-full font-semibold text-sm transition-all shadow-[0_0_20px_rgba(232,93,42,0.4)] cursor-pointer">
                             Start Swiping
                         </Link>
                         <button onClick={() => setMobileMenu(!mobileMenu)} className="md:hidden p-2 text-zinc-400 hover:text-white cursor-pointer">
@@ -289,7 +289,7 @@ export default function LandingPage() {
                                     )
                                 ))}
                                 <Link href="/auth"
-                                    className="px-4 py-3 rounded-xl text-left text-[15px] font-semibold text-orange-500 hover:bg-white/5 transition-all cursor-pointer">
+                                    className="px-4 py-3 rounded-xl text-left text-[15px] font-semibold text-[#E85D2A] hover:bg-white/5 transition-all cursor-pointer">
                                     Start Swiping
                                 </Link>
                             </div>
@@ -302,7 +302,7 @@ export default function LandingPage() {
             <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
                 {/* Background orbs */}
                 <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[100px]" />
+                    <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-[#E85D2A]/10 rounded-full blur-[100px]" />
                     <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px]" />
                 </div>
 
@@ -326,7 +326,7 @@ export default function LandingPage() {
                         {/* Headline */}
                         <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.06] tracking-[-0.03em]">
                             Finding spots<br />should be{" "}
-                            <span className="text-orange-500" style={{ textShadow: "0 0 50px rgba(232,93,42,0.5), 0 0 120px rgba(232,93,42,0.2)" }}>
+                            <span className="text-[#E85D2A]" style={{ textShadow: "0 0 50px rgba(232,93,42,0.5), 0 0 120px rgba(232,93,42,0.2)" }}>
                                 fun
                             </span>
                             ,<br />not frustrating.
@@ -340,7 +340,7 @@ export default function LandingPage() {
                         {/* CTAs */}
                         <div className="flex flex-wrap gap-4 pt-2">
                             <Link href="/auth"
-                                className="group relative overflow-hidden bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-full font-bold text-[15px] transition-all shadow-xl shadow-orange-500/20 flex items-center gap-2">
+                                className="group relative overflow-hidden bg-[#E85D2A] hover:bg-[#D14E1F] text-white px-8 py-4 rounded-full font-bold text-[15px] transition-all shadow-[0_0_20px_rgba(232,93,42,0.4)] flex items-center gap-2">
                                 <span className="relative z-10">Start Swiping</span>
                                 <ArrowRightIcon size={18} />
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent opacity-0 group-hover:opacity-100" style={{ animation: "shimmer 2.5s infinite" }} />
@@ -359,7 +359,7 @@ export default function LandingPage() {
                                         className="w-9 h-9 rounded-full ring-[2.5px] ring-zinc-950 object-cover" />
                                 ))}
                             </div>
-                            <p className="text-sm text-zinc-500">Join <span className="text-white font-semibold">1,000+</span> early explorers</p>
+                            <p className="text-sm text-zinc-500">Join Toronto&apos;s discovery community</p>
                         </div>
                     </motion.div>
 
@@ -393,7 +393,7 @@ export default function LandingPage() {
 
                                 {/* App header */}
                                 <div className="px-5 pt-6 pb-2 flex justify-between items-center shrink-0">
-                                    <span className="font-extrabold text-orange-500 text-[14px]">Savrd</span>
+                                    <span className="font-extrabold text-[#E85D2A] text-[14px]">Savrd</span>
                                     <span className="flex items-center gap-1 text-[10px] text-zinc-500 font-medium">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" /></svg>
                                         Toronto
@@ -403,7 +403,7 @@ export default function LandingPage() {
                                 {/* Vibe chips */}
                                 <div className="px-4 flex gap-1.5 mb-3 overflow-hidden shrink-0">
                                     {[{ l: "trending", a: true }, { l: "study", a: false }, { l: "date", a: false }, { l: "cheap", a: false }].map((c, i) => (
-                                        <div key={i} className={`shrink-0 px-2.5 py-[5px] rounded-full text-[8px] font-bold uppercase tracking-wide ${c.a ? "bg-orange-500 text-white" : "bg-white/[0.06] text-zinc-400"}`}>
+                                        <div key={i} className={`shrink-0 px-2.5 py-[5px] rounded-full text-[8px] font-bold uppercase tracking-wide ${c.a ? "bg-[#E85D2A] text-white" : "bg-white/[0.06] text-zinc-400"}`}>
                                             {c.l}
                                         </div>
                                     ))}
@@ -451,7 +451,7 @@ export default function LandingPage() {
                                     <button className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-blue-400">
                                         <ArrowUpIcon />
                                     </button>
-                                    <button className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
+                                    <button className="w-12 h-12 rounded-full bg-[#E85D2A] flex items-center justify-center text-white shadow-lg shadow-[#E85D2A]/30">
                                         <HeartIcon filled />
                                     </button>
                                 </div>
@@ -466,7 +466,7 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
                         <motion.div {...fadeInView(0)}>
-                            <span className="inline-block text-xs font-semibold text-orange-500 uppercase tracking-[0.18em] mb-3">Sound familiar?</span>
+                            <span className="inline-block text-xs font-semibold text-[#E85D2A] uppercase tracking-[0.18em] mb-3">Sound familiar?</span>
                             <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-[1.1]">Still arguing about<br />where to eat?</h2>
                         </motion.div>
                     </div>
@@ -506,18 +506,18 @@ export default function LandingPage() {
 
                         {/* Right: clean solution */}
                         <motion.div {...fadeInView(0.15)} className="relative flex">
-                            <div className="bg-zinc-900 rounded-3xl p-1.5 border border-orange-500/30 shadow-[0_0_50px_rgba(249,115,22,0.1)] flex-1 flex">
+                            <div className="bg-zinc-900 rounded-3xl p-1.5 border border-[#E85D2A]/30 shadow-[0_0_50px_rgba(232,93,42,0.1)] flex-1 flex">
                                 <div className="rounded-[22px] overflow-hidden relative flex-1">
                                     {/* Blurry café background */}
                                     <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&q=80" alt="" className="absolute inset-0 w-full h-full object-cover blur-lg scale-110" />
                                     <div className="absolute inset-0 bg-black/50" />
                                     {/* Content */}
                                     <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center z-10">
-                                        <div className="bg-orange-500 w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-orange-500/40 text-white">
+                                        <div className="bg-[#E85D2A] w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-[#E85D2A]/40 text-white">
                                             <HeartIcon filled />
                                         </div>
                                         <h3 className="text-xl font-bold text-white mb-1">It&apos;s a Match!</h3>
-                                        <p className="text-zinc-300 text-sm">Everyone liked <span className="text-orange-400 font-bold">Founders Coffee</span></p>
+                                        <p className="text-zinc-300 text-sm">Everyone liked <span className="text-[#E85D2A] font-bold">Founders Coffee</span></p>
                                         <div className="mt-4 flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full">
                                             <span className="relative flex h-2 w-2">
                                                 <span className="animate-ping absolute inset-0 rounded-full bg-green-400 opacity-50" />
@@ -537,7 +537,7 @@ export default function LandingPage() {
             <section id="how-it-works" className="py-24">
                 <div className="max-w-7xl mx-auto px-6">
                     <motion.div {...fadeInView(0)} className="text-center mb-16">
-                        <span className="inline-block text-xs font-semibold text-orange-500 uppercase tracking-[0.18em] mb-3">How it works</span>
+                        <span className="inline-block text-xs font-semibold text-[#E85D2A] uppercase tracking-[0.18em] mb-3">How it works</span>
                         <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">Three steps. Zero effort.</h2>
                     </motion.div>
 
@@ -552,11 +552,11 @@ export default function LandingPage() {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: i * 0.15, duration: 0.6 }}
-                                className="group p-8 rounded-3xl bg-[#161B22] border border-white/5 hover:border-orange-500/30 transition-colors relative overflow-hidden">
+                                className="group p-8 rounded-3xl bg-[#161B22] border border-white/5 hover:border-[#E85D2A]/30 transition-colors relative overflow-hidden">
                                 <div className="absolute top-6 right-6 text-[80px] font-black text-white/[0.04] leading-none select-none pointer-events-none group-hover:text-white/[0.06] transition-colors">
                                     {s.n}
                                 </div>
-                                <div className="w-12 h-12 bg-white/[0.05] rounded-2xl flex items-center justify-center mb-6 group-hover:bg-orange-500/10 group-hover:text-orange-500 transition-colors text-zinc-400">
+                                <div className="w-12 h-12 bg-white/[0.05] rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#E85D2A]/10 group-hover:text-[#E85D2A] transition-colors text-zinc-400">
                                     {s.icon}
                                 </div>
                                 <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.15em]">{s.n}</span>
@@ -573,11 +573,11 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-4">
                         <motion.div {...fadeInView(0)}>
-                            <span className="inline-block text-xs font-semibold text-orange-500 uppercase tracking-[0.18em] mb-3">Coverage</span>
+                            <span className="inline-block text-xs font-semibold text-[#E85D2A] uppercase tracking-[0.18em] mb-3">Coverage</span>
                             <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">Expanding city by city.</h2>
                         </motion.div>
                         <button onClick={() => scrollToSection("waitlist")}
-                            className="text-orange-500 font-medium hover:text-orange-400 flex items-center gap-2 text-sm shrink-0">
+                            className="text-[#E85D2A] font-medium hover:text-[#E85D2A] flex items-center gap-2 text-sm shrink-0">
                             Vote for your city <ArrowRightIcon size={16} />
                         </button>
                     </div>
@@ -610,7 +610,7 @@ export default function LandingPage() {
                                         </div>
                                     )}
                                     <h3 className="text-lg font-extrabold text-white">{city.name}</h3>
-                                    <p className="text-zinc-400 text-sm mt-1">{city.active ? "200+ curated spots" : "Stay tuned"}</p>
+                                    <p className="text-zinc-400 text-sm mt-1">{city.active ? "2,400+ curated spots" : "Stay tuned"}</p>
                                 </div>
                             </motion.div>
                         ))}
@@ -620,7 +620,7 @@ export default function LandingPage() {
 
             {/* ═══════ FOR CAFÉS ═══════ */}
             <section id="for-cafes" className="py-24 relative overflow-hidden">
-                <div className="absolute right-0 top-0 w-1/3 h-full bg-orange-500/5 blur-3xl pointer-events-none" />
+                <div className="absolute right-0 top-0 w-1/3 h-full bg-[#E85D2A]/5 blur-3xl pointer-events-none" />
                 <div className="max-w-7xl mx-auto px-6 relative z-10">
                     <div className="grid md:grid-cols-2 gap-16 items-center">
                         <motion.div {...fadeInView(0)}>
@@ -640,7 +640,7 @@ export default function LandingPage() {
                                     { icon: <MapPinIcon />, label: "Reach Locals" },
                                 ].map((item, i) => (
                                     <div key={i} className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-orange-500">
+                                        <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-[#E85D2A]">
                                             {item.icon}
                                         </div>
                                         <span className="text-sm font-medium text-zinc-300">{item.label}</span>
@@ -680,7 +680,7 @@ export default function LandingPage() {
 
             {/* ═══════ WAITLIST ═══════ */}
             <section id="waitlist" className="py-32 relative overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.08),transparent_70%)] pointer-events-none" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(232,93,42,0.08),transparent_70%)] pointer-events-none" />
 
                 <div className="max-w-xl mx-auto px-6 relative z-10 text-center">
                     <motion.div
@@ -689,19 +689,19 @@ export default function LandingPage() {
                         viewport={{ once: true }}
                         className="space-y-6"
                     >
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-sm font-medium">
-                            <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inset-0 rounded-full bg-orange-400 opacity-75" />
-                                <span className="relative rounded-full h-2 w-2 bg-orange-500" />
+                        <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-medium text-zinc-300">
+                            <span className="relative flex h-[7px] w-[7px]">
+                                <span className="absolute inset-0 rounded-full bg-green-400" style={{ animation: "pulse-ring 2s cubic-bezier(0.4,0,0.6,1) infinite" }} />
+                                <span className="relative rounded-full h-[7px] w-[7px] bg-green-400 shadow-[0_0_6px_#4ade80]" />
                             </span>
-                            Limited Early Access
+                            Now Live in Toronto
                         </div>
 
                         <h2 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.1]">
-                            Be the first<br />to know.
+                            Ready to discover<br />your city?
                         </h2>
                         <p className="text-zinc-400 text-lg leading-relaxed">
-                            We&apos;re in beta. Drop your email and be the first to know when we expand to your city.
+                            Savrd is live in Toronto. Start swiping for free — no download needed.
                         </p>
 
                         <div className="pt-4">
@@ -722,6 +722,8 @@ export default function LandingPage() {
                             <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
                             <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
                             <Link href="mailto:hello@savrd.app" className="hover:text-white transition-colors">Contact</Link>
+                            <a href="https://instagram.com/savrd.to" target="_blank" rel="noopener noreferrer" className="text-[#8B949E] hover:text-white transition-colors">Instagram</a>
+                            <a href="https://tiktok.com/@savrd.to" target="_blank" rel="noopener noreferrer" className="text-[#8B949E] hover:text-white transition-colors">TikTok</a>
                         </div>
 
                         <span className="text-sm text-zinc-600">© {new Date().getFullYear()} Savrd. Made with love in Toronto.</span>

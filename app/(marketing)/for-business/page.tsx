@@ -129,7 +129,7 @@ export default function ForBusinessPage() {
         <div className="flex items-center justify-between px-4 md:px-6 py-3">
           <Link href="/for-business" className="flex items-center gap-2">
             <span className="font-['Plus_Jakarta_Sans'] text-2xl font-extrabold tracking-tight text-[#E85D2A]">Savrd</span>
-            <span className="text-sm font-bold text-white">for Business</span>
+            <span className="text-sm font-normal text-white">for Business</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link

@@ -45,7 +45,7 @@ export default function BusinessLoginPage() {
         <div className="text-center mb-8">
           <Link href="/for-business" className="inline-block">
             <span className="font-['Plus_Jakarta_Sans'] text-2xl font-extrabold tracking-tight text-[#E85D2A]">Savrd</span>
-            <span className="text-lg text-gray-400 font-medium ml-2">for Business</span>
+            <span className="text-lg text-white font-normal ml-2">for Business</span>
           </Link>
           <p className="text-gray-500 text-sm mt-2">
             Sign in to manage your business

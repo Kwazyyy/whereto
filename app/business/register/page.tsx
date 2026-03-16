@@ -69,7 +69,7 @@ export default function BusinessRegisterPage() {
         <div className="text-center mb-6">
           <Link href="/for-business" className="inline-block">
             <span className="font-['Plus_Jakarta_Sans'] text-2xl font-extrabold tracking-tight text-[#E85D2A]">Savrd</span>
-            <span className="text-lg text-gray-400 font-medium ml-2">for Business</span>
+            <span className="text-lg text-white font-normal ml-2">for Business</span>
           </Link>
           <p className="text-gray-400 text-sm mt-2">
             Create your business account
