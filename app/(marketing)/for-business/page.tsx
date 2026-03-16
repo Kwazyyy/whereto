@@ -127,9 +127,9 @@ export default function ForBusinessPage() {
       {/* ── Nav ─────────────────────────────────────────────────── */}
       <nav className="fixed top-0 inset-x-0 bg-[#0E1116]/90 backdrop-blur-md border-b border-white/5 z-50">
         <div className="flex items-center justify-between px-4 md:px-6 py-3">
-          <Link href="/for-business" className="flex items-center gap-2">
-            <span className="font-['Plus_Jakarta_Sans'] text-2xl font-extrabold tracking-tight text-[#E85D2A]">Savrd</span>
-            <span className="text-sm font-normal text-white">for Business</span>
+          <Link href="/for-business" className="flex items-baseline gap-2">
+            <span className="text-3xl tracking-tight text-[#E85D2A]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800 }}>Savrd</span>
+            <span className="text-sm font-normal text-white/60 tracking-normal">for Business</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link

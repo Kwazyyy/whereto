@@ -242,7 +242,7 @@ export default function LandingPage() {
             <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-[#0E1116]/90 backdrop-blur-md py-4" : "bg-transparent py-6"}`}>
                 <div className="px-4 md:px-6 flex items-center justify-between">
                     {/* Logo */}
-                    <span className="font-['Plus_Jakarta_Sans'] text-2xl font-extrabold tracking-tight text-[#E85D2A]">Savrd</span>
+                    <span className="text-3xl leading-none tracking-tight text-[#E85D2A]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800 }}>Savrd</span>
 
                     {/* Desktop links */}
                     <div className="hidden md:flex items-center gap-1">
@@ -790,7 +790,7 @@ export default function LandingPage() {
             <footer className="py-12">
                 <div className="px-4 md:px-6">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-                        <span className="font-['Plus_Jakarta_Sans'] text-2xl font-extrabold tracking-tight text-[#E85D2A]/50">Savrd</span>
+                        <span className="text-2xl tracking-tight text-[#E85D2A]/50" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800 }}>Savrd</span>
 
                         <div className="flex flex-wrap justify-center gap-8 text-sm text-zinc-500">
                             <button onClick={() => scrollToSection("about")} className="hover:text-white transition-colors">About</button>
