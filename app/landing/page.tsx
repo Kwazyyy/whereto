@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, FormEvent } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Map, LayoutGrid, Users, Camera } from "lucide-react";
 
 /* ─── Images ────────────────────────────────────────────────── */
 const IMAGES = {
@@ -218,6 +219,7 @@ export default function LandingPage() {
     const navLinks: { label: string; id?: string; href?: string }[] = [
         { label: "About", id: "about" },
         { label: "How It Works", id: "how-it-works" },
+        { label: "Features", id: "features" },
         { label: "Cities", id: "cities" },
         { label: "For Business", href: "/for-business" },
     ];
@@ -566,6 +568,68 @@ export default function LandingPage() {
                         ))}
                     </div>
                 </div>
+            </section>
+
+            {/* ═══════ FEATURES ═══════ */}
+            <section id="features" className="py-20 md:py-32 overflow-hidden">
+                <div className="text-center">
+                    <motion.div
+                        initial={{ opacity: 0, y: 40 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-100px" }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                    >
+                        <span className="text-sm font-semibold tracking-widest uppercase text-[#E85D2A] mb-4 block">WHY SAVRD</span>
+                        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">More than just a list of restaurants</h2>
+                        <p className="text-lg text-[#8B949E] mb-16">The features that make discovering your city actually fun.</p>
+                    </motion.div>
+                </div>
+
+                {[
+                    { icon: Map, label: "EXPLORE", title: "Your city, unlocked", desc: "Toronto starts covered in fog. Every café you visit reveals the neighborhood around it — like a video game, but for real life. Watch your map light up as you explore.", reverse: false },
+                    { icon: LayoutGrid, label: "ORGANIZE", title: "Saves that sort themselves", desc: "Swipe right and your spots automatically organize by mood — date night, study spots, budget eats. No folders to create, no lists to manage. Just swipe and go.", reverse: true },
+                    { icon: Users, label: "CONNECT", title: "Discover with friends", desc: "See where your friends save and eat. Get taste compatibility scores, swap recommendations, and find out you both saved the same hidden gem.", reverse: false },
+                    { icon: Camera, label: "CONTRIBUTE", title: "Real photos from real visitors", desc: "Forget stock photos. See what the food, vibe, and seating actually look like — shot by people who've been there. Visit a spot and add your own.", reverse: true },
+                ].map((feature, i) => (
+                    <div key={i}>
+                        {i > 0 && <div className="w-16 h-px bg-[#30363D] mx-auto" />}
+                        <motion.div
+                            initial={{ opacity: 0, y: 40 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            transition={{ duration: 0.6, ease: "easeOut" }}
+                            className={`flex flex-col md:flex-row items-center gap-8 md:gap-16 py-12 md:py-16 max-w-5xl mx-auto px-6 ${feature.reverse ? "md:flex-row-reverse" : ""}`}
+                        >
+                            {/* Icon/Visual half */}
+                            <div className="md:w-1/2">
+                                <div
+                                    className="w-full aspect-square max-w-[320px] mx-auto rounded-3xl flex items-center justify-center relative overflow-hidden"
+                                    style={{ background: 'rgba(22, 27, 34, 0.6)', border: '1px solid rgba(255, 255, 255, 0.1)' }}
+                                >
+                                    <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(circle at center, rgba(232, 93, 42, 0.15) 0%, transparent 70%)' }} />
+                                    <motion.div
+                                        animate={{ y: [0, -8, 0] }}
+                                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                    >
+                                        <feature.icon color="#E85D2A" size={80} strokeWidth={1.2} />
+                                    </motion.div>
+                                </div>
+                            </div>
+
+                            {/* Text half */}
+                            <div className="md:w-1/2 text-center md:text-left">
+                                <span
+                                    className="inline-block px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase mb-4"
+                                    style={{ background: 'rgba(232, 93, 42, 0.15)', color: '#E85D2A' }}
+                                >
+                                    {feature.label}
+                                </span>
+                                <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">{feature.title}</h3>
+                                <p className="text-base md:text-lg text-[#8B949E] leading-relaxed">{feature.desc}</p>
+                            </div>
+                        </motion.div>
+                    </div>
+                ))}
             </section>
 
             {/* ═══════ CITIES ═══════ */}
