@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, FormEvent } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Map, LayoutGrid, Users, Camera } from "lucide-react";
+import { Map, LayoutGrid, Users, Camera, UtensilsCrossed } from "lucide-react";
 
 /* ─── Images ────────────────────────────────────────────────── */
 const IMAGES = {
@@ -404,8 +404,8 @@ export default function LandingPage() {
 
                                 {/* Vibe chips */}
                                 <div className="px-4 flex gap-1.5 mb-3 overflow-hidden shrink-0">
-                                    {[{ l: "trending", a: true }, { l: "study", a: false }, { l: "date", a: false }, { l: "cheap", a: false }].map((c, i) => (
-                                        <div key={i} className={`shrink-0 px-2.5 py-[5px] rounded-full text-[8px] font-bold uppercase tracking-wide ${c.a ? "bg-[#E85D2A] text-white" : "bg-white/[0.06] text-zinc-400"}`}>
+                                    {[{ l: "Study / Work", a: false }, { l: "Romantic", a: false }, { l: "Chill Vibes", a: false }, { l: "Trending Now", a: true }].map((c, i) => (
+                                        <div key={i} className={`shrink-0 px-3 py-1.5 rounded-full text-[8px] font-semibold ${c.a ? "bg-[#E85D2A] text-white" : "bg-[#1C2128] text-white border border-[#30363D]"}`}>
                                             {c.l}
                                         </div>
                                     ))}
@@ -419,43 +419,54 @@ export default function LandingPage() {
                                         className="w-full rounded-2xl overflow-hidden relative shadow-2xl"
                                         style={{ aspectRatio: "3/4" }}
                                     >
-                                        <img src={IMAGES.latte} alt="Café" className="absolute inset-0 w-full h-full object-cover" />
+                                        <img src="/images/10-dean-waverley--toronto.jpg" alt="10 DEAN Café" className="absolute inset-0 w-full h-full object-cover" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
+
+                                        {/* Budget & distance pills */}
+                                        <div className="absolute top-3 right-3 flex gap-1.5 z-10">
+                                            <span className="bg-black/50 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-full font-medium">$ All</span>
+                                            <span className="bg-black/50 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-full font-medium">5km</span>
+                                        </div>
 
                                         {/* SAVE flash */}
                                         <motion.div
                                             animate={{ opacity: [0, 0.9, 0] }}
                                             transition={{ delay: 2.5, duration: 1.8, repeat: Infinity, repeatDelay: 7 }}
-                                            className="absolute top-4 right-3 px-3 py-1 rounded-md border-2 border-green-400/70 text-green-400 text-[10px] font-black rotate-12 uppercase tracking-wider">
+                                            className="absolute top-12 right-3 px-3 py-1 rounded-md border-2 border-green-400/70 text-green-400 text-[10px] font-black rotate-12 uppercase tracking-wider">
                                             Save
                                         </motion.div>
 
                                         <div className="absolute bottom-0 inset-x-0 p-4">
-                                            <h3 className="text-[14px] font-bold text-white leading-tight">Founders Coffee</h3>
-                                            <div className="flex items-center gap-1 text-[9px] text-zinc-400 mt-0.5">
-                                                <span>800m</span><span className="text-zinc-600">·</span>
-                                                <span>Café</span><span className="text-zinc-600">·</span><span>$$</span>
-                                            </div>
-                                            <div className="flex gap-1 mt-2">
-                                                {["aesthetic", "quiet", "wifi"].map((t) => (
-                                                    <span key={t} className="px-2 py-[3px] rounded-full bg-white/10 backdrop-blur-sm text-[7px] font-semibold text-zinc-300">{t}</span>
-                                                ))}
+                                            <div className="flex items-end justify-between">
+                                                <div>
+                                                    <h3 className="text-[14px] font-bold text-white leading-tight">10 DEAN | Waverley</h3>
+                                                    <div className="flex items-center gap-1 text-[9px] text-zinc-400 mt-0.5">
+                                                        <span>1.5 km</span><span className="text-zinc-600">·</span>
+                                                        <span>Café</span><span className="text-zinc-600">·</span>
+                                                        <span>$$</span><span className="text-zinc-600">·</span>
+                                                        <span className="text-[#CA8A04]">★</span><span>4.6</span>
+                                                    </div>
+                                                    <div className="flex gap-1 mt-2">
+                                                        {["Trending", "Coffee", "Study Spot"].map((t) => (
+                                                            <span key={t} className="px-2 py-[3px] rounded-full bg-white/10 backdrop-blur-sm text-[7px] font-semibold text-zinc-300">{t}</span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div className="w-8 h-8 rounded-full bg-[#1C2128] border border-[#30363D] flex items-center justify-center shrink-0 mb-0.5">
+                                                    <UtensilsCrossed size={14} color="#8B949E" />
+                                                </div>
                                             </div>
                                         </div>
                                     </motion.div>
                                 </div>
 
-                                {/* Swipe controls */}
-                                <div className="flex items-center justify-center gap-5 py-4 shrink-0">
-                                    <button className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-red-400">
-                                        <SkipIcon />
-                                    </button>
-                                    <button className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-blue-400">
-                                        <ArrowUpIcon />
-                                    </button>
-                                    <button className="w-12 h-12 rounded-full bg-[#E85D2A] flex items-center justify-center text-white shadow-lg shadow-[#E85D2A]/30">
-                                        <HeartIcon filled />
-                                    </button>
+                                {/* Bottom nav pill */}
+                                <div className="flex items-center justify-around bg-[#1C2128] rounded-full mx-6 py-2 px-4 mb-4 shrink-0">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B949E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B949E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /><line x1="8" y1="2" x2="8" y2="18" /><line x1="16" y1="6" x2="16" y2="22" /></svg>
+                                    <span className="bg-[#E85D2A] text-white text-[10px] font-semibold px-3 py-1 rounded-full">Discover</span>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B949E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B949E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                                 </div>
                             </div>
                         </div>
