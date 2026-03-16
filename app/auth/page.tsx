@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { Coffee, Croissant, Utensils, Wine, CakeSlice, IceCreamCone, Pizza, Soup, Sandwich, CupSoda } from "lucide-react";
 
 export default function AuthPage() {
   const { status } = useSession();
@@ -133,17 +135,150 @@ export default function AuthPage() {
     "w-full px-4 py-3 rounded-lg bg-[#0E1116] border border-[#30363D] text-white placeholder-[#8B949E] text-sm focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200";
 
   return (
-    <div className="min-h-screen bg-[#0E1116] flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-[#0E1116] flex flex-col items-center justify-center relative overflow-hidden">
       {/* Decorative ambient blobs */}
       <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-[#E85D2A]/8 rounded-full blur-[120px]" />
-      <div className="absolute bottom-1/4 -right-32 w-[400px] h-[400px] bg-[#CA8A04]/8 rounded-full blur-[120px]" />
+      <div className="absolute bottom-1/4 -right-32 w-[400px] h-[400px] bg-[#E85D2A]/8 rounded-full blur-[120px]" />
+
+      {/* Floating food icons layer */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {/* 1. Coffee — top-left */}
+        <motion.div
+          className="absolute top-[6%] left-[5%] opacity-30 pointer-events-none"
+          style={{ rotate: 12 }}
+          animate={{ y: [0, -15, 0], rotate: [12, 17, 12] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="absolute -inset-8 w-60 h-60 bg-[#E85D2A]/20 rounded-full blur-[50px]" />
+          <Coffee color="#E85D2A" size={120} strokeWidth={1.5} className="relative" />
+        </motion.div>
+
+        {/* 2. Croissant — top-right */}
+        <motion.div
+          className="absolute top-[6%] right-[6%] opacity-30 pointer-events-none"
+          style={{ rotate: -15 }}
+          animate={{ y: [0, -15, 0], rotate: [-15, -10, -15] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="absolute -inset-8 w-56 h-56 bg-[#E85D2A]/20 rounded-full blur-[50px]" />
+          <Croissant color="#E85D2A" size={110} strokeWidth={1.5} className="relative" />
+        </motion.div>
+
+        {/* 5. Utensils — mid-left, hidden on mobile */}
+        <motion.div
+          className="absolute top-[50%] left-[2%] opacity-30 pointer-events-none hidden md:block"
+          style={{ rotate: 20 }}
+          animate={{ y: [0, -15, 0], rotate: [20, 25, 20] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="absolute -inset-8 w-48 h-48 bg-[#E85D2A]/20 rounded-full blur-[50px]" />
+          <Utensils color="#E85D2A" size={100} strokeWidth={1.5} className="relative" />
+        </motion.div>
+
+        {/* 6. Wine — mid-right, hidden on mobile */}
+        <motion.div
+          className="absolute top-[45%] right-[3%] opacity-30 pointer-events-none hidden md:block"
+          style={{ rotate: -8 }}
+          animate={{ y: [0, -15, 0], rotate: [-8, -3, -8] }}
+          transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="absolute -inset-8 w-56 h-56 bg-[#E85D2A]/20 rounded-full blur-[50px]" />
+          <Wine color="#E85D2A" size={110} strokeWidth={1.5} className="relative" />
+        </motion.div>
+
+        {/* 8. CakeSlice — lower-left, visible on all screens */}
+        <motion.div
+          className="absolute bottom-[5%] left-[5%] md:bottom-[18%] md:left-[8%] opacity-30 pointer-events-none"
+          style={{ rotate: 6 }}
+          animate={{ y: [0, -15, 0], rotate: [6, 11, 6] }}
+          transition={{ duration: 8.5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="absolute -inset-8 w-40 h-40 md:w-56 md:h-56 bg-[#E85D2A]/20 rounded-full blur-[50px]" />
+          <CakeSlice color="#E85D2A" size={80} strokeWidth={1.5} className="relative md:hidden" />
+          <CakeSlice color="#E85D2A" size={115} strokeWidth={1.5} className="relative hidden md:block" />
+        </motion.div>
+
+        {/* 10. IceCreamCone — bottom-right, visible on all screens */}
+        <motion.div
+          className="absolute bottom-[5%] right-[5%] md:bottom-[8%] md:right-[5%] opacity-30 pointer-events-none"
+          style={{ rotate: -25 }}
+          animate={{ y: [0, -15, 0], rotate: [-25, -20, -25] }}
+          transition={{ duration: 7.5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="absolute -inset-8 w-36 h-36 md:w-52 md:h-52 bg-[#E85D2A]/20 rounded-full blur-[50px]" />
+          <IceCreamCone color="#E85D2A" size={75} strokeWidth={1.5} className="relative md:hidden" />
+          <IceCreamCone color="#E85D2A" size={105} strokeWidth={1.5} className="relative hidden md:block" />
+        </motion.div>
+
+        {/* 3. Pizza — top-center-left, hidden on mobile */}
+        <motion.div
+          className="absolute top-[3%] left-[28%] opacity-30 pointer-events-none hidden md:block"
+          style={{ rotate: -10 }}
+          animate={{ y: [0, -15, 0], rotate: [-10, -5, -10] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="absolute -inset-8 w-44 h-44 bg-[#E85D2A]/20 rounded-full blur-[50px]" />
+          <Pizza color="#E85D2A" size={90} strokeWidth={1.5} className="relative" />
+        </motion.div>
+
+        {/* 9. Soup — bottom-center, visible on all screens */}
+        <motion.div
+          className="absolute bottom-[3%] left-[40%] md:bottom-[5%] md:left-[42%] opacity-30 pointer-events-none"
+          style={{ rotate: 8 }}
+          animate={{ y: [0, -15, 0], rotate: [8, 13, 8] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="absolute -inset-8 w-36 h-36 md:w-48 md:h-48 bg-[#E85D2A]/20 rounded-full blur-[50px]" />
+          <Soup color="#E85D2A" size={70} strokeWidth={1.5} className="relative md:hidden" />
+          <Soup color="#E85D2A" size={95} strokeWidth={1.5} className="relative hidden md:block" />
+        </motion.div>
+
+        {/* 4. Sandwich — top-center-right, large desktop only */}
+        <motion.div
+          className="absolute top-[15%] right-[20%] opacity-30 pointer-events-none hidden lg:block"
+          style={{ rotate: 15 }}
+          animate={{ y: [0, -15, 0], rotate: [15, 20, 15] }}
+          transition={{ duration: 9.5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="absolute -inset-6 w-36 h-36 bg-[#E85D2A]/20 rounded-full blur-[50px]" />
+          <Sandwich color="#E85D2A" size={75} strokeWidth={1.5} className="relative" />
+        </motion.div>
+
+        {/* 7. CupSoda — lower-right, large desktop only */}
+        <motion.div
+          className="absolute bottom-[25%] right-[12%] opacity-30 pointer-events-none hidden lg:block"
+          style={{ rotate: -18 }}
+          animate={{ y: [0, -15, 0], rotate: [-18, -13, -18] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="absolute -inset-6 w-40 h-40 bg-[#E85D2A]/20 rounded-full blur-[50px]" />
+          <CupSoda color="#E85D2A" size={85} strokeWidth={1.5} className="relative" />
+        </motion.div>
+      </div>
+
+      {/* Ambient glow orbs behind card */}
+      <div className="absolute top-[30%] left-[35%] w-80 h-80 rounded-full pointer-events-none z-[5]" style={{ background: 'radial-gradient(circle, rgba(232, 93, 42, 0.25) 0%, transparent 70%)' }} />
+      <div className="absolute top-[30%] right-[33%] w-72 h-72 rounded-full pointer-events-none z-[5]" style={{ background: 'radial-gradient(circle, rgba(232, 93, 42, 0.2) 0%, transparent 70%)' }} />
+      <div className="absolute bottom-[20%] left-[38%] w-96 h-64 rounded-full pointer-events-none z-[5]" style={{ background: 'radial-gradient(ellipse, rgba(232, 93, 42, 0.15) 0%, transparent 70%)' }} />
+
+      {/* Logo + tagline above card */}
+      <div className="relative z-10 w-full max-w-md mx-auto text-center mb-6">
+        <h1 className="text-3xl font-extrabold tracking-tight text-[#E85D2A]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Savrd</h1>
+        <p className="text-sm text-[#8B949E] mt-1">
+          Discover your city, one swipe at a time.
+        </p>
+      </div>
 
       {/* Centered form */}
-      <div className="relative z-10 w-full max-w-md mx-auto px-6 py-12">
-        {/* Logo */}
-        <h1 className="font-['Plus_Jakarta_Sans'] text-2xl font-extrabold tracking-tight text-[#E85D2A] text-center mb-2">Savrd</h1>
-        <p className="text-sm text-[#8B949E] text-center mb-10">
-          Discover your city, one swipe at a time.
+      <div className="relative z-10 w-full max-w-md mx-auto px-6 py-12" style={{ background: 'rgba(22, 27, 34, 0.4)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', border: '1px solid rgba(255, 255, 255, 0.22)', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)', borderRadius: '24px' }}>
+        {/* Heading */}
+        <h2 className="text-2xl font-bold text-white text-center mb-1">
+          {mode === "signin" ? "Welcome back" : "Create your account"}
+        </h2>
+        <p className="text-sm text-[#8B949E] text-center mb-6">
+          {mode === "signin"
+            ? "Sign in to continue swiping"
+            : "Start discovering Toronto"}
         </p>
 
         {/* Toggle */}
@@ -169,16 +304,6 @@ export default function AuthPage() {
             Sign Up
           </button>
         </div>
-
-        {/* Heading */}
-        <h2 className="text-2xl font-bold text-white text-center mb-1">
-          {mode === "signin" ? "Welcome back" : "Create your account"}
-        </h2>
-        <p className="text-sm text-[#8B949E] text-center mb-8">
-          {mode === "signin"
-            ? "Sign in to continue swiping"
-            : "Start discovering Toronto"}
-        </p>
 
         {/* Google OAuth */}
         <button

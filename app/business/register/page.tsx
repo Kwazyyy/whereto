@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import BusinessFloatingIcons from "@/components/BusinessFloatingIcons";
 
 export default function BusinessRegisterPage() {
   const router = useRouter();
@@ -64,21 +65,33 @@ export default function BusinessRegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0E1116] flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-[#0E1116] flex flex-col items-center justify-center relative overflow-hidden p-6">
+      <BusinessFloatingIcons />
+
+      {/* Ambient glow orbs behind card */}
+      <div className="absolute top-[30%] left-[35%] w-80 h-80 rounded-full pointer-events-none z-[5]" style={{ background: 'radial-gradient(circle, rgba(232, 93, 42, 0.25) 0%, transparent 70%)' }} />
+      <div className="absolute top-[30%] right-[33%] w-72 h-72 rounded-full pointer-events-none z-[5]" style={{ background: 'radial-gradient(circle, rgba(232, 93, 42, 0.2) 0%, transparent 70%)' }} />
+      <div className="absolute bottom-[20%] left-[38%] w-96 h-64 rounded-full pointer-events-none z-[5]" style={{ background: 'radial-gradient(ellipse, rgba(232, 93, 42, 0.15) 0%, transparent 70%)' }} />
+
+      {/* Wordmark above card */}
+      <div className="relative z-10 w-full max-w-md text-center mb-6">
+        <Link href="/for-business" className="inline-block">
+          <h1 className="text-3xl font-extrabold tracking-tight text-[#E85D2A]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Savrd</h1>
+        </Link>
+        <p className="text-sm text-[#8B949E] mt-1">For Business</p>
+      </div>
+
+      <div className="relative z-10 w-full max-w-md">
         <div className="text-center mb-6">
-          <Link href="/for-business" className="inline-block">
-            <span className="font-['Plus_Jakarta_Sans'] text-2xl font-extrabold tracking-tight text-[#E85D2A]">Savrd</span>
-            <span className="text-lg text-white font-normal ml-2">for Business</span>
-          </Link>
-          <p className="text-gray-400 text-sm mt-2">
+          <p className="text-gray-400 text-sm">
             Create your business account
           </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="bg-[#161B22] border border-white/10 rounded-2xl p-8"
+          className="p-8"
+          style={{ background: 'rgba(22, 27, 34, 0.4)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', border: '1px solid rgba(255, 255, 255, 0.22)', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)', borderRadius: '24px' }}
         >
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-sm text-red-400 mb-4">
@@ -161,7 +174,7 @@ export default function BusinessRegisterPage() {
           <button
             type="submit"
             disabled={!isValid || loading}
-            className="bg-[#E85D2A] text-white font-semibold w-full py-3 rounded-lg hover:bg-[#d4522a] transition mt-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            className="bg-[#E85D2A] text-white font-semibold w-full py-3 rounded-lg hover:bg-[#d4522a] transition mt-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer"
           >
             {loading ? (
               <svg
@@ -190,7 +203,7 @@ export default function BusinessRegisterPage() {
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="relative z-10 text-center text-sm text-gray-500 mt-6">
           Already have an account?{" "}
           <Link href="/business/login" className="text-[#E85D2A] hover:underline">
             Sign In
