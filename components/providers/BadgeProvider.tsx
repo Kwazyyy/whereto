@@ -111,7 +111,7 @@ export function BadgeProvider({ children }: { children: ReactNode }) {
             <AnimatePresence>
                 {currentBadge && (
                     <motion.div
-                        className="fixed inset-0 z-[200] flex items-center justify-center p-5 pt-10"
+                        className="fixed inset-0 z-[60] flex items-center justify-center p-5 pt-10"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -132,11 +132,7 @@ export function BadgeProvider({ children }: { children: ReactNode }) {
 
                         {/* Pop up Card */}
                         <motion.div
-                            className="relative z-10 bg-white/[0.65] dark:bg-white/[0.05] rounded-2xl px-8 py-10 w-full max-w-sm text-center shadow-2xl border border-black/[0.08] dark:border-white/[0.15]"
-                            style={{
-                                backdropFilter: "blur(64px) saturate(180%)",
-                                WebkitBackdropFilter: "blur(64px) saturate(180%)",
-                            }}
+                            className="relative z-10 bg-white dark:bg-[#161B22] rounded-2xl px-8 py-10 w-full max-w-sm text-center shadow-2xl border border-black/[0.08] dark:border-white/[0.15]"
                             initial={{ scale: 0.8, y: 50 }}
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.8, opacity: 0, y: 20 }}

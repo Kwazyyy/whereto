@@ -333,7 +333,7 @@ function InfoCard({
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ googlePlaceId: place.placeId, platform, source: "map_popup" }),
-              }).catch(() => {});
+              }).catch(() => { });
             }}
             style={{
               color: linkRest,
@@ -562,6 +562,7 @@ export default function MapPage() {
   const [visitedLocations, setVisitedLocations] = useState<{ lat: number; lng: number; placeId: string }[]>([]);
   const [visitedIds, setVisitedIds] = useState<Set<string>>(new Set());
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
+  const [locating, setLocating] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
 
   const { theme } = useTheme();
@@ -762,7 +763,32 @@ export default function MapPage() {
         {/* Recenter button — above fog, outside conditional so it's a direct child of relative container */}
         {userLocation && (
           <button
-            onClick={() => mapInstance?.panTo(userLocation)}
+            onClick={() => {
+              if (!mapInstance || locating) return;
+              if (!navigator.geolocation) {
+                // Fallback: pan to last known or default
+                mapInstance.panTo(userLocation ?? { lat: DEFAULT_LAT, lng: DEFAULT_LNG });
+                mapInstance.setZoom(userLocation ? 16 : 13);
+                return;
+              }
+              setLocating(true);
+              navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                  const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                  setUserLocation(loc);
+                  mapInstance.panTo(loc);
+                  mapInstance.setZoom(16);
+                  setLocating(false);
+                },
+                () => {
+                  // GPS failed — use last known location
+                  mapInstance.panTo(userLocation ?? { lat: DEFAULT_LAT, lng: DEFAULT_LNG });
+                  mapInstance.setZoom(userLocation ? 16 : 13);
+                  setLocating(false);
+                },
+                { timeout: 6000, enableHighAccuracy: true }
+              );
+            }}
             title="Re-centre map"
             className="absolute bottom-36 right-4 lg:bottom-6 lg:right-6 z-20 w-12 h-12 rounded-full flex items-center justify-center cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.15)]"
             style={{
@@ -770,13 +796,21 @@ export default function MapPage() {
               border: "1px solid var(--color-btn-border)",
             }}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-navy)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="3" />
-              <line x1="12" y1="2" x2="12" y2="6" />
-              <line x1="12" y1="18" x2="12" y2="22" />
-              <line x1="2" y1="12" x2="6" y2="12" />
-              <line x1="18" y1="12" x2="22" y2="12" />
-            </svg>
+            {locating ? (
+              <div
+                className="w-5 h-5 rounded-full border-[2px] border-t-transparent animate-spin"
+                style={{ borderColor: "#E85D2A", borderTopColor: "transparent" }}
+              />
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-navy)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 12h3" />
+                <path d="M19 12h3" />
+                <path d="M12 2v3" />
+                <path d="M12 19v3" />
+                <circle cx="12" cy="12" r="7" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            )}
           </button>
         )}
 

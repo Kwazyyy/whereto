@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Place, FriendSignal } from "@/lib/types";
@@ -58,10 +59,13 @@ export default function PlaceDetailSheet({
     }
   }
 
+  const [mounted, setMounted] = useState(false);
   const [sheetState, setSheetState] = useState<"partial" | "full">("partial");
   const scrollRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef(0);
   const touchStartScrollTop = useRef(0);
+
+  useEffect(() => { setMounted(true); }, []);
 
   function handleTouchStart(e: React.TouchEvent) {
     touchStartY.current = e.touches[0].clientY;
@@ -81,10 +85,12 @@ export default function PlaceDetailSheet({
     }
   }
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <>
       <motion.div
-        className="fixed inset-0 bg-black/40 z-[55]"
+        className="fixed inset-0 bg-black/40 z-[60]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -92,8 +98,8 @@ export default function PlaceDetailSheet({
       />
 
       <motion.div
-        className="fixed inset-x-0 bottom-0 z-[60] bg-white/[0.65] dark:bg-white/[0.05] rounded-t-2xl overflow-hidden shadow-2xl border border-black/[0.08] dark:border-white/[0.15]"
-        style={{ height: "95dvh", touchAction: sheetState === "partial" ? "none" : "auto", backdropFilter: "blur(64px) saturate(180%)", WebkitBackdropFilter: "blur(64px) saturate(180%)" }}
+        className="fixed inset-x-0 bottom-0 z-[60] bg-white dark:bg-[#161B22] rounded-t-2xl overflow-hidden shadow-2xl border border-black/[0.08] dark:border-white/[0.15]"
+        style={{ height: "95dvh", touchAction: sheetState === "partial" ? "none" : "auto" }}
         initial={{ y: "100%" }}
         animate={{ y: sheetState === "full" ? "5vh" : "35vh" }}
         exit={{ y: "100%" }}
@@ -298,6 +304,7 @@ export default function PlaceDetailSheet({
           </div>
         </div>
       </motion.div>
-    </>
+    </>,
+    document.body
   );
 }

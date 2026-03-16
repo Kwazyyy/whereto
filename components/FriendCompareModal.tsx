@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -71,6 +72,7 @@ function SmallAvatar({ src, name }: { src: string | null; name: string | null })
 }
 
 export function FriendCompareModal({ data, onClose }: FriendCompareModalProps) {
+    const [mounted, setMounted] = useState(false);
     const [selectedArea, setSelectedArea] = useState<string>("All");
 
     const ALL_AREAS = ["All", "Downtown", "West End", "East End", "Midtown", "North York", "Scarborough", "Etobicoke"];
@@ -158,6 +160,8 @@ export function FriendCompareModal({ data, onClose }: FriendCompareModalProps) {
         if (isDragPreventClick.current) return;
         setSelectedArea(area);
     };
+
+    useEffect(() => { setMounted(true); }, []);
 
     // Competitive nudge
     let ctaTitle = "";
@@ -326,7 +330,9 @@ export function FriendCompareModal({ data, onClose }: FriendCompareModalProps) {
         </div>
     );
 
-    return (
+    if (!mounted) return null;
+
+    return createPortal(
         <AnimatePresence>
             <motion.div
                 className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40"
@@ -337,11 +343,7 @@ export function FriendCompareModal({ data, onClose }: FriendCompareModalProps) {
                 onClick={onClose}
             >
                 <motion.div
-                    className="w-[95%] max-w-[860px] max-h-[85vh] bg-white/[0.65] dark:bg-white/[0.05] rounded-2xl border border-black/[0.08] dark:border-white/[0.15] shadow-2xl relative overflow-hidden flex flex-col"
-                    style={{
-                        backdropFilter: "blur(64px) saturate(180%)",
-                        WebkitBackdropFilter: "blur(64px) saturate(180%)",
-                    }}
+                    className="w-[95%] max-w-[860px] max-h-[85vh] bg-white dark:bg-[#161B22] rounded-2xl border border-black/[0.08] dark:border-white/[0.15] shadow-2xl relative overflow-hidden flex flex-col"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
@@ -398,6 +400,7 @@ export function FriendCompareModal({ data, onClose }: FriendCompareModalProps) {
                     </div>
                 </motion.div>
             </motion.div>
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 }

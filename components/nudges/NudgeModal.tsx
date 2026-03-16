@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import { X } from "lucide-react";
@@ -31,6 +32,10 @@ export default function NudgeModal({
   onSecondary,
   nudgeType,
 }: NudgeModalProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
+
   const dismiss = useCallback(() => {
     markNudgeSeen(nudgeType);
     onClose();
@@ -45,7 +50,9 @@ export default function NudgeModal({
     return () => document.removeEventListener("keydown", handler);
   }, [isOpen, dismiss]);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -55,7 +62,7 @@ export default function NudgeModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/40"
+            className="fixed inset-0 z-[60] bg-black/40"
             onClick={dismiss}
           />
 
@@ -65,14 +72,10 @@ export default function NudgeModal({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-6 pointer-events-none"
+            className="fixed inset-0 z-[60] flex items-center justify-center p-6 pointer-events-none"
           >
             <div
-              className="relative pointer-events-auto w-full max-w-sm rounded-2xl px-8 py-8 shadow-2xl bg-white/[0.65] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.15]"
-              style={{
-                backdropFilter: "blur(64px) saturate(180%)",
-                WebkitBackdropFilter: "blur(64px) saturate(180%)",
-              }}
+              className="relative pointer-events-auto w-full max-w-sm rounded-2xl px-8 py-8 shadow-2xl bg-white dark:bg-[#161B22] border border-black/[0.08] dark:border-white/[0.15]"
             >
               {/* Close button */}
               <button
@@ -124,6 +127,7 @@ export default function NudgeModal({
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

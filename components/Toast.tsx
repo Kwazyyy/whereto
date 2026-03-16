@@ -52,7 +52,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             transition={{ type: "spring", damping: 25, stiffness: 350 }}
           >
             {/* Mobile pill */}
-            <div className="pointer-events-auto md:hidden flex items-center gap-2 w-auto max-w-[85vw] bg-[#161B22] border border-[#30363D] text-white rounded-full shadow-xl text-sm font-medium px-5 py-2.5">
+            <div className="pointer-events-auto md:hidden flex items-center gap-2 w-auto max-w-[85vw] bg-white dark:bg-[#161B22] border border-[#D0D7DE] dark:border-[#30363D] text-[#0E1116] dark:text-white rounded-full shadow-xl text-sm font-medium px-5 py-2.5">
               {toast.variant === "success" && <CheckCircle size={16} className="text-[#E85D2A] shrink-0" />}
               {toast.variant === "error" && <XCircle size={16} className="text-[#F85149] shrink-0" />}
               {toast.message}

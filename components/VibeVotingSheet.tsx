@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, Loader2 } from "lucide-react";
 import { VIBE_CATEGORIES, VIBE_TAGS, getVibeIcon } from "@/lib/vibeTags";
 
@@ -20,8 +21,11 @@ export default function VibeVotingSheet({
     onClose,
     onSuccess
 }: VibeVotingSheetProps) {
+    const [mounted, setMounted] = useState(false);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => { setMounted(true); }, []);
 
     const toggleTag = (tag: string) => {
         setSelectedTags(prev => {
@@ -59,7 +63,9 @@ export default function VibeVotingSheet({
         }
     };
 
-    return (
+    if (!mounted) return null;
+
+    return createPortal(
         <AnimatePresence>
             {isOpen && (
                 <>
@@ -69,7 +75,7 @@ export default function VibeVotingSheet({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 z-[200] bg-black/40"
+                        className="fixed inset-0 z-[60] bg-black/40"
                     />
 
                     {/* Sheet */}
@@ -78,15 +84,12 @@ export default function VibeVotingSheet({
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                        className="fixed bottom-0 left-0 right-0 z-[201] max-h-[90vh] flex flex-col bg-white/[0.65] dark:bg-white/[0.05] rounded-t-2xl overflow-hidden shadow-2xl border border-black/[0.08] dark:border-white/[0.15]"
-                        style={{
-                            backdropFilter: "blur(64px) saturate(180%)",
-                            WebkitBackdropFilter: "blur(64px) saturate(180%)",
-                        }}
+                        className="fixed bottom-0 left-0 right-0 z-[60] md:inset-0 md:flex md:items-center md:justify-center max-h-[90vh] md:max-h-none flex flex-col md:block md:pointer-events-none"
                     >
-                        {/* Drag Handle & Header */}
+                        <div className="md:pointer-events-auto md:mx-auto md:w-full md:max-w-[500px] max-h-[90vh] flex flex-col bg-white dark:bg-[#161B22] rounded-t-2xl md:rounded-2xl overflow-hidden shadow-2xl border border-black/[0.08] dark:border-white/[0.15]">
+                        {/* Drag Handle (mobile only) & Header */}
                         <div className="shrink-0 pt-4 pb-2 px-6 border-b border-gray-100 dark:border-white/5 relative">
-                            <div className="w-12 h-1.5 bg-gray-200 dark:bg-white/10 rounded-full mx-auto mb-4" />
+                            <div className="w-12 h-1.5 bg-gray-200 dark:bg-white/10 rounded-full mx-auto mb-4 md:hidden" />
                             <div className="flex items-start justify-between">
                                 <div>
                                     <h2 className="text-xl font-bold text-[#0E1116] dark:text-white leading-tight">
@@ -172,9 +175,11 @@ export default function VibeVotingSheet({
                                 )}
                             </button>
                         </div>
+                        </div>
                     </motion.div>
                 </>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 }
