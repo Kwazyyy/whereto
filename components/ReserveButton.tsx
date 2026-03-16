@@ -1,12 +1,13 @@
 "use client";
 
 import { CalendarCheck } from "lucide-react";
-import { getBookingUrl } from "@/lib/booking";
+import { getBookingUrl, isReservable } from "@/lib/booking";
 
 interface ReserveButtonProps {
   placeName: string;
   address: string;
   googlePlaceId: string;
+  placeType?: string;
   size?: "sm" | "md" | "lg";
   variant?: "primary" | "outline";
 }
@@ -23,9 +24,12 @@ export default function ReserveButton({
   placeName,
   address,
   googlePlaceId,
+  placeType,
   size = "md",
   variant = "primary",
 }: ReserveButtonProps) {
+  if (!isReservable(placeType)) return null;
+
   const { url, platform } = getBookingUrl(placeName, address, googlePlaceId);
 
   const base = "inline-flex items-center gap-1.5 rounded-full font-semibold transition-colors cursor-pointer";

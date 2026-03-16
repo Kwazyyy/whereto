@@ -29,22 +29,39 @@ export function getBookingUrl(
   return { url: googleUrl, platform: "google" };
 }
 
+// Explicit show list — sit-down dining & bars where reservations make sense
 const RESERVABLE_TYPES = new Set([
   "restaurant", "italian_restaurant", "indian_restaurant", "chinese_restaurant",
   "japanese_restaurant", "korean_restaurant", "thai_restaurant", "mexican_restaurant",
   "vietnamese_restaurant", "french_restaurant", "greek_restaurant",
   "mediterranean_restaurant", "middle_eastern_restaurant", "turkish_restaurant",
   "lebanese_restaurant", "american_restaurant", "seafood_restaurant",
-  "steak_house", "steakhouse", "fine_dining", "bar", "lounge", "pub", "gastropub",
-  "brunch_restaurant", "sushi_restaurant", "bbq", "barbecue_restaurant",
+  "steak_house", "steakhouse", "fine_dining", "fine_dining_restaurant",
+  "bar", "lounge", "bar_and_grill", "gastropub",
+  "brunch_restaurant", "sushi_restaurant", "brazilian_restaurant",
+  "spanish_restaurant", "african_restaurant", "caribbean_restaurant",
+  "persian_restaurant", "bbq", "barbecue_restaurant",
+]);
+
+// Explicit hide list — casual/counter-service spots
+const NON_RESERVABLE_TYPES = new Set([
+  "cafe", "coffee_shop", "bakery", "dessert_shop", "ice_cream_shop",
+  "bubble_tea", "juice_bar", "donut_shop", "bagel_shop",
+  "fast_food", "fast_food_restaurant", "pizza_delivery", "food_truck",
+  "deli", "sandwich_shop", "food_court",
+  "convenience_store", "grocery_store", "supermarket", "liquor_store",
 ]);
 
 export function isReservable(placeType: string | null | undefined): boolean {
   if (!placeType) return false;
   const normalized = placeType.toLowerCase().trim();
+  // Explicit hide list takes priority
+  if (NON_RESERVABLE_TYPES.has(normalized)) return false;
+  // Explicit show list
   if (RESERVABLE_TYPES.has(normalized)) return true;
-  // Also match if the type contains "restaurant" but isn't a fast-food variant
-  if (normalized.includes("restaurant") && !normalized.includes("fast")) return true;
+  // Catch-all: any *_restaurant type (but not fast_food_restaurant, already caught above)
+  if (normalized.includes("restaurant")) return true;
+  // Default: hide on unknown types
   return false;
 }
 
