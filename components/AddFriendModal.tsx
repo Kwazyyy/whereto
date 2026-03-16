@@ -55,9 +55,9 @@ export function AddFriendModal({
     async function handleCopyLink() {
         try {
             await navigator.clipboard.writeText(inviteUrl);
-            showToast("Link copied!");
+            showToast("Link copied!", "success");
         } catch {
-            showToast("Failed to copy");
+            showToast("Failed to copy", "error");
         }
     }
 

@@ -375,7 +375,7 @@ export default function BoardsPage() {
         method: "DELETE",
       });
       if (!res.ok) throw new Error();
-      showToast("List removed from saved");
+      showToast("List removed from saved", "success");
     } catch {
       if (removed) setSavedLists((prev) => [removed, ...prev]);
       setSavedListIds((prev) => {

@@ -71,10 +71,10 @@ export function CreatorMyLists() {
                 fetchLists(); // Re-fetch
             } else {
                 const d = await res.json();
-                showToast(d.error || "Failed to create list");
+                showToast(d.error || "Failed to create list", "error");
             }
         } catch {
-            showToast("Network error");
+            showToast("Network error", "error");
         } finally {
             setIsSubmitting(false);
         }
@@ -87,17 +87,17 @@ export function CreatorMyLists() {
             const res = await fetch(`/api/curated-lists/${deleteTarget.id}`, { method: "DELETE" });
             if (res.ok) {
                 setLists(prev => prev.filter(l => l.id !== deleteTarget.id));
-                showToast("List deleted");
+                showToast("List deleted", "success");
             } else {
                 try {
                     const data = await res.json();
-                    showToast(data.error || "Failed to delete list");
+                    showToast(data.error || "Failed to delete list", "error");
                 } catch {
-                    showToast(`Failed to delete list (${res.status})`);
+                    showToast(`Failed to delete list (${res.status})`, "error");
                 }
             }
         } catch {
-            showToast("Network error");
+            showToast("Network error", "error");
         } finally {
             setIsDeleting(false);
             setDeleteTarget(null);

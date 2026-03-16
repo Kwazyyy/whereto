@@ -130,7 +130,7 @@ function ProPageContent() {
 
     useEffect(() => {
         if (searchParams.get("success") === "true") {
-            showToast("Welcome to Savrd Pro! \u{1F389}");
+            showToast("Welcome to Savrd Pro! \u{1F389}", "success");
         } else if (searchParams.get("canceled") === "true") {
             showToast("Checkout canceled");
         }
@@ -154,11 +154,11 @@ function ProPageContent() {
             if (data.url) {
                 window.location.href = data.url;
             } else {
-                showToast(data.error || "Something went wrong");
+                showToast(data.error || "Something went wrong", "error");
                 setLoading(false);
             }
         } catch {
-            showToast("Something went wrong");
+            showToast("Something went wrong", "error");
             setLoading(false);
         }
     };

@@ -278,14 +278,14 @@ export default function AdminPhotosPage() {
           // Revert on failure
           fetchPhotos(activeTab);
           fetchCounts();
-          showToast("Action failed — please try again");
+          showToast("Action failed — please try again", "error");
           return;
         }
 
         const data = await res.json();
 
         if (action === "approve") {
-          showToast("Photo approved");
+          showToast("Photo approved", "success");
           if (data.archived) {
             const archivedCat = categoryMap.get(
               photos.find((p) => p.id === photoId)?.category || ""
@@ -297,12 +297,12 @@ export default function AdminPhotosPage() {
             }, 2500);
           }
         } else {
-          showToast("Photo rejected");
+          showToast("Photo rejected", "success");
         }
       } catch {
         fetchPhotos(activeTab);
         fetchCounts();
-        showToast("Network error");
+        showToast("Network error", "error");
       }
     },
     [activeTab, fetchPhotos, fetchCounts, showToast, photos]

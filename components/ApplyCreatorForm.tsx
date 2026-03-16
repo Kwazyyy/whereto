@@ -15,7 +15,7 @@ export function ApplyCreatorForm() {
         setTimeout(() => {
             setIsSubmitting(false);
             setIsOpen(false);
-            showToast("Application submitted! We'll be in touch.");
+            showToast("Application submitted! We'll be in touch.", "success");
         }, 1500);
     }
 

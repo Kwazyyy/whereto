@@ -12,6 +12,7 @@ import MapPlaceDetail from "@/components/MapPlaceDetail";
 import { ShareModal } from "@/components/ShareModal";
 import { useSavePlace } from "@/lib/use-save-place";
 import { useVibeVoting } from "@/components/providers/VibeVotingProvider";
+import { useToast } from "@/components/Toast";
 import { ChevronLeft, MapPin, Star, X, Bookmark, CalendarCheck } from "lucide-react";
 import { getBookingUrl, isReservable } from "@/lib/booking";
 import { normalizeIntent, intentLabel } from "@/lib/intents";
@@ -61,7 +62,7 @@ export default function BoardDetailPage() {
     const [visitedIds, setVisitedIds] = useState<Set<string>>(new Set());
     const [userVibes, setUserVibes] = useState<Record<string, string[]>>({});
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-    const [toast, setToast] = useState<string | null>(null);
+    const { showToast } = useToast();
     const [sharePlace, setSharePlace] = useState<{ placeId: string; name: string } | null>(null);
 
     // Get user location for distance in detail modal
@@ -120,20 +121,13 @@ export default function BoardDetailPage() {
     const handleRemovePlace = useCallback(async (placeId: string) => {
         await handleUnsave(placeId);
         setPlaces((prev) => prev.filter((p) => p.placeId !== placeId));
-        setToast(`Removed from ${label}`);
-    }, [handleUnsave, label]);
+        showToast(`Removed from ${label}`, "success");
+    }, [handleUnsave, label, showToast]);
 
     const handleUnsaveFromModal = useCallback((placeId: string) => {
         setPlaces((prev) => prev.filter((p) => p.placeId !== placeId));
-        setToast(`Removed from ${label}`);
-    }, [label]);
-
-    // Auto-dismiss toast
-    useEffect(() => {
-        if (!toast) return;
-        const timer = setTimeout(() => setToast(null), 3000);
-        return () => clearTimeout(timer);
-    }, [toast]);
+        showToast(`Removed from ${label}`, "success");
+    }, [label, showToast]);
 
     if (loading || status === "loading") {
         return (
@@ -311,20 +305,6 @@ export default function BoardDetailPage() {
                         onUnsave={handleUnsaveFromModal}
                         onShare={(p) => setSharePlace(p)}
                     />
-                )}
-            </AnimatePresence>
-
-            {/* Toast notification */}
-            <AnimatePresence>
-                {toast && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 20 }}
-                        className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[70] bg-[#161B22] dark:bg-white text-white dark:text-[#0E1116] px-4 py-2.5 rounded-xl text-sm font-medium shadow-lg"
-                    >
-                        {toast}
-                    </motion.div>
                 )}
             </AnimatePresence>
 

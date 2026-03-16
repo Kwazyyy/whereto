@@ -37,14 +37,14 @@ export function useSavePlace(onSaveCount?: (totalSaves: number) => void) {
       body: JSON.stringify({ place, intent, action, recommendationId }),
     });
     if (!res.ok) {
-      showToast("Failed to save");
+      showToast("Failed to save", "error");
       return;
     }
 
     const data = await res.json() as { saveId: string; totalSaves: number };
 
     const label = recommendationId ? "Recs from Friends" : (INTENT_LABELS[intent] ?? intent);
-    showToast(`Saved to ${label}`);
+    showToast(`Saved to ${label}`, "success");
 
     // Notify caller of total save count (for nudges)
     if (onSaveCount) onSaveCount(data.totalSaves);
@@ -62,10 +62,10 @@ export function useSavePlace(onSaveCount?: (totalSaves: number) => void) {
       body: JSON.stringify({ placeId }),
     });
     if (!res.ok) {
-      showToast("Failed to remove");
+      showToast("Failed to remove", "error");
       return;
     }
-    showToast("Removed from saved");
+    showToast("Removed from saved", "success");
   }
 
   return { handleSave, handleUnsave };

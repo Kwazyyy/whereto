@@ -756,13 +756,13 @@ export default function ProfilePage() {
         setBio(user.creatorBio || "");
         if (user.username !== undefined) setUsername(user.username);
         setEditProfileOpen(false);
-        showToast("Profile updated!");
+        showToast("Profile updated!", "success");
       } else {
         const data = await res.json();
-        showToast(data.error || "Failed to update profile");
+        showToast(data.error || "Failed to update profile", "error");
       }
     } catch {
-      showToast("Network error");
+      showToast("Network error", "error");
     } finally {
       setSavingProfile(false);
     }
@@ -779,7 +779,7 @@ export default function ProfilePage() {
     }
     const randomPlace = saves[Math.floor(Math.random() * saves.length)];
 
-    showToast(`Simulated visit to ${randomPlace.name}!`);
+    showToast(`Simulated visit to ${randomPlace.name}!`, "success");
 
     try {
       // Create manual visit mock
@@ -806,7 +806,7 @@ export default function ProfilePage() {
       }
     } catch (e) {
       console.error(e);
-      showToast("Simulation failed");
+      showToast("Simulation failed", "error");
     }
   };
 
@@ -902,7 +902,7 @@ export default function ProfilePage() {
       const data = await res.json();
       if (data.url) window.location.href = data.url;
     } catch {
-      showToast("Failed to open billing portal");
+      showToast("Failed to open billing portal", "error");
     } finally {
       setPortalLoading(false);
     }

@@ -169,7 +169,7 @@ export default function PhotoUploadPrompt({
                 }
             })
             .catch(() => {
-                showToast("Failed to load categories");
+                showToast("Failed to load categories", "error");
             })
             .finally(() => setLoading(false));
     }, [isOpen, placeId, showToast]);
@@ -202,7 +202,7 @@ export default function PhotoUploadPrompt({
                 return next;
             });
         } catch {
-            showToast("Failed to process image");
+            showToast("Failed to process image", "error");
         }
     }, [showToast]);
 
@@ -253,11 +253,11 @@ export default function PhotoUploadPrompt({
                 successCount++;
             }
 
-            showToast("Photos submitted for review!");
+            showToast("Photos submitted for review!", "success");
             onClose();
         } catch (error) {
             const msg = error instanceof Error ? error.message : "Upload failed";
-            showToast(`Error: ${msg}. ${successCount} of ${entries.length} uploaded.`);
+            showToast(`Error: ${msg}. ${successCount} of ${entries.length} uploaded.`, "error");
         } finally {
             setUploading(false);
             setUploadProgress("");

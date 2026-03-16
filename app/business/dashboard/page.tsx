@@ -292,7 +292,7 @@ function PlacementModal({
 
   const handleSubmit = async () => {
     if (!selectedPlace || selectedIntents.length === 0 || !startDate || !endDate) {
-      showToast("Please fill in all fields");
+      showToast("Please fill in all fields", "error");
       return;
     }
 
@@ -321,14 +321,14 @@ function PlacementModal({
 
       const data = await res.json();
       if (!res.ok) {
-        showToast(data.error || "Something went wrong");
+        showToast(data.error || "Something went wrong", "error");
       } else {
-        showToast(editData ? "Placement updated" : "Placement created");
+        showToast(editData ? "Placement updated" : "Placement created", "success");
         onSubmit();
         onClose();
       }
     } catch {
-      showToast("Something went wrong");
+      showToast("Something went wrong", "error");
     } finally {
       setSubmitting(false);
     }
@@ -482,13 +482,13 @@ function FeaturedPlacementsSection() {
       const res = await fetch(`/api/business/featured/${id}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json();
-        showToast(data.error || "Failed to revoke");
+        showToast(data.error || "Failed to revoke", "error");
       } else {
-        showToast("Placement revoked");
+        showToast("Placement revoked", "success");
         fetchPlacements();
       }
     } catch {
-      showToast("Something went wrong");
+      showToast("Something went wrong", "error");
     }
     setRevokingId(null);
   };
@@ -613,7 +613,7 @@ function DashboardContent() {
 
   useEffect(() => {
     if (searchParams.get("success") === "true") {
-      showToast("Subscription activated! Welcome to Savrd Business.");
+      showToast("Subscription activated! Welcome to Savrd Business.", "success");
     } else if (searchParams.get("canceled") === "true") {
       showToast("Checkout canceled");
     }

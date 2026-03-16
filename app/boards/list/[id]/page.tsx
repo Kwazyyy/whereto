@@ -198,9 +198,9 @@ export default function ListDetailPage() {
             }
             setAddSheetOpen(false);
             setSelectedPlaceIds([]);
-            if (addedCount > 0) showToast(`Added ${addedCount} place${addedCount > 1 ? 's' : ''} to your list`);
+            if (addedCount > 0) showToast(`Added ${addedCount} place${addedCount > 1 ? 's' : ''} to your list`, "success");
         } catch (e) {
-            showToast("Network error");
+            showToast("Network error", "error");
         } finally {
             setIsSubmittingPlace(false);
         }
@@ -217,10 +217,10 @@ export default function ListDetailPage() {
                 } : null);
                 setRemovingItemId(null);
             } else {
-                showToast("Failed to remove place");
+                showToast("Failed to remove place", "error");
             }
         } catch {
-            showToast("Network error");
+            showToast("Network error", "error");
         }
     };
 
@@ -236,17 +236,17 @@ export default function ListDetailPage() {
             if (res.ok) {
                 setList(prev => prev ? { ...prev, title: editTitle.trim(), description: editDescription.trim() || null } : null);
                 setEditModalOpen(false);
-                showToast("List updated");
+                showToast("List updated", "success");
             } else {
                 try {
                     const data = await res.json();
-                    showToast(data.error || "Failed to save");
+                    showToast(data.error || "Failed to save", "error");
                 } catch {
-                    showToast(`Failed to save (${res.status})`);
+                    showToast(`Failed to save (${res.status})`, "error");
                 }
             }
         } catch {
-            showToast("Network error");
+            showToast("Network error", "error");
         } finally {
             setIsSavingEdit(false);
         }
@@ -261,7 +261,7 @@ export default function ListDetailPage() {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ itemIds }),
-        }).catch(() => showToast("Failed to save order"));
+        }).catch(() => showToast("Failed to save order", "error"));
     }, [list, id, showToast]);
 
     const handlePublish = async () => {
@@ -277,17 +277,17 @@ export default function ListDetailPage() {
                 setList(prev => prev ? { ...prev, status: "published", isPublic: true, category: selectedCategory } : null);
                 setPublishModalOpen(false);
                 setSelectedCategory("");
-                showToast("Your list is now live!");
+                showToast("Your list is now live!", "success");
             } else {
                 try {
                     const data = await res.json();
-                    showToast(data.error || "Failed to publish");
+                    showToast(data.error || "Failed to publish", "error");
                 } catch {
-                    showToast(`Failed to publish (${res.status})`);
+                    showToast(`Failed to publish (${res.status})`, "error");
                 }
             }
         } catch {
-            showToast("Network error");
+            showToast("Network error", "error");
         } finally {
             setIsPublishing(false);
         }
@@ -303,12 +303,12 @@ export default function ListDetailPage() {
             });
             if (res.ok) {
                 setList(prev => prev ? { ...prev, status: "draft", isPublic: false } : null);
-                showToast("List unpublished");
+                showToast("List unpublished", "success");
             } else {
-                showToast("Failed to unpublish");
+                showToast("Failed to unpublish", "error");
             }
         } catch {
-            showToast("Network error");
+            showToast("Network error", "error");
         } finally {
             setIsPublishing(false);
         }
@@ -320,18 +320,18 @@ export default function ListDetailPage() {
         try {
             const res = await fetch(`/api/curated-lists/${id}`, { method: "DELETE" });
             if (res.ok) {
-                showToast("List deleted");
+                showToast("List deleted", "success");
                 router.push("/boards");
             } else {
                 try {
                     const data = await res.json();
-                    showToast(data.error || "Failed to delete list");
+                    showToast(data.error || "Failed to delete list", "error");
                 } catch {
-                    showToast(`Failed to delete list (${res.status})`);
+                    showToast(`Failed to delete list (${res.status})`, "error");
                 }
             }
         } catch {
-            showToast("Network error");
+            showToast("Network error", "error");
         } finally {
             setIsDeleting(false);
             setDeleteModalOpen(false);
