@@ -141,7 +141,7 @@ export default function AuthPage() {
       {/* Centered form */}
       <div className="relative z-10 w-full max-w-md mx-auto px-6 py-12">
         {/* Logo */}
-        <h1 className="text-4xl font-bold text-[#E85D2A] text-center mb-2">Savrd</h1>
+        <h1 className="font-['Plus_Jakarta_Sans'] text-2xl font-extrabold tracking-tight text-[#E85D2A] text-center mb-2">Savrd</h1>
         <p className="text-sm text-[#8B949E] text-center mb-10">
           Discover your city, one swipe at a time.
         </p>

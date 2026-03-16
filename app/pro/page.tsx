@@ -169,7 +169,7 @@ function ProPageContent() {
 
             {/* ═══ TOP NAV ═══ */}
             <nav className="fixed top-0 left-0 right-0 z-50 h-16 px-6 flex items-center justify-between bg-white/80 dark:bg-[#0E1116]/80 backdrop-blur-md border-b border-[#D0D7DE] dark:border-[#30363D]">
-                <Link href="/" className="text-2xl font-bold text-[#E85D2A]">
+                <Link href="/" className="font-['Plus_Jakarta_Sans'] text-2xl font-extrabold tracking-tight text-[#E85D2A]">
                     Savrd
                 </Link>
                 <Link href="/" className="text-sm text-[#656D76] dark:text-[#8B949E] hover:text-[#0E1116] dark:hover:text-white transition-colors duration-200">

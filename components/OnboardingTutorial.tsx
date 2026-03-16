@@ -188,27 +188,19 @@ export function OnboardingTutorial({ onDismiss }: { onDismiss: () => void }) {
                 >
                     {/* Arrow pointing up toward highlighted element */}
                     <div className="flex justify-center -mb-px">
-                        <div
-                            style={{
-                                width: 0,
-                                height: 0,
-                                borderLeft: "8px solid transparent",
-                                borderRight: "8px solid transparent",
-                                borderBottom: "8px solid rgba(22,27,34,0.8)",
-                            }}
-                        />
+                        <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[8px] border-b-white dark:border-b-[#161B22]" />
                     </div>
 
-                    <div className="bg-[#161B22]/80 backdrop-blur-2xl border border-white/10 rounded-2xl p-5 shadow-xl">
+                    <div className="bg-white dark:bg-[#161B22] border border-[#D0D7DE] dark:border-[#30363D] rounded-2xl p-5 shadow-xl">
                         {/* Step indicator */}
-                        <p className="text-xs text-white/60 font-medium tracking-wide uppercase text-center mb-3">
+                        <p className="text-xs text-[#656D76] dark:text-white/60 font-medium tracking-wide uppercase text-center mb-3">
                             {step + 1} of {STEPS.length}
                         </p>
 
-                        <h3 className="text-lg font-bold text-white">
+                        <h3 className="text-lg font-bold text-[#0E1116] dark:text-white">
                             {current.title}
                         </h3>
-                        <p className="text-sm text-white/70 leading-relaxed mt-1">
+                        <p className="text-sm text-[#656D76] dark:text-white/70 leading-relaxed mt-1">
                             {current.desc}
                         </p>
 

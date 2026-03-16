@@ -240,14 +240,7 @@ export default function LandingPage() {
             <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-[#0E1116]/90 backdrop-blur-md py-4" : "bg-transparent py-6"}`}>
                 <div className="px-4 md:px-6 flex items-center justify-between">
                     {/* Logo */}
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center text-white">
-                            <MapPinIcon />
-                        </div>
-                        <span className="text-2xl md:text-3xl font-bold tracking-tight">
-                            <span className="text-orange-500">Sav</span>rd
-                        </span>
-                    </div>
+                    <span className="font-['Plus_Jakarta_Sans'] text-2xl font-extrabold tracking-tight text-[#E85D2A]">Savrd</span>
 
                     {/* Desktop links */}
                     <div className="hidden md:flex items-center gap-1">
@@ -722,14 +715,7 @@ export default function LandingPage() {
             <footer className="py-12">
                 <div className="px-4 md:px-6">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-                        <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-500">
-                                <MapPinIcon />
-                            </div>
-                            <span className="text-2xl font-bold tracking-tight text-zinc-500">
-                                <span className="text-orange-500">Sav</span>rd
-                            </span>
-                        </div>
+                        <span className="font-['Plus_Jakarta_Sans'] text-2xl font-extrabold tracking-tight text-[#E85D2A]/50">Savrd</span>
 
                         <div className="flex flex-wrap justify-center gap-8 text-sm text-zinc-500">
                             <button onClick={() => scrollToSection("about")} className="hover:text-white transition-colors">About</button>

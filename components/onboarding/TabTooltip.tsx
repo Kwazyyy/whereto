@@ -47,7 +47,7 @@ export function TabTooltip({ steps, storageKey, onComplete }: TabTooltipProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <motion.div
-        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
@@ -64,18 +64,18 @@ export function TabTooltip({ steps, storageKey, onComplete }: TabTooltipProps) {
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <div className="bg-white/[0.03] backdrop-blur-3xl border border-white/[0.15] rounded-2xl p-5 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] relative">
+          <div className="bg-white dark:bg-[#161B22] border border-[#D0D7DE] dark:border-[#30363D] rounded-2xl p-5 shadow-xl relative">
             {/* Skip link — top-right of card */}
             <button
               onClick={dismiss}
-              className="absolute top-4 right-4 text-[#8B949E] text-xs hover:text-white cursor-pointer transition-colors duration-200"
+              className="absolute top-4 right-4 text-[#656D76] dark:text-[#8B949E] text-xs hover:text-[#0E1116] dark:hover:text-white cursor-pointer transition-colors duration-200"
             >
               Skip
             </button>
 
             {/* Step counter */}
             {isMultiStep && (
-              <p className="text-[#8B949E] text-xs font-medium tracking-widest text-center mb-3">
+              <p className="text-[#656D76] dark:text-[#8B949E] text-xs font-medium tracking-widest text-center mb-3">
                 {step + 1} OF {steps.length}
               </p>
             )}
@@ -84,10 +84,10 @@ export function TabTooltip({ steps, storageKey, onComplete }: TabTooltipProps) {
             <TabTooltipAnimation animationKey={current.animationKey} />
 
             {/* Title & description */}
-            <h3 className="text-white text-lg font-bold text-center">
+            <h3 className="text-[#0E1116] dark:text-white text-lg font-bold text-center">
               {current.title}
             </h3>
-            <p className="text-[#8B949E] text-sm text-center mt-1 leading-relaxed">
+            <p className="text-[#656D76] dark:text-[#8B949E] text-sm text-center mt-1 leading-relaxed">
               {current.description}
             </p>
 
@@ -102,7 +102,7 @@ export function TabTooltip({ steps, storageKey, onComplete }: TabTooltipProps) {
                         ? "w-5 h-1.5 bg-[#E85D2A]"
                         : i < step
                         ? "w-1.5 h-1.5 bg-[#E85D2A]"
-                        : "w-1.5 h-1.5 bg-[#30363D]"
+                        : "w-1.5 h-1.5 bg-[#D0D7DE] dark:bg-[#30363D]"
                     }`}
                   />
                 ))}

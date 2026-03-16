@@ -1227,7 +1227,7 @@ export default function ProfilePage() {
 
             {/* Sign Out */}
             {session?.user && (
-              <button onClick={() => signOut()} className="text-[#F85149] hover:bg-[#F85149]/10 w-full py-2 rounded-lg transition-colors text-sm font-semibold cursor-pointer">
+              <button onClick={() => signOut({ callbackUrl: '/landing' })} className="text-[#F85149] hover:bg-[#F85149]/10 w-full py-2 rounded-lg transition-colors text-sm font-semibold cursor-pointer">
                 Sign Out
               </button>
             )}
@@ -1370,7 +1370,7 @@ export default function ProfilePage() {
                     <ChevronRight />
                   </button>
                 )}
-                {session?.user && <button onClick={() => signOut()} className="flex items-center px-4 py-3.5 min-h-[52px] w-full text-left text-red-500 font-semibold text-sm cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">Sign Out</button>}
+                {session?.user && <button onClick={() => signOut({ callbackUrl: '/landing' })} className="flex items-center px-4 py-3.5 min-h-[52px] w-full text-left text-red-500 font-semibold text-sm cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">Sign Out</button>}
               </SettingsCard>
 
               {/* About */}

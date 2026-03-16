@@ -64,8 +64,8 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
       {/* Logo */}
       <div className="px-4 xl:px-5 pt-6 pb-4 shrink-0 flex items-center justify-center xl:justify-start">
         <Link href="/" className="flex items-center">
-          <span className="text-2xl font-bold text-[#E85D2A] xl:hidden">S</span>
-          <span className="text-2xl font-bold text-[#E85D2A] hidden xl:block">Savrd</span>
+          <span className="font-['Plus_Jakarta_Sans'] text-xl font-extrabold tracking-tight text-[#E85D2A]">S</span>
+          <span className="font-['Plus_Jakarta_Sans'] text-xl font-extrabold tracking-tight text-[#E85D2A] hidden xl:inline">avrd</span>
         </Link>
       </div>
 
