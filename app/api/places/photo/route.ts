@@ -11,7 +11,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Missing photo reference" }, { status: 400 });
   }
 
-  const url = `https://places.googleapis.com/v1/${ref}/media?maxWidthPx=1200&skipHttpRedirect=true&key=${apiKey}`;
+  // Seed scripts store full URLs; extract the resource name if ref is already a full URL
+  let photoResource = ref;
+  if (ref.startsWith("https://places.googleapis.com/v1/")) {
+    const match = ref.match(/\/v1\/(places\/[^/]+\/photos\/[^/]+)/);
+    if (match) {
+      photoResource = match[1];
+    }
+  }
+
+  const url = `https://places.googleapis.com/v1/${photoResource}/media?maxWidthPx=1200&skipHttpRedirect=true&key=${apiKey}`;
 
   try {
     const res = await fetch(url);
@@ -20,7 +29,15 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await res.json();
-    return NextResponse.json({ photoUrl: data.photoUri ?? null });
+    return NextResponse.json(
+      { photoUrl: data.photoUri ?? null },
+      {
+        headers: {
+          "Cache-Control": "public, max-age=86400, s-maxage=86400",
+          "CDN-Cache-Control": "public, max-age=86400",
+        },
+      }
+    );
   } catch (err) {
     return NextResponse.json(
       { error: "Failed to fetch photo", details: String(err) },

@@ -31,7 +31,15 @@ export async function GET(request: NextRequest) {
       .slice(0, 10)
       .map((p: { name: string }) => p.name);
 
-    return NextResponse.json({ photoRefs });
+    return NextResponse.json(
+      { photoRefs },
+      {
+        headers: {
+          "Cache-Control": "public, max-age=86400, s-maxage=86400",
+          "CDN-Cache-Control": "public, max-age=86400",
+        },
+      }
+    );
   } catch (err) {
     return NextResponse.json(
       { error: "Failed to fetch photos", details: String(err) },

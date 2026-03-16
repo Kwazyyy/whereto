@@ -496,6 +496,24 @@ export default function Home() {
     }).catch(() => {});
   }, [visiblePlaces, featuredPlace]);
 
+  // Preload photos for the next 3 cards so they're ready when the user swipes
+  useEffect(() => {
+    for (let i = 1; i <= 3; i++) {
+      const p = visiblePlaces[i];
+      if (p?.photoRef) {
+        fetch(`/api/places/photo?ref=${encodeURIComponent(p.photoRef)}`)
+          .then((r) => r.json())
+          .then((data: { photoUrl?: string }) => {
+            if (data.photoUrl) {
+              const img = new window.Image();
+              img.src = data.photoUrl;
+            }
+          })
+          .catch(() => {});
+      }
+    }
+  }, [visiblePlaces]);
+
   const allDone = !loading && visiblePlaces.length === 0;
   const noBudgetMatches = !loading && places.length > 0 && budgetFilteredPlaces.length === 0;
 

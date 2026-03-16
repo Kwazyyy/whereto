@@ -72,22 +72,28 @@ export function FriendAvatars({ friends }: { friends: FriendSignal[] }) {
 export function CardPhoto({ photoRef, gradient }: { photoRef: string | null; gradient: string }) {
     const photoUrl = usePhotoUrl(photoRef);
     const [isLoaded, setIsLoaded] = useState(false);
+    const isLoading = !!photoRef && !photoUrl;
 
     return (
         <>
-            {photoUrl ? (
+            {/* Shimmer placeholder while photo URL is resolving */}
+            {isLoading && (
+                <div className="absolute inset-0 bg-[#1C2128] animate-pulse" />
+            )}
+            {/* Gradient fallback when there's no photo at all */}
+            {!photoRef && (
+                <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} />
+            )}
+            {photoUrl && (
                 <Image
                     src={photoUrl}
                     alt=""
                     fill
-                    className={`object-cover transition-all duration-700 ease-in-out ${isLoaded ? "scale-100 blur-0 opacity-100" : "scale-105 blur-md opacity-50"
-                        }`}
+                    className={`object-cover transition-opacity duration-300 ${isLoaded ? "opacity-100" : "opacity-0"}`}
                     onLoad={() => setIsLoaded(true)}
                     unoptimized
                     priority
                 />
-            ) : (
-                <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} />
             )}
         </>
     );
@@ -135,6 +141,22 @@ export function SwipeCard({
     const [isFlipped, setIsFlipped] = useState(false);
     const [activePhotoIndex, setActivePhotoIndex] = useState(0);
     const matchScore = place.matchScore ?? 0;
+
+    // Fetch additional photo refs from Google Places when card flips
+    const [carouselRefs, setCarouselRefs] = useState<string[]>(place.photoRefs ?? []);
+    const fetchedRef = useRef(false);
+    useEffect(() => {
+        if (!isFlipped || fetchedRef.current) return;
+        fetchedRef.current = true;
+        fetch(`/api/places/photos?placeId=${encodeURIComponent(place.placeId)}`)
+            .then((r) => r.json())
+            .then((data: { photoRefs?: string[] }) => {
+                if (data.photoRefs && data.photoRefs.length > 0) {
+                    setCarouselRefs(data.photoRefs);
+                }
+            })
+            .catch(() => {});
+    }, [isFlipped, place.placeId]);
 
     const todayHours = useMemo(() => {
         const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -391,7 +413,7 @@ export function SwipeCard({
                         {/* Photo Carousel */}
                         <div className="relative min-h-[40vh] h-[40%] shrink-0 w-full">
                             <div
-                                className={`absolute inset-0 overflow-hidden ${!(place.photoRefs && place.photoRefs.length > 0) ? `bg-gradient-to-br ${fallbackGradient}` : ""}`}
+                                className={`absolute inset-0 overflow-hidden ${carouselRefs.length === 0 ? `bg-gradient-to-br ${fallbackGradient}` : ""}`}
                                 onPointerDown={(e) => {
                                     e.stopPropagation();
                                     carouselPointerStart.current = { x: e.clientX, y: e.clientY, time: Date.now() };
@@ -403,11 +425,11 @@ export function SwipeCard({
                                     const dt = Date.now() - carouselPointerStart.current.time;
 
                                     if (dx < TAP_MOVE_LIMIT && dy < TAP_MOVE_LIMIT && dt < TAP_TIME_LIMIT) {
-                                        if (place.photoRefs && place.photoRefs.length > 1) {
+                                        if (carouselRefs.length > 1) {
                                             const rect = e.currentTarget.getBoundingClientRect();
                                             const xPos = e.clientX - rect.left;
                                             const width = rect.width;
-                                            const len = place.photoRefs.length;
+                                            const len = carouselRefs.length;
 
                                             if (xPos > width * 0.35) {
                                                 setCarouselDirection(1);
@@ -420,7 +442,7 @@ export function SwipeCard({
                                     }
                                 }}
                             >
-                                {place.photoRefs && place.photoRefs.length > 0 ? (
+                                {carouselRefs.length > 0 ? (
                                     <AnimatePresence initial={false} custom={carouselDirection}>
                                         <motion.div
                                             key={activePhotoIndex}
@@ -435,8 +457,8 @@ export function SwipeCard({
                                             dragElastic={0.2}
                                             dragDirectionLock
                                             onDragEnd={(_, info) => {
-                                                if (!place.photoRefs || place.photoRefs.length <= 1) return;
-                                                const len = place.photoRefs.length;
+                                                if (carouselRefs.length <= 1) return;
+                                                const len = carouselRefs.length;
                                                 if (info.offset.x < -50 || info.velocity.x < -500) {
                                                     setCarouselDirection(1);
                                                     setActivePhotoIndex((activePhotoIndex + 1) % len);
@@ -448,7 +470,7 @@ export function SwipeCard({
                                             className="absolute inset-0 bg-gray-200 dark:bg-[#1C2128]"
                                             style={{ touchAction: "pan-y" }}
                                         >
-                                            <CardPhoto photoRef={place.photoRefs[activePhotoIndex]} gradient={fallbackGradient} />
+                                            <CardPhoto photoRef={carouselRefs[activePhotoIndex]} gradient={fallbackGradient} />
                                         </motion.div>
                                     </AnimatePresence>
                                 ) : (
@@ -458,13 +480,13 @@ export function SwipeCard({
                             </div>
 
                             {/* Invisible tap zones */}
-                            {place.photoRefs && place.photoRefs.length > 1 && (
+                            {carouselRefs.length > 1 && (
                                 <>
                                     <div
                                         className="absolute top-0 bottom-0 left-0 w-1/2 z-10 cursor-pointer"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            const len = place.photoRefs!.length;
+                                            const len = carouselRefs.length;
                                             setCarouselDirection(-1);
                                             setActivePhotoIndex((activePhotoIndex - 1 + len) % len);
                                         }}
@@ -475,7 +497,7 @@ export function SwipeCard({
                                         className="absolute top-0 bottom-0 right-0 w-1/2 z-10 cursor-pointer"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            const len = place.photoRefs!.length;
+                                            const len = carouselRefs.length;
                                             setCarouselDirection(1);
                                             setActivePhotoIndex((activePhotoIndex + 1) % len);
                                         }}
@@ -486,9 +508,9 @@ export function SwipeCard({
                             )}
 
                             {/* Dot Indicators */}
-                            {place.photoRefs && place.photoRefs.length > 1 && (
+                            {carouselRefs.length > 1 && (
                                 <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-1.5 z-20">
-                                    {place.photoRefs.map((_, idx) => (
+                                    {carouselRefs.map((_, idx) => (
                                         <div
                                             key={idx}
                                             className={`h-1.5 rounded-full transition-all duration-300 ${idx === activePhotoIndex
