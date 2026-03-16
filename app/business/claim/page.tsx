@@ -300,7 +300,7 @@ export default function ClaimPage() {
               onChange={(e) => setBusinessEmail(e.target.value)}
               required
               placeholder="you@yourbusiness.com"
-              className="bg-[#0E1116] border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 w-full focus:outline-none focus:border-[#E85D2A] transition"
+              className="bg-[#0E1116] border border-[#30363D] rounded-lg px-4 py-3 text-white text-sm placeholder-[#8B949E] w-full focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
             />
           </div>
 
@@ -314,7 +314,7 @@ export default function ClaimPage() {
               value={businessPhone}
               onChange={(e) => setBusinessPhone(e.target.value)}
               placeholder="+1 (416) 000-0000"
-              className="bg-[#0E1116] border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 w-full focus:outline-none focus:border-[#E85D2A] transition"
+              className="bg-[#0E1116] border border-[#30363D] rounded-lg px-4 py-3 text-white text-sm placeholder-[#8B949E] w-full focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
             />
           </div>
 
@@ -357,7 +357,7 @@ export default function ClaimPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search by business name..."
-          className="bg-[#161B22] border border-white/10 rounded-xl px-4 py-3 pl-12 text-white placeholder-gray-500 w-full focus:outline-none focus:border-[#E85D2A] transition"
+          className="bg-[#0E1116] border border-[#30363D] rounded-lg px-4 py-3 pl-12 text-white text-sm placeholder-[#8B949E] w-full focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
         />
       </div>
 

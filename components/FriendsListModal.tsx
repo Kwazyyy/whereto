@@ -143,7 +143,7 @@ export function FriendsListModal({ onClose }: { onClose: () => void }) {
                                 placeholder="Search friends..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full border border-gray-200 dark:border-[#30363D] bg-transparent rounded-lg pl-10 pr-4 py-2 text-sm text-[#0E1116] dark:text-[#e8edf4] placeholder-gray-400 focus:border-[#E85D2A] focus:outline-none focus:ring-1 focus:ring-[#E85D2A]/20"
+                                className="w-full border border-[#D0D7DE] dark:border-[#30363D] bg-transparent rounded-lg pl-10 pr-4 py-2 text-sm text-[#0E1116] dark:text-white placeholder-[#656D76] dark:placeholder-[#8B949E] focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
                             />
                         </div>
                     </div>

@@ -1286,14 +1286,14 @@ export default function ProfilePage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Display Name</label>
-                <input type="text" value={editDisplayName} onChange={e => setEditDisplayName(e.target.value)} className="w-full bg-gray-50 dark:bg-[#1C2128] border-none rounded-xl px-4 py-3 text-sm text-[#0E1116] dark:text-[#e8edf4] placeholder-gray-400 focus:ring-2 focus:ring-[#E85D2A] outline-none" placeholder="Your Name" />
+                <input type="text" value={editDisplayName} onChange={e => setEditDisplayName(e.target.value)} className="w-full bg-white dark:bg-[#0E1116] border border-[#D0D7DE] dark:border-[#30363D] rounded-lg px-4 py-3 text-sm text-[#0E1116] dark:text-white placeholder-[#656D76] dark:placeholder-[#8B949E] focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200" placeholder="Your Name" />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Username</label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">@</span>
-                  <input type="text" value={editUsername} onChange={e => setEditUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20))} className="w-full bg-gray-50 dark:bg-[#1C2128] border-none rounded-xl pl-9 pr-4 py-3 text-sm text-[#0E1116] dark:text-[#e8edf4] focus:ring-2 focus:ring-[#E85D2A] outline-none" placeholder="username" />
+                  <input type="text" value={editUsername} onChange={e => setEditUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20))} className="w-full bg-white dark:bg-[#0E1116] border border-[#D0D7DE] dark:border-[#30363D] rounded-lg pl-9 pr-4 py-3 text-sm text-[#0E1116] dark:text-white placeholder-[#656D76] dark:placeholder-[#8B949E] focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200" placeholder="username" />
                 </div>
                 {editUsername.length > 0 && editUsername !== username && (
                   <div className="mt-2 text-xs font-medium">
@@ -1307,7 +1307,7 @@ export default function ProfilePage() {
 
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Bio</label>
-                <textarea value={editBio} onChange={e => setEditBio(e.target.value)} rows={3} maxLength={150} className="w-full bg-gray-50 dark:bg-[#1C2128] border-none rounded-xl px-4 py-3 text-sm text-[#0E1116] dark:text-[#e8edf4] placeholder-gray-400 focus:ring-2 focus:ring-[#E85D2A] outline-none resize-none" placeholder="Add a short bio..." />
+                <textarea value={editBio} onChange={e => setEditBio(e.target.value)} rows={3} maxLength={150} className="w-full bg-white dark:bg-[#0E1116] border border-[#D0D7DE] dark:border-[#30363D] rounded-lg px-4 py-3 text-sm text-[#0E1116] dark:text-white placeholder-[#656D76] dark:placeholder-[#8B949E] focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200 resize-none" placeholder="Add a short bio..." />
                 <p className="text-right text-[10px] text-gray-400 mt-1">{editBio.length}/150</p>
               </div>
 

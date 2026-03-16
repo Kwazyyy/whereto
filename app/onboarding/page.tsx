@@ -295,7 +295,7 @@ function StepUsername({
       <p className="text-sm text-[#8B949E] text-center mb-8">This is how friends will find you</p>
 
       <div className="flex items-center gap-0 w-full">
-        <span className="text-lg text-[#8B949E] bg-[#161B22] border border-[#30363D] border-r-0 rounded-l-xl px-4 py-3">
+        <span className="text-lg text-[#8B949E] bg-[#0E1116] border border-[#30363D] border-r-0 rounded-l-lg px-4 py-3">
           @
         </span>
         <input
@@ -303,7 +303,7 @@ function StepUsername({
           value={username}
           onChange={(e) => onChange(e.target.value)}
           placeholder="username"
-          className="flex-1 bg-[#161B22] border border-[#30363D] border-l-0 rounded-r-xl px-3 py-3 text-white text-lg focus:outline-none focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/30 transition-all duration-200 placeholder-[#8B949E]"
+          className="flex-1 bg-[#0E1116] border border-[#30363D] border-l-0 rounded-r-lg px-4 py-3 text-white text-lg focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200 placeholder-[#8B949E]"
           maxLength={30}
           autoFocus
         />

@@ -106,7 +106,7 @@ function PasswordChangeForm() {
           type="password"
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
-          className="bg-[#0E1116] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 w-full focus:outline-none focus:border-[#E85D2A] transition"
+          className="bg-[#0E1116] border border-[#30363D] rounded-lg px-4 py-3 text-white text-sm placeholder-[#8B949E] w-full focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
         />
       </div>
 
@@ -123,7 +123,7 @@ function PasswordChangeForm() {
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
           placeholder="Minimum 8 characters"
-          className="bg-[#0E1116] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 w-full focus:outline-none focus:border-[#E85D2A] transition"
+          className="bg-[#0E1116] border border-[#30363D] rounded-lg px-4 py-3 text-white text-sm placeholder-[#8B949E] w-full focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
         />
         {passwordTooShort && (
           <p className="text-red-400 text-xs mt-1">
@@ -144,7 +144,7 @@ function PasswordChangeForm() {
           type="password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          className="bg-[#0E1116] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 w-full focus:outline-none focus:border-[#E85D2A] transition"
+          className="bg-[#0E1116] border border-[#30363D] rounded-lg px-4 py-3 text-white text-sm placeholder-[#8B949E] w-full focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
         />
         {passwordsMismatch && (
           <p className="text-red-400 text-xs mt-1">
@@ -188,7 +188,7 @@ function DeleteModal({ onClose }: { onClose: () => void }) {
           value={confirmText}
           onChange={(e) => setConfirmText(e.target.value)}
           placeholder="Type DELETE"
-          className="bg-[#0E1116] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 w-full focus:outline-none focus:border-red-500 transition mt-3"
+          className="bg-[#0E1116] border border-[#30363D] rounded-lg px-4 py-3 text-white text-sm placeholder-[#8B949E] w-full focus:border-red-500 focus:ring-1 focus:ring-red-500/20 focus:outline-none transition-colors duration-200 mt-3"
         />
         <div className="flex gap-3 mt-4">
           <button

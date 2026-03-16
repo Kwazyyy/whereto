@@ -314,7 +314,7 @@ export function ShareModal({
                                     onChange={(e) => setNote(e.target.value.slice(0, 120))}
                                     placeholder="You'd love this place! (optional)"
                                     rows={3}
-                                    className="w-full px-4 py-3 rounded-2xl bg-gray-50 dark:bg-[#1C2128] text-sm text-[#0E1116] dark:text-[#e8edf4] placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none border-2 border-transparent focus:border-[#E85D2A] transition-colors resize-none mb-1"
+                                    className="w-full px-4 py-3 rounded-lg bg-white dark:bg-[#0E1116] border border-[#D0D7DE] dark:border-[#30363D] text-sm text-[#0E1116] dark:text-white placeholder-[#656D76] dark:placeholder-[#8B949E] focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200 resize-none mb-1"
                                 />
                                 <p className="text-[10px] text-gray-400 dark:text-gray-500 text-right mb-4">
                                     {note.length}/120

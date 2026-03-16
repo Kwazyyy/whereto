@@ -80,16 +80,16 @@ export function CreatorDashboard() {
                 <div className="flex flex-col gap-3">
                     <div>
                         <label className="text-xs font-semibold text-gray-500 mb-1 block">Bio (Max 200 chars)</label>
-                        <textarea maxLength={200} value={bio} onChange={e => setBio(e.target.value)} className="w-full bg-gray-50 dark:bg-[#1C2128] border border-gray-200 dark:border-white/10 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#E85D2A]/50 text-[#0E1116] dark:text-[#e8edf4]" rows={3} placeholder="Tell us about your food journey..." />
+                        <textarea maxLength={200} value={bio} onChange={e => setBio(e.target.value)} className="w-full bg-white dark:bg-[#0E1116] border border-[#D0D7DE] dark:border-[#30363D] rounded-lg px-4 py-3 text-sm text-[#0E1116] dark:text-white placeholder-[#656D76] dark:placeholder-[#8B949E] focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200" rows={3} placeholder="Tell us about your food journey..." />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className="text-xs font-semibold text-gray-500 mb-1 block">Instagram</label>
-                            <input type="text" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="@username" className="w-full bg-gray-50 dark:bg-[#1C2128] border border-gray-200 dark:border-white/10 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#E85D2A]/50 text-[#0E1116] dark:text-[#e8edf4]" />
+                            <input type="text" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="@username" className="w-full bg-white dark:bg-[#0E1116] border border-[#D0D7DE] dark:border-[#30363D] rounded-lg px-4 py-3 text-sm text-[#0E1116] dark:text-white placeholder-[#656D76] dark:placeholder-[#8B949E] focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200" />
                         </div>
                         <div>
                             <label className="text-xs font-semibold text-gray-500 mb-1 block">TikTok</label>
-                            <input type="text" value={tiktok} onChange={e => setTiktok(e.target.value)} placeholder="@username" className="w-full bg-gray-50 dark:bg-[#1C2128] border border-gray-200 dark:border-white/10 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#E85D2A]/50 text-[#0E1116] dark:text-[#e8edf4]" />
+                            <input type="text" value={tiktok} onChange={e => setTiktok(e.target.value)} placeholder="@username" className="w-full bg-white dark:bg-[#0E1116] border border-[#D0D7DE] dark:border-[#30363D] rounded-lg px-4 py-3 text-sm text-[#0E1116] dark:text-white placeholder-[#656D76] dark:placeholder-[#8B949E] focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200" />
                         </div>
                     </div>
                     <button onClick={handleSave} disabled={isSaving} className="mt-2 w-full py-3.5 rounded-xl bg-[#E85D2A] text-white font-bold text-sm hover:bg-[#d65223] transition-colors">

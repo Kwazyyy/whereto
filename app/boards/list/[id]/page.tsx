@@ -681,7 +681,7 @@ export default function ListDetailPage() {
                                     type="text"
                                     value={editTitle}
                                     onChange={(e) => setEditTitle(e.target.value)}
-                                    className="w-full bg-[#0E1116] border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-[#E85D2A] focus:outline-none transition-colors"
+                                    className="w-full bg-[#0E1116] border border-[#30363D] rounded-lg px-4 py-3 text-white text-sm placeholder-[#8B949E] focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
                                     placeholder="List name"
                                 />
                             </div>
@@ -693,7 +693,7 @@ export default function ListDetailPage() {
                                     value={editDescription}
                                     onChange={(e) => setEditDescription(e.target.value.slice(0, 200))}
                                     rows={3}
-                                    className="w-full bg-[#0E1116] border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-[#E85D2A] focus:outline-none transition-colors resize-none"
+                                    className="w-full bg-[#0E1116] border border-[#30363D] rounded-lg px-4 py-3 text-white text-sm placeholder-[#8B949E] focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200 resize-none"
                                     placeholder="What makes this list special?"
                                 />
                                 <p className="text-xs text-gray-500 mt-1">{editDescription.length}/200</p>
@@ -734,7 +734,7 @@ export default function ListDetailPage() {
                                     type="text"
                                     readOnly
                                     value={shareUrl}
-                                    className="flex-1 bg-[#0E1116] border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-300 w-full focus:outline-none"
+                                    className="flex-1 bg-[#0E1116] border border-[#30363D] rounded-lg px-4 py-3 text-sm text-gray-300 w-full focus:outline-none transition-colors duration-200"
                                 />
                                 <button
                                     onClick={() => {

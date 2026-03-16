@@ -355,7 +355,7 @@ function UsersDetail({ filterRole }: { filterRole?: string }) {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Search by name or email..."
-        className="bg-[#0E1116] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 w-full mb-3 focus:outline-none focus:border-[#E85D2A] transition"
+        className="bg-[#0E1116] border border-[#30363D] rounded-lg px-4 py-3 text-sm text-white placeholder-[#8B949E] w-full mb-3 focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
       />
       <div className="max-h-[400px] overflow-y-auto" style={{ scrollbarWidth: "none" }}>
         <div className="space-y-0">
@@ -550,7 +550,7 @@ function PlacesDetail() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Search places..."
-        className="bg-[#0E1116] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 w-full mb-3 focus:outline-none focus:border-[#E85D2A] transition"
+        className="bg-[#0E1116] border border-[#30363D] rounded-lg px-4 py-3 text-sm text-white placeholder-[#8B949E] w-full mb-3 focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
       />
       <div className="max-h-[400px] overflow-y-auto" style={{ scrollbarWidth: "none" }}>
         {filtered.length === 0 && (

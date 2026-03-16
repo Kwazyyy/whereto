@@ -130,7 +130,7 @@ export default function AuthPage() {
   }
 
   const inputClass =
-    "w-full px-4 py-3 rounded-xl bg-[#161B22] border border-[#30363D] text-white placeholder-[#8B949E] text-sm focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/30 focus:outline-none transition-all duration-200";
+    "w-full px-4 py-3 rounded-lg bg-[#0E1116] border border-[#30363D] text-white placeholder-[#8B949E] text-sm focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200";
 
   return (
     <div className="min-h-screen bg-[#0E1116] flex items-center justify-center relative overflow-hidden">

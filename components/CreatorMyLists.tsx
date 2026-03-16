@@ -210,7 +210,7 @@ export function CreatorMyLists() {
                                     placeholder="e.g. Best Late Night Bites"
                                     value={newTitle}
                                     onChange={(e) => setNewTitle(e.target.value)}
-                                    className="w-full bg-gray-50 dark:bg-[#0E1116] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-[#0E1116] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E85D2A]"
+                                    className="w-full bg-white dark:bg-[#0E1116] border border-[#D0D7DE] dark:border-[#30363D] rounded-lg px-4 py-3 text-sm text-[#0E1116] dark:text-white placeholder-[#656D76] dark:placeholder-[#8B949E] focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
                                 />
                             </div>
 
@@ -220,7 +220,7 @@ export function CreatorMyLists() {
                                     placeholder="What makes this list special?"
                                     value={newDescription}
                                     onChange={(e) => setNewDescription(e.target.value)}
-                                    className="w-full bg-gray-50 dark:bg-[#0E1116] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-[#0E1116] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E85D2A] resize-none h-24"
+                                    className="w-full bg-white dark:bg-[#0E1116] border border-[#D0D7DE] dark:border-[#30363D] rounded-lg px-4 py-3 text-sm text-[#0E1116] dark:text-white placeholder-[#656D76] dark:placeholder-[#8B949E] focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200 resize-none h-24"
                                 />
                             </div>
 

@@ -151,7 +151,7 @@ function WaitlistForm() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 disabled={status === "loading"}
-                                className="flex-1 bg-zinc-900 border border-white/10 rounded-full px-6 py-4 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all disabled:opacity-50"
+                                className="flex-1 bg-[#0E1116] border border-[#30363D] rounded-full px-6 py-4 text-white placeholder-[#8B949E] focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200 disabled:opacity-50"
                                 required
                             />
                             <button

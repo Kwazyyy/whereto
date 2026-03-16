@@ -69,7 +69,7 @@ export default function BusinessLoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2.5 bg-[#0E1116] border border-white/10 rounded-lg text-white text-sm placeholder:text-gray-500 focus:outline-none focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A] transition-colors"
+              className="w-full px-4 py-3 bg-[#0E1116] border border-[#30363D] rounded-lg text-white text-sm placeholder-[#8B949E] focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
               placeholder="you@business.com"
             />
           </div>
@@ -85,7 +85,7 @@ export default function BusinessLoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={8}
-              className="w-full px-3 py-2.5 bg-[#0E1116] border border-white/10 rounded-lg text-white text-sm placeholder:text-gray-500 focus:outline-none focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A] transition-colors"
+              className="w-full px-4 py-3 bg-[#0E1116] border border-[#30363D] rounded-lg text-white text-sm placeholder-[#8B949E] focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
               placeholder="••••••••"
             />
           </div>

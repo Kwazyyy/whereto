@@ -370,7 +370,7 @@ function PlacementModal({
                 <select
                   value={selectedPlace}
                   onChange={(e) => setSelectedPlace(e.target.value)}
-                  className="w-full bg-[#1C2128] border border-[#30363D] text-white rounded-lg p-3 text-sm"
+                  className="w-full bg-[#0E1116] border border-[#30363D] text-white rounded-lg px-4 py-3 text-sm focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
                 >
                   {claimedPlaces.map((p) => (
                     <option key={p.googlePlaceId} value={p.googlePlaceId}>
@@ -410,7 +410,7 @@ function PlacementModal({
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   style={{ colorScheme: 'dark' }}
-                  className="w-full bg-[#1C2128] border border-[#30363D] text-white rounded-lg p-3 text-sm"
+                  className="w-full bg-[#0E1116] border border-[#30363D] text-white rounded-lg px-4 py-3 text-sm focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
                 />
               </div>
               <div>
@@ -420,7 +420,7 @@ function PlacementModal({
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   style={{ colorScheme: 'dark' }}
-                  className="w-full bg-[#1C2128] border border-[#30363D] text-white rounded-lg p-3 text-sm"
+                  className="w-full bg-[#0E1116] border border-[#30363D] text-white rounded-lg px-4 py-3 text-sm focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
                 />
               </div>
             </div>

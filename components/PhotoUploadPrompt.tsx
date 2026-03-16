@@ -100,7 +100,7 @@ function CategoryCard({
                             onChange={(e) => onCaptionChange(category.id, e.target.value)}
                             placeholder="Add a caption (optional)"
                             maxLength={200}
-                            className="w-full bg-transparent text-sm text-white placeholder:text-gray-500 outline-none"
+                            className="w-full bg-transparent text-sm text-white placeholder-[#8B949E] border-none focus:outline-none focus:ring-0 transition-colors duration-200"
                         />
                     </div>
                 </div>

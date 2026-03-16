@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
@@ -15,6 +16,7 @@ export function AddFriendModal({
 }) {
     const { data: session } = useSession();
     const { showToast } = useToast();
+    const [mounted, setMounted] = useState(false);
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -67,7 +69,13 @@ export function AddFriendModal({
         window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${shareText} ${inviteUrl}`)}`, "_blank");
     }
 
-    return (
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) return null;
+
+    return createPortal(
         <motion.div
             className="fixed inset-0 z-[60] flex items-end md:items-center justify-center bg-black/40"
             initial={{ opacity: 0 }}
@@ -77,11 +85,7 @@ export function AddFriendModal({
             onClick={onClose}
         >
             <motion.div
-                className="w-full md:w-auto md:min-w-[420px] md:max-w-[460px] bg-white/[0.65] dark:bg-white/[0.05] rounded-t-2xl md:rounded-2xl px-6 pt-6 pb-24 md:pb-6 border border-black/[0.08] dark:border-white/[0.15] shadow-2xl relative"
-                style={{
-                    backdropFilter: "blur(64px) saturate(180%)",
-                    WebkitBackdropFilter: "blur(64px) saturate(180%)",
-                }}
+                className="w-full md:w-auto md:min-w-[420px] md:max-w-[460px] bg-white dark:bg-[#161B22] rounded-t-2xl md:rounded-2xl px-6 pt-6 pb-24 md:pb-6 border border-black/[0.08] dark:border-white/[0.15] shadow-2xl relative"
                 initial={{ y: "100%" }}
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
@@ -109,7 +113,7 @@ export function AddFriendModal({
                         placeholder="friend@email.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#0E1116] border border-gray-200 dark:border-[#30363D] text-[#0E1116] dark:text-white placeholder-gray-400 dark:placeholder-[#8B949E] transition-colors duration-200 focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/30 focus:outline-none"
+                        className="w-full px-4 py-3 rounded-lg bg-white dark:bg-[#0E1116] border border-[#D0D7DE] dark:border-[#30363D] text-[#0E1116] dark:text-white placeholder-[#656D76] dark:placeholder-[#8B949E] text-sm focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
                     />
 
                     {error && (
@@ -125,7 +129,7 @@ export function AddFriendModal({
                     <button
                         type="submit"
                         disabled={loading || !email.trim()}
-                        className="w-full py-3.5 rounded-xl font-semibold text-sm text-white bg-[#E85D2A] hover:bg-[#D14E1F] transition-colors disabled:opacity-50 cursor-pointer"
+                        className="w-full py-3 rounded-lg bg-[#E85D2A] hover:bg-[#D14E1F] text-white font-semibold transition-colors duration-200 cursor-pointer disabled:opacity-50"
                     >
                         {loading ? "Sending\u2026" : "Send Request"}
                     </button>
@@ -165,6 +169,7 @@ export function AddFriendModal({
                     </button>
                 </div>
             </motion.div>
-        </motion.div>
+        </motion.div>,
+        document.body
     );
 }

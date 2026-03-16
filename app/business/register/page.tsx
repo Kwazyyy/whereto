@@ -98,7 +98,7 @@ export default function BusinessRegisterPage() {
                 onChange={(e) => setName(e.target.value)}
                 required
                 placeholder="Your full name"
-                className="bg-[#0E1116] border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 w-full focus:outline-none focus:border-[#E85D2A] transition"
+                className="bg-[#0E1116] border border-[#30363D] rounded-lg px-4 py-3 text-white text-sm placeholder-[#8B949E] w-full focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
               />
             </div>
 
@@ -113,7 +113,7 @@ export default function BusinessRegisterPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="you@business.com"
-                className="bg-[#0E1116] border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 w-full focus:outline-none focus:border-[#E85D2A] transition"
+                className="bg-[#0E1116] border border-[#30363D] rounded-lg px-4 py-3 text-white text-sm placeholder-[#8B949E] w-full focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
               />
             </div>
 
@@ -128,7 +128,7 @@ export default function BusinessRegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="Minimum 8 characters"
-                className="bg-[#0E1116] border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 w-full focus:outline-none focus:border-[#E85D2A] transition"
+                className="bg-[#0E1116] border border-[#30363D] rounded-lg px-4 py-3 text-white text-sm placeholder-[#8B949E] w-full focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
               />
               {passwordTooShort && (
                 <p className="text-red-400 text-xs mt-1">
@@ -148,7 +148,7 @@ export default function BusinessRegisterPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 placeholder="Confirm your password"
-                className="bg-[#0E1116] border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 w-full focus:outline-none focus:border-[#E85D2A] transition"
+                className="bg-[#0E1116] border border-[#30363D] rounded-lg px-4 py-3 text-white text-sm placeholder-[#8B949E] w-full focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200"
               />
               {passwordsMismatch && (
                 <p className="text-red-400 text-xs mt-1">
