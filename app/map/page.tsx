@@ -727,7 +727,7 @@ export default function MapPage() {
             <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
               <Map
                 defaultCenter={userLocation}
-                defaultZoom={13}
+                defaultZoom={14}
                 gestureHandling="greedy"
                 disableDefaultUI
                 styles={isDarkMode ? DARK_MAP_STYLES : MAP_STYLES}
@@ -768,7 +768,7 @@ export default function MapPage() {
               if (!navigator.geolocation) {
                 // Fallback: pan to last known or default
                 mapInstance.panTo(userLocation ?? { lat: DEFAULT_LAT, lng: DEFAULT_LNG });
-                mapInstance.setZoom(userLocation ? 16 : 13);
+                mapInstance.setZoom(userLocation ? 16 : 14);
                 return;
               }
               setLocating(true);
@@ -783,7 +783,7 @@ export default function MapPage() {
                 () => {
                   // GPS failed — use last known location
                   mapInstance.panTo(userLocation ?? { lat: DEFAULT_LAT, lng: DEFAULT_LNG });
-                  mapInstance.setZoom(userLocation ? 16 : 13);
+                  mapInstance.setZoom(userLocation ? 16 : 14);
                   setLocating(false);
                 },
                 { timeout: 6000, enableHighAccuracy: true }
@@ -794,7 +794,7 @@ export default function MapPage() {
             style={{
               background: "var(--color-btn-bg)",
               border: "1px solid var(--color-btn-border)",
-              bottom: 'calc(env(safe-area-inset-bottom, 20px) + 90px)',
+              bottom: 'calc(env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px) + 84px)',
             }}
           >
             {locating ? (
@@ -832,7 +832,7 @@ export default function MapPage() {
 
         {/* Legend */}
         {userLocation && (
-          <div className="absolute right-3 lg:bottom-20 z-30 flex flex-col gap-2 bg-white/95 dark:bg-[#161B22]/95 backdrop-blur-sm rounded-xl px-3 py-2.5 shadow-md border border-gray-100 dark:border-[#30363D]" style={{ bottom: 'calc(env(safe-area-inset-bottom, 20px) + 160px)' }}>
+          <div className="absolute right-3 lg:bottom-20 z-30 flex flex-col gap-2 bg-white/95 dark:bg-[#161B22]/95 backdrop-blur-sm rounded-xl px-3 py-2.5 shadow-md border border-gray-100 dark:border-[#30363D]" style={{ bottom: 'calc(env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px) + 144px)' }}>
             <div className="flex items-center gap-2">
               <div className="w-3.5 h-3.5 rounded-full bg-[#E85D2A] shadow-sm shrink-0" />
               <span className="text-[11px] font-semibold text-[#0E1116] dark:text-[#e8edf4]">Visited</span>
