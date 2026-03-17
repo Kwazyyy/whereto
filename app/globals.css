@@ -2,6 +2,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Capacitor / notch support: extend background behind status bar,
+   push content below the safe area on all platforms. */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

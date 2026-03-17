@@ -2,6 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import PhotoGallery from "./PhotoGallery";
 
+export function generateStaticParams() {
+  return [];
+}
+
 async function findPlace(id: string) {
     // Try by internal UUID first, then by Google Place ID
     return (

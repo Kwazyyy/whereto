@@ -18,7 +18,12 @@ function getStoredTheme(): Theme {
     const raw = localStorage.getItem("savrd_prefs");
     const val = raw ? JSON.parse(raw).theme : null;
     if (val === "light" || val === "dark" || val === "system") return val;
-    return "system";
+    // No saved preference — mirror what the inline script does:
+    // default to dark on native, system on web.
+    const isNative =
+      typeof window !== "undefined" &&
+      window.Capacitor?.isNativePlatform?.() === true;
+    return isNative ? "dark" : "system";
   } catch {
     return "system";
   }

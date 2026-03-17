@@ -4,6 +4,7 @@ import { motion, useScroll, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef, FormEvent } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { isNativePlatform } from "@/lib/is-native";
 import Link from "next/link";
 import { Map, LayoutGrid, Users, Camera, UtensilsCrossed } from "lucide-react";
 
@@ -198,6 +199,14 @@ export default function LandingPage() {
     // Redirect signed-in users to the app
     useEffect(() => {
         if (status === "authenticated") router.replace("/");
+    }, [status, router]);
+
+    // In the native app, the landing/marketing page should never be shown.
+    // Redirect to /auth (unauthenticated) or / (authenticated).
+    useEffect(() => {
+        if (!isNativePlatform()) return;
+        if (status === "loading") return;
+        router.replace(status === "authenticated" ? "/" : "/auth");
     }, [status, router]);
 
     // Mark that this user has seen the landing page so they won't be redirected here again

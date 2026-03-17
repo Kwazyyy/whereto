@@ -33,6 +33,7 @@ import PhotoUploadPrompt from "@/components/PhotoUploadPrompt";
 import { useToast } from "@/components/Toast";
 import { shouldShowNudge, NUDGE_10_SAVES_SHARE } from "@/lib/nudges";
 import NudgeModal from "@/components/nudges/NudgeModal";
+import { isNativePlatform } from "@/lib/is-native";
 
 const categories = [
   { id: "study_work", icon: BookOpen, label: "Study / Work" },
@@ -158,7 +159,7 @@ export default function Home() {
     sessionStatusRef.current = status;
     if (status === "loading") return;
     if (status === "unauthenticated") {
-      router.replace("/landing");
+      router.replace(isNativePlatform() ? "/auth" : "/landing");
       return;
     }
     if (session?.user && session.user.hasCompletedOnboarding === false) {
@@ -314,15 +315,28 @@ export default function Home() {
       return;
     }
 
+    // Hard fallback: if the permission dialog never resolves (e.g. iOS WKWebView silently
+    // blocking before NSLocationWhenInUseUsageDescription is configured, or user ignores
+    // the dialog), force the default location after 10 s so the spinner doesn't hang.
+    const fallbackTimer = setTimeout(() => {
+      setUserLocation(prev => prev ?? { lat: DEFAULT_LAT, lng: DEFAULT_LNG });
+    }, 10000);
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        clearTimeout(fallbackTimer);
+        console.log(`[Discover] geolocation success → lat=${pos.coords.latitude} lng=${pos.coords.longitude}`);
         setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
       },
-      () => {
+      (err) => {
+        clearTimeout(fallbackTimer);
+        console.log(`[Discover] geolocation error (${err.code}: ${err.message}) → using Toronto fallback`);
         setUserLocation({ lat: DEFAULT_LAT, lng: DEFAULT_LNG });
       },
       { timeout: 8000 }
     );
+
+    return () => clearTimeout(fallbackTimer);
   }, [prefsApplied]);
 
   const fetchFeatured = useCallback(async (loc: { lat: number; lng: number }, intentId: string, rad: number) => {
@@ -362,6 +376,7 @@ export default function Home() {
     setLoading(true);
     try {
       const intentsParam = intents.join(",");
+      console.log(`[Discover] fetchPlaces → lat=${loc.lat} lng=${loc.lng} radius=${rad} intents=${intentsParam}`);
       const res = await fetch(
         `/api/places?intents=${intentsParam}&lat=${loc.lat}&lng=${loc.lng}&radius=${rad}`
       );

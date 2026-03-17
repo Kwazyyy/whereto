@@ -2,6 +2,10 @@ import { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import PublicListView from "./PublicListView";
 
+export function generateStaticParams() {
+  return [];
+}
+
 type Props = {
     params: Promise<{ id: string }>;
 };

@@ -45,7 +45,8 @@
       "Bash(cmd //c \"taskkill /PID 10644 /F\")",
       "Bash(npm run dev:*)",
       "Bash(grep:*)",
-      "Bash(npx prisma db push:*)"
+      "Bash(npx prisma db push:*)",
+      "Bash(export PATH=\"/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:$PATH\")"
     ]
   }
 }
