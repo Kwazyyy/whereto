@@ -629,18 +629,15 @@ export default function Home() {
   }
 
   return (
-    <div className="h-dvh bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-28 lg:pb-0">
-      {/* Counter */}
-      {!loading && !allDone && visiblePlaces.length > 0 && (
-        <div className="shrink-0 px-5 pt-3 pb-1 flex justify-end lg:max-w-[540px] lg:mx-auto lg:w-full">
-          <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">
-            {visiblePlaces.length} left
-          </span>
-        </div>
-      )}
-
+    <div
+      className="bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden"
+      style={{
+        height: 'calc(100dvh - env(safe-area-inset-top, 0px))',
+        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)',
+      }}
+    >
       {/* Intent Chips */}
-      <div className="shrink-0 py-3 pt-1">
+      <div className="shrink-0 pb-3 pt-2">
         <div
           ref={chipScrollRef}
           data-tour="chips"

@@ -2,10 +2,17 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Capacitor / notch support: extend background behind status bar,
-   push content below the safe area on all platforms. */
-body {
+/* Capacitor / notch support: only push content below the safe area
+   when actually running inside the native Capacitor shell.
+   The .cap-native class is added synchronously by the inline <script>
+   in app/layout.tsx (runs before React hydration). On plain web the
+   WebView / browser already positions content below the status bar. */
+html.cap-native body {
   padding-top: env(safe-area-inset-top);
+}
+
+/* Bottom safe area (home indicator) applies everywhere. */
+body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 

@@ -693,7 +693,7 @@ export default function MapPage() {
       {/* Map area */}
       <div className="flex-1 relative" ref={mapContainerRef}>
         {/* Floating intent chips over the map */}
-        <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none pt-8 lg:pt-6 px-3 lg:pl-[88px] xl:pl-[256px]">
+        <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none pt-2 lg:pt-4 px-3 lg:pl-[88px] xl:pl-[256px]">
           <div
             className="flex gap-2 overflow-x-auto lg:flex-wrap lg:justify-center lg:overflow-x-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
@@ -790,10 +790,11 @@ export default function MapPage() {
               );
             }}
             title="Re-centre map"
-            className="absolute bottom-36 right-4 lg:bottom-6 lg:right-6 z-20 w-12 h-12 rounded-full flex items-center justify-center cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.15)]"
+            className="absolute right-4 lg:right-6 z-20 w-12 h-12 rounded-full flex items-center justify-center cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.15)]"
             style={{
               background: "var(--color-btn-bg)",
               border: "1px solid var(--color-btn-border)",
+              bottom: 'calc(env(safe-area-inset-bottom, 20px) + 90px)',
             }}
           >
             {locating ? (
@@ -831,7 +832,7 @@ export default function MapPage() {
 
         {/* Legend */}
         {userLocation && (
-          <div className="absolute bottom-52 lg:bottom-20 right-3 z-30 flex flex-col gap-2 bg-white/95 dark:bg-[#161B22]/95 backdrop-blur-sm rounded-xl px-3 py-2.5 shadow-md border border-gray-100 dark:border-[#30363D]">
+          <div className="absolute right-3 lg:bottom-20 z-30 flex flex-col gap-2 bg-white/95 dark:bg-[#161B22]/95 backdrop-blur-sm rounded-xl px-3 py-2.5 shadow-md border border-gray-100 dark:border-[#30363D]" style={{ bottom: 'calc(env(safe-area-inset-bottom, 20px) + 160px)' }}>
             <div className="flex items-center gap-2">
               <div className="w-3.5 h-3.5 rounded-full bg-[#E85D2A] shadow-sm shrink-0" />
               <span className="text-[11px] font-semibold text-[#0E1116] dark:text-[#e8edf4]">Visited</span>
