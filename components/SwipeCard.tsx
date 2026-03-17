@@ -220,7 +220,7 @@ export function SwipeCard({
     return (
         <motion.div
             ref={cardRef}
-            className="absolute inset-4 z-10 touch-none rounded-3xl"
+            className="absolute inset-4 z-10 touch-none rounded-3xl overflow-hidden"
             style={{ x, rotateZ, zIndex: isTop ? 10 : 0, perspective: 1500 }}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}

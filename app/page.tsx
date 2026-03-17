@@ -633,7 +633,7 @@ export default function Home() {
       className="bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden"
       style={{
         height: 'calc(100dvh - env(safe-area-inset-top, 0px))',
-        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)',
+        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 60px)',
       }}
     >
       {/* Intent Chips */}
@@ -747,7 +747,7 @@ export default function Home() {
           )}
         </motion.div>
       ) : (
-        <div className="flex-1 relative lg:max-w-[540px] lg:mx-auto lg:w-full lg:max-h-[calc(100vh-100px)]" data-tour="card">
+        <div className="flex-1 relative md:max-w-[400px] md:mx-auto md:w-full" data-tour="card">
           <AnimatePresence>
             {visiblePlaces.slice(0, 3).reverse().map((place, i, arr) => {
               const isTop = i === arr.length - 1;
