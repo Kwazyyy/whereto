@@ -434,7 +434,7 @@ export default function BoardsPage() {
       />
       <div className="max-w-5xl mx-auto px-4 lg:px-6">
         {/* ── Page Header ────────────────────────────────────── */}
-        <div className="pt-4 lg:pt-10">
+        <div className="pt-2 lg:pt-10">
           <h1 className="text-2xl font-bold text-[#0E1116] dark:text-white">
             My Boards
           </h1>

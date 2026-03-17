@@ -521,7 +521,7 @@ export default function SocialPage() {
 
       {/* ── MOBILE LAYOUT (<1024px) ── */}
       <div className="lg:hidden">
-        <header className="px-5 pt-4 pb-4">
+        <header className="px-5 pt-2 pb-4">
           <h1 className="text-2xl font-bold text-[#0E1116] dark:text-white">Social</h1>
           <p className="text-[#656D76] dark:text-[#8B949E] text-sm mt-1">See what your friends are saving</p>
         </header>
