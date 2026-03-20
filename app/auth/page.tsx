@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { isCapacitor, getAuthBaseUrl } from "@/lib/capacitor";
+import { App } from "@capacitor/app";
 import { motion } from "framer-motion";
 import { Coffee, Croissant, Utensils, Wine, CakeSlice, IceCreamCone, Pizza, Soup, Sandwich, CupSoda } from "lucide-react";
 
@@ -23,6 +25,65 @@ export default function AuthPage() {
   }, [status, router]);
 
   if (status === "authenticated") return null;
+
+  async function handleGoogleSignIn() {
+    if (!isCapacitor()) {
+      signIn("google", { callbackUrl: "/" });
+      return;
+    }
+
+    const { Browser } = await import("@capacitor/browser");
+    const base = getAuthBaseUrl();
+
+    const handleOAuthComplete = async () => {
+      try {
+        // Retrieve the one-time token and have the server set the session cookie
+        const tokenRes = await fetch("/api/mobile-token");
+        console.log("[Savrd] mobile-token status:", tokenRes.status);
+      } catch (err) {
+        console.log("[Savrd] token fetch error:", err);
+      }
+      
+      try {
+        const sessionRes = await fetch("/api/auth/session");
+        const sessionData = await sessionRes.json() as { user?: unknown };
+        console.log("[Savrd] session after sign-in:", sessionData.user ? "authenticated" : "none");
+        if (sessionData.user) {
+          console.log("[Savrd] navigating to /");
+          window.location.href = "/";
+          return;
+        }
+      } catch (err) {
+        console.log("[Savrd] session check error:", err);
+      }
+      console.log("[Savrd] no session — staying on /auth");
+    };
+
+    let handled = false;
+    
+    const browserListener = await Browser.addListener("browserFinished", async () => {
+      browserListener.remove();
+      if (handled) return;
+      handled = true;
+      console.log("[Savrd] browserFinished fired");
+      await handleOAuthComplete();
+    });
+
+    const appListener = await App.addListener("appUrlOpen", async (data) => {
+      if (data.url.includes("auth-done")) {
+        appListener.remove();
+        if (handled) return;
+        handled = true;
+        console.log("[Savrd] appUrlOpen fired, auto-closing browser");
+        await Browser.close();
+        await handleOAuthComplete();
+      }
+    });
+
+    await Browser.open({
+      url: `${base}/auth/google-redirect`,
+    });
+  }
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const ALLOWED_DOMAINS = [
@@ -307,7 +368,7 @@ export default function AuthPage() {
 
         {/* Google OAuth */}
         <button
-          onClick={() => signIn("google", { callbackUrl: "/" })}
+          onClick={handleGoogleSignIn}
           className="w-full flex items-center justify-center gap-3 py-3 rounded-xl bg-white text-[#0E1116] font-semibold text-sm hover:bg-white/90 transition-all duration-200 cursor-pointer"
         >
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">

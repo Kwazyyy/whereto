@@ -16,6 +16,38 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       checks: [],
     }),
     Credentials({
+      id: "mobile-token",
+      name: "mobile-token",
+      credentials: {
+        token: { label: "Token", type: "text" },
+      },
+      async authorize(credentials) {
+        const token = credentials?.token;
+        if (typeof token !== "string") return null;
+
+        const mobileToken = await prisma.mobileAuthToken.findUnique({
+          where: { token },
+          include: {
+            user: { select: { id: true, email: true, name: true, image: true, role: true } },
+          },
+        });
+
+        if (!mobileToken || mobileToken.expiresAt < new Date()) {
+          if (mobileToken) await prisma.mobileAuthToken.delete({ where: { token } });
+          return null;
+        }
+
+        await prisma.mobileAuthToken.delete({ where: { token } });
+        return {
+          id: mobileToken.user.id,
+          email: mobileToken.user.email,
+          name: mobileToken.user.name,
+          image: mobileToken.user.image,
+          role: mobileToken.user.role,
+        };
+      },
+    }),
+    Credentials({
       name: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },

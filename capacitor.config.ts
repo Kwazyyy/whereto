@@ -1,13 +1,14 @@
 import { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.savrd.app",
+  appId: "ca.savrd.app",
   appName: "Savrd",
   webDir: "public",
   server: {
     // Development: loads the local Next.js dev server with live reload.
-    // For production builds, remove this url field so the app uses the
-    // bundled assets, or set it to your deployed Vercel URL.
+    // For production: remove this url block (app uses bundled assets) or set
+    // url to "https://savrd.ca" so OAuth cookies are on the same domain as
+    // the SFSafariViewController session.
     url: "http://localhost:3000",
     cleartext: true,
   },

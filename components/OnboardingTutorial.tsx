@@ -109,6 +109,9 @@ export function OnboardingTutorial({ onDismiss }: { onDismiss: () => void }) {
     const current = STEPS[step];
     const pad = 8;
     const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    const sidebarWidth = typeof window !== "undefined"
+        ? window.innerWidth >= 1280 ? 240 : window.innerWidth >= 1024 ? 72 : 0
+        : 0;
 
     // Tooltip position
     let tooltipTop = "50%";
@@ -128,9 +131,18 @@ export function OnboardingTutorial({ onDismiss }: { onDismiss: () => void }) {
             const tooltipWidth = 320;
             const centerX = rect.left + rect.width / 2;
             let left = centerX - tooltipWidth / 2;
-            left = Math.max(24, Math.min(left, window.innerWidth - tooltipWidth - 24));
+            left = Math.max(sidebarWidth + 24, Math.min(left, window.innerWidth - tooltipWidth - 24));
             tooltipStyle = { left: `${left}px`, right: "auto" };
         }
+    } else {
+        // No target element found — center in main content area (accounts for desktop sidebar)
+        const contentCenterX = sidebarWidth + (typeof window !== "undefined" ? window.innerWidth - sidebarWidth : 0) / 2;
+        tooltipStyle = {
+            position: "fixed",
+            left: `${contentCenterX}px`,
+            top: "50%",
+            transform: "translateX(-50%) translateY(-50%)",
+        };
     }
 
     return (

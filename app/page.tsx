@@ -747,7 +747,7 @@ export default function Home() {
           )}
         </motion.div>
       ) : (
-        <div className="flex-1 relative md:max-w-[400px] md:mx-auto md:w-full" data-tour="card">
+        <div className="flex-1 relative md:max-w-[420px] md:mx-auto md:w-full" data-tour="card">
           <AnimatePresence>
             {visiblePlaces.slice(0, 3).reverse().map((place, i, arr) => {
               const isTop = i === arr.length - 1;

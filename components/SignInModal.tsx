@@ -1,9 +1,88 @@
 "use client";
 
+import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { isCapacitor, getAuthBaseUrl } from "@/lib/capacitor";
+import { App } from "@capacitor/app";
 
 export function SignInModal({ onClose }: { onClose: () => void }) {
+    const router = useRouter();
+    const { status } = useSession();
+
+    // Safety net: if the session updates (e.g. via useSession polling after
+    // OAuth completes), close the modal and navigate — even if browserFinished
+    // didn't fire or the handler didn't navigate.
+    useEffect(() => {
+        if (status === "authenticated") {
+            console.log("[Savrd] SignInModal: session authenticated, closing modal");
+            onClose();
+            router.replace("/");
+        }
+    }, [status, onClose, router]);
+
+    async function handleGoogleSignIn() {
+        if (!isCapacitor()) {
+            signIn("google");
+            return;
+        }
+
+        const { Browser } = await import("@capacitor/browser");
+        const base = getAuthBaseUrl();
+
+        const handleOAuthComplete = async () => {
+            try {
+                // Retrieve the one-time token and have the server set the session cookie
+                const tokenRes = await fetch("/api/mobile-token");
+                console.log("[Savrd] mobile-token status:", tokenRes.status);
+            } catch (err) {
+                console.log("[Savrd] token fetch error:", err);
+            }
+            // Verify session then navigate
+            try {
+                const sessionRes = await fetch("/api/auth/session");
+                const sessionData = await sessionRes.json() as { user?: unknown };
+                console.log("[Savrd] session after sign-in:", sessionData.user ? "authenticated" : "none");
+                if (sessionData.user) {
+                    console.log("[Savrd] SignInModal: navigating to /");
+                    onClose();
+                    window.location.href = "/";
+                    return;
+                }
+            } catch (err) {
+                console.log("[Savrd] session check error:", err);
+            }
+            console.log("[Savrd] SignInModal: reloading as fallback");
+            window.location.reload();
+        };
+
+        let handled = false;
+
+        const browserListener = await Browser.addListener("browserFinished", async () => {
+            browserListener.remove();
+            if (handled) return;
+            handled = true;
+            console.log("[Savrd] SignInModal: browserFinished fired");
+            await handleOAuthComplete();
+        });
+
+        const appListener = await App.addListener("appUrlOpen", async (data) => {
+            if (data.url.includes("auth-done")) {
+                appListener.remove();
+                if (handled) return;
+                handled = true;
+                console.log("[Savrd] SignInModal: appUrlOpen fired, auto-closing browser");
+                await Browser.close();
+                await handleOAuthComplete();
+            }
+        });
+
+        await Browser.open({
+            url: `${base}/auth/google-redirect`,
+        });
+    }
+
     return (
         <div
             className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40"
@@ -37,7 +116,7 @@ export function SignInModal({ onClose }: { onClose: () => void }) {
                         </p>
                     </div>
                     <button
-                        onClick={() => signIn("google")}
+                        onClick={handleGoogleSignIn}
                         className="flex items-center justify-center gap-3 w-full max-w-xs py-3.5 rounded-2xl bg-white dark:bg-[#1C2128] border-2 border-gray-200 dark:border-white/10 font-semibold text-sm text-[#0E1116] dark:text-[#e8edf4] hover:bg-gray-50 dark:hover:bg-[#2d2d44] transition-colors cursor-pointer shadow-sm"
                     >
                         <svg width="18" height="18" viewBox="0 0 24 24">
