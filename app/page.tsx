@@ -135,6 +135,16 @@ export default function Home() {
   // First intent used for saving and featured placements
   const primaryIntent = selectedIntents[0];
 
+  const sortedCategories = useMemo(() => {
+    return [...categories].sort((a, b) => {
+      const aSel = selectedIntents.includes(a.id);
+      const bSel = selectedIntents.includes(b.id);
+      if (aSel && !bSel) return -1;
+      if (!aSel && bSel) return 1;
+      return 0;
+    });
+  }, [selectedIntents]);
+
   function handleChipTap(chipId: string) {
     setSelectedIntents((prev) => {
       if (prev.includes(chipId)) {
@@ -153,6 +163,11 @@ export default function Home() {
         return [...prev, chipId];
       }
     });
+    // Scroll the container back to the left smoothly so the active chip comes into view
+    // (Wait a tick for React to re-render the sorted array first!)
+    setTimeout(() => {
+      chipScrollRef.current?.scrollTo({ left: 0, behavior: 'smooth' });
+    }, 50);
   }
 
   useEffect(() => {
@@ -636,15 +651,16 @@ export default function Home() {
       }}
     >
       {/* Intent Chips */}
-      <div className="shrink-0 pb-3 pt-2">
+      <div className="shrink-0 pb-3 pt-2 w-full md:max-w-[600px] md:mx-auto">
         <div
           ref={chipScrollRef}
           data-tour="chips"
-          className="flex gap-2 overflow-x-auto scrollbar-none pb-2 snap-x snap-mandatory px-5 lg:justify-center"
+          className="flex gap-2 overflow-x-auto scrollbar-none pb-2 snap-x snap-mandatory px-5"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
         >
-          {categories.map((cat) => (
+          {sortedCategories.map((cat) => (
             <motion.button
+              layout
               whileTap={{ scale: 0.95 }}
               key={cat.id}
               onClick={() => handleChipTap(cat.id)}
