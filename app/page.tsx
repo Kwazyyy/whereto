@@ -630,10 +630,9 @@ export default function Home() {
 
   return (
     <div
-      className="bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden"
+      className="bg-white dark:bg-[#0E1116] flex flex-col overflow-hidden pb-[calc(env(safe-area-inset-bottom,0px)+60px)] lg:pb-[env(safe-area-inset-bottom,0px)]"
       style={{
         height: 'calc(100dvh - env(safe-area-inset-top, 0px))',
-        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 60px)',
       }}
     >
       {/* Intent Chips */}

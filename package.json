@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "postinstall": "prisma generate",
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "dev": "next dev",
+    "build": "next build",
     "cap:sync": "npx cap sync",
     "cap:ios": "npx cap sync ios && npx cap open ios",
     "cap:android": "npx cap sync android && npx cap open android",
