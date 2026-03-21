@@ -2,121 +2,114 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 
+async function step(name: string, fn: () => Promise<{ count: number } | void>) {
+  try {
+    const result = await fn();
+    const count = result && 'count' in result ? result.count : '—';
+    console.log(`[delete-account] ${name}:`, count);
+  } catch (err) {
+    console.error(`[delete-account] ${name} failed:`, err);
+    // best-effort: continue deleting remaining records
+  }
+}
 
 export async function DELETE() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const userId = session.user.id;
+  console.log('[delete-account] starting deletion for userId:', userId);
+
+  // Sequential deletes — no $transaction (not supported in Neon HTTP mode).
+  // Order respects FK constraints: children before parents.
+
+  // 1. PhotoLikes by user (userId has no onDelete on this model)
+  await step('photoLike', () => prisma.photoLike.deleteMany({ where: { userId } }));
+
+  // 2. PlacePhotos by user — cascade deletes other users' likes on these photos
+  await step('placePhoto', () => prisma.placePhoto.deleteMany({ where: { userId } }));
+
+  // 3. Other users' CuratedListSaves on this user's lists + this user's own saves
+  await step('curatedListSave (own)', () => prisma.curatedListSave.deleteMany({ where: { userId } }));
+
+  const userLists = await prisma.curatedList.findMany({
+    where: { creatorId: userId },
+    select: { id: true },
+  });
+  const listIds = userLists.map((l) => l.id);
+  if (listIds.length > 0) {
+    await step('curatedListSave (others\' on user lists)', () =>
+      prisma.curatedListSave.deleteMany({ where: { listId: { in: listIds } } })
+    );
+    await step('curatedListItem', () =>
+      prisma.curatedListItem.deleteMany({ where: { listId: { in: listIds } } })
+    );
+  }
+
+  // 4. CuratedLists by user
+  await step('curatedList', () => prisma.curatedList.deleteMany({ where: { creatorId: userId } }));
+
+  // 5. Saves by user (userId has no onDelete on this model)
+  await step('save', () => prisma.save.deleteMany({ where: { userId } }));
+
+  // 6. Recommendations sent/received
+  await step('recommendation', () =>
+    prisma.recommendation.deleteMany({
+      where: { OR: [{ senderId: userId }, { receiverId: userId }] },
+    })
+  );
+
+  // 7. Friendships sent/received
+  await step('friendship', () =>
+    prisma.friendship.deleteMany({
+      where: { OR: [{ senderId: userId }, { receiverId: userId }] },
+    })
+  );
+
+  // 8. Follows
+  await step('follow', () =>
+    prisma.follow.deleteMany({
+      where: { OR: [{ followerId: userId }, { followingId: userId }] },
+    })
+  );
+
+  // 9. Visits
+  await step('visit', () => prisma.visit.deleteMany({ where: { userId } }));
+
+  // 10. Badges
+  await step('badge', () => prisma.badge.deleteMany({ where: { userId } }));
+
+  // 11. VibeVotes
+  await step('vibeVote', () => prisma.vibeVote.deleteMany({ where: { userId } }));
+
+  // 12. MobileAuthTokens
+  await step('mobileAuthToken', () => prisma.mobileAuthToken.deleteMany({ where: { userId } }));
+
+  // 13. BusinessClaims
+  await step('businessClaim', () => prisma.businessClaim.deleteMany({ where: { userId } }));
+
+  // 14. FeaturedPlacements (userId has no onDelete on this model)
+  await step('featuredPlacement', () => prisma.featuredPlacement.deleteMany({ where: { userId } }));
+
+  // 15. Sessions
+  await step('session', () => prisma.session.deleteMany({ where: { userId } }));
+
+  // 16. OAuth Accounts
+  await step('account', () => prisma.account.deleteMany({ where: { userId } }));
+
+  // 17. User record — this must succeed; if it fails the account isn't deleted
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const userId = session.user.id;
-    console.log('[delete-account] starting deletion for userId:', userId);
-
-    await prisma.$transaction(async (tx) => {
-      // Step 1: PhotoLikes by this user (no onDelete on userId — must delete first)
-      const photoLikes = await tx.photoLike.deleteMany({ where: { userId } });
-      console.log('[delete-account] step 1 photoLike:', photoLikes.count);
-
-      // Step 2: PlacePhotos by this user — cascades to PhotoLikes on those photos
-      // (other users' likes on this user's photos are handled by the cascade)
-      const placePhotos = await tx.placePhoto.deleteMany({ where: { userId } });
-      console.log('[delete-account] step 2 placePhoto:', placePhotos.count);
-
-      // Step 3: CuratedListSaves by this user
-      const listSaves = await tx.curatedListSave.deleteMany({ where: { userId } });
-      console.log('[delete-account] step 3 curatedListSave:', listSaves.count);
-
-      // Step 4: CuratedListItems for this user's lists (cascade would also handle
-      // this, but explicit deletion avoids any constraint issues)
-      const userLists = await tx.curatedList.findMany({
-        where: { creatorId: userId },
-        select: { id: true },
-      });
-      const listIds = userLists.map((l) => l.id);
-      if (listIds.length > 0) {
-        // Also delete other users' saves of this user's lists
-        const otherSaves = await tx.curatedListSave.deleteMany({
-          where: { listId: { in: listIds } },
-        });
-        console.log('[delete-account] step 4a other curatedListSaves:', otherSaves.count);
-
-        const listItems = await tx.curatedListItem.deleteMany({
-          where: { listId: { in: listIds } },
-        });
-        console.log('[delete-account] step 4b curatedListItem:', listItems.count);
-      }
-
-      // Step 5: CuratedLists by this user
-      const lists = await tx.curatedList.deleteMany({ where: { creatorId: userId } });
-      console.log('[delete-account] step 5 curatedList:', lists.count);
-
-      // Step 6: Saves by this user (no onDelete on userId — must delete explicitly)
-      const saves = await tx.save.deleteMany({ where: { userId } });
-      console.log('[delete-account] step 6 save:', saves.count);
-
-      // Step 7: Recommendations sent/received by this user
-      // (Save.recommendationId is optional — SetNull default handles any remaining refs)
-      const recommendations = await tx.recommendation.deleteMany({
-        where: { OR: [{ senderId: userId }, { receiverId: userId }] },
-      });
-      console.log('[delete-account] step 7 recommendation:', recommendations.count);
-
-      // Step 8: Friendships sent/received
-      const friendships = await tx.friendship.deleteMany({
-        where: { OR: [{ senderId: userId }, { receiverId: userId }] },
-      });
-      console.log('[delete-account] step 8 friendship:', friendships.count);
-
-      // Step 9: Follows
-      const follows = await tx.follow.deleteMany({
-        where: { OR: [{ followerId: userId }, { followingId: userId }] },
-      });
-      console.log('[delete-account] step 9 follow:', follows.count);
-
-      // Step 10: Visits
-      const visits = await tx.visit.deleteMany({ where: { userId } });
-      console.log('[delete-account] step 10 visit:', visits.count);
-
-      // Step 11: Badges
-      const badges = await tx.badge.deleteMany({ where: { userId } });
-      console.log('[delete-account] step 11 badge:', badges.count);
-
-      // Step 12: VibeVotes
-      const vibeVotes = await tx.vibeVote.deleteMany({ where: { userId } });
-      console.log('[delete-account] step 12 vibeVote:', vibeVotes.count);
-
-      // Step 13: MobileAuthTokens
-      const mobileTokens = await tx.mobileAuthToken.deleteMany({ where: { userId } });
-      console.log('[delete-account] step 13 mobileAuthToken:', mobileTokens.count);
-
-      // Step 14: BusinessClaims
-      const businessClaims = await tx.businessClaim.deleteMany({ where: { userId } });
-      console.log('[delete-account] step 14 businessClaim:', businessClaims.count);
-
-      // Step 15: FeaturedPlacements (no onDelete on userId — must delete explicitly)
-      const featuredPlacements = await tx.featuredPlacement.deleteMany({ where: { userId } });
-      console.log('[delete-account] step 15 featuredPlacement:', featuredPlacements.count);
-
-      // Step 16: Sessions
-      const sessions = await tx.session.deleteMany({ where: { userId } });
-      console.log('[delete-account] step 16 session:', sessions.count);
-
-      // Step 17: OAuth Accounts
-      const accounts = await tx.account.deleteMany({ where: { userId } });
-      console.log('[delete-account] step 17 account:', accounts.count);
-
-      // Step 18: Delete the User
-      await tx.user.delete({ where: { id: userId } });
-      console.log('[delete-account] step 18 user deleted');
-    });
-
-    return NextResponse.json({ success: true });
+    await prisma.user.delete({ where: { id: userId } });
+    console.log('[delete-account] user deleted');
   } catch (error) {
-    console.error('[delete-account] error:', error);
+    console.error('[delete-account] user.delete failed:', error);
     return NextResponse.json(
       { error: 'Failed to delete account', detail: (error as Error).message },
       { status: 500 }
     );
   }
+
+  return NextResponse.json({ success: true });
 }

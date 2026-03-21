@@ -5,6 +5,7 @@ import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { generateAppleSecret } from "@/lib/apple";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
@@ -13,7 +14,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Apple({
       clientId: process.env.APPLE_ID!,
-      clientSecret: process.env.APPLE_SECRET!,
+      clientSecret: generateAppleSecret(),
       authorization: {
         params: {
           scope: "name email",
