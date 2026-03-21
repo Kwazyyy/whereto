@@ -62,7 +62,7 @@ export default function AuthCallbackPage() {
       {status === "Signed in successfully!" && (
         <div className="flex flex-col items-center gap-6 mt-2">
           <p className="text-[#8B949E] text-sm text-center max-w-xs px-4">
-            You can now safely tap the <strong className="text-white">"X"</strong> in the top-left corner to return to the app.
+            You can now safely tap the <strong className="text-white">&quot;X&quot;</strong> in the top-left corner to return to the app.
           </p>
           <button
             onClick={() => {
