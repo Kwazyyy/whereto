@@ -155,6 +155,7 @@ export default function AuthPage() {
     "ubc.ca", "uwaterloo.ca", "queensu.ca", "uottawa.ca", "ualberta.ca",
     "umontreal.ca", "dal.ca", "usask.ca", "ucalgary.ca",
     "mail.utoronto.ca", "student.ubc.ca",
+    "savrd.ca", "savrd.app",
   ];
 
   function validateEmailDomain(emailValue: string): string | null {
