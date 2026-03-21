@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
 
 export function generateAppleSecret(): string {
-  const privateKey = process.env.APPLE_PRIVATE_KEY!.replace(/\\n/g, "\n");
+  if (!process.env.APPLE_PRIVATE_KEY) return "";
+  const privateKey = process.env.APPLE_PRIVATE_KEY.replace(/\\n/g, "\n");
   return jwt.sign({}, privateKey, {
     algorithm: "ES256",
     expiresIn: "180d",
