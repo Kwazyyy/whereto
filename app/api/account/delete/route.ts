@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 
+
 export async function DELETE() {
   try {
     const session = await auth();
@@ -12,6 +13,7 @@ export async function DELETE() {
     const userId = session.user.id;
 
     // Run all deletions in a transaction to respect constraints
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await prisma.$transaction(async (tx: any) => {
       // a) PhotoLikes by userId
       await tx.photoLike.deleteMany({ where: { userId } });
