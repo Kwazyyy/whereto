@@ -119,9 +119,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      console.log("[NextAuth signIn] user:", user?.id, user?.email);
-      console.log("[NextAuth signIn] account provider:", account?.provider);
-      return true;
+      try {
+        console.log("[NextAuth signIn] provider:", account?.provider, "| userId:", user?.id, "| email:", user?.email);
+        if (account?.provider === "apple") {
+          console.log("[NextAuth signIn] apple profile:", JSON.stringify(profile));
+          console.log("[NextAuth signIn] apple account:", JSON.stringify({
+            type: account.type,
+            providerAccountId: account.providerAccountId,
+            id_token: account.id_token ? "present" : "missing",
+            access_token: account.access_token ? "present" : "missing",
+          }));
+          if (!user?.email) {
+            console.error("[NextAuth signIn] Apple sign-in missing email — rejecting");
+            return false;
+          }
+        }
+        return true;
+      } catch (error) {
+        console.error("[NextAuth signIn] error:", error);
+        return false;
+      }
     },
     async jwt({ token, user, trigger }) {
       console.log("[NextAuth jwt] triggered. User ID:", user?.id, "Token:", token?.id);
