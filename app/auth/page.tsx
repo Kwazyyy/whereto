@@ -85,6 +85,64 @@ export default function AuthPage() {
     });
   }
 
+  async function handleAppleSignIn() {
+    if (!isCapacitor()) {
+      signIn("apple", { callbackUrl: "/" });
+      return;
+    }
+
+    const { Browser } = await import("@capacitor/browser");
+    const base = getAuthBaseUrl();
+
+    const handleOAuthComplete = async () => {
+      try {
+        const tokenRes = await fetch("/api/mobile-token");
+        console.log("[Savrd] Apple mobile-token status:", tokenRes.status);
+      } catch (err) {
+        console.log("[Savrd] Apple token fetch error:", err);
+      }
+      
+      try {
+        const sessionRes = await fetch("/api/auth/session");
+        const sessionData = await sessionRes.json() as { user?: unknown };
+        console.log("[Savrd] Apple session after sign-in:", sessionData.user ? "authenticated" : "none");
+        if (sessionData.user) {
+          console.log("[Savrd] navigating to /");
+          window.location.href = "/";
+          return;
+        }
+      } catch (err) {
+        console.log("[Savrd] Apple session check error:", err);
+      }
+      console.log("[Savrd] no session — staying on /auth");
+    };
+
+    let handled = false;
+    
+    const browserListener = await Browser.addListener("browserFinished", async () => {
+      browserListener.remove();
+      if (handled) return;
+      handled = true;
+      console.log("[Savrd] Apple browserFinished fired");
+      await handleOAuthComplete();
+    });
+
+    const appListener = await App.addListener("appUrlOpen", async (data) => {
+      if (data.url.includes("auth-done")) {
+        appListener.remove();
+        if (handled) return;
+        handled = true;
+        console.log("[Savrd] Apple appUrlOpen fired, auto-closing browser");
+        await Browser.close();
+        await handleOAuthComplete();
+      }
+    });
+
+    await Browser.open({
+      url: `${base}/auth/apple-redirect`,
+    });
+  }
+
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const ALLOWED_DOMAINS = [
     "gmail.com", "yahoo.com", "yahoo.ca", "hotmail.com", "hotmail.ca",
@@ -378,6 +436,17 @@ export default function AuthPage() {
             <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58Z" fill="#EA4335"/>
           </svg>
           Continue with Google
+        </button>
+
+        {/* Apple OAuth */}
+        <button
+          onClick={handleAppleSignIn}
+          className="w-full flex items-center justify-center gap-3 py-3 mt-3 rounded-xl bg-black text-white font-semibold text-sm hover:bg-black/90 transition-all duration-200 cursor-pointer border border-[#30363D]"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+            <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.641-.026 2.669-1.48 3.666-2.947 1.156-1.674 1.633-3.267 1.643-3.35-.022-.01-3.13-1.21-3.151-4.787-.018-2.986 2.45-4.437 2.569-4.509-1.39-2.036-3.553-2.316-4.331-2.355-2.031-.194-4.223 1.06-5.12 1.06H12.152zm-1.874-5.344c.834-1.012 2.112-1.748 3.32-1.896.166 1.365-.465 2.768-1.332 3.821-.77.941-2.19 1.672-3.328 1.492-.186-1.284.44-2.44 1.34-3.417z"/>
+          </svg>
+          Continue with Apple
         </button>
 
         {/* Divider */}
