@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Apple from "next-auth/providers/apple";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
@@ -78,17 +78,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           },
         });
 
-        if (!user) {
-          throw new Error("No account found with this email");
-        }
-
-        if (!user.hashedPassword) {
-          throw new Error("Please sign in with Google");
+        if (!user || !user.hashedPassword) {
+          throw new CredentialsSignin("CredentialsSignin");
         }
 
         const isValid = await bcrypt.compare(password, user.hashedPassword);
         if (!isValid) {
-          throw new Error("Invalid password");
+          throw new CredentialsSignin("CredentialsSignin");
         }
 
         return {

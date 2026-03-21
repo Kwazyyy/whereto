@@ -18,6 +18,7 @@ import { ApplyCreatorForm } from "@/components/ApplyCreatorForm";
 import { CreatorDashboard } from "@/components/CreatorDashboard";
 import { type Friend } from "@/components/CompatibilityDrawer";
 import { FriendsListModal } from "@/components/FriendsListModal";
+import DeleteAccountModal from "@/components/DeleteAccountModal";
 import { CreatorMyLists } from "@/components/CreatorMyLists";
 import { VisitStatsSection } from "@/components/VisitStatsSection";
 import { TabTooltip } from "@/components/onboarding/TabTooltip";
@@ -645,6 +646,7 @@ export default function ProfilePage() {
   // Modal system states
   const [friendsModalOpen, setFriendsModalOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
 
 
   // Profile Edit States
@@ -1225,11 +1227,18 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Sign Out */}
+            {/* Account Actions */}
             {session?.user && (
-              <button onClick={() => signOut({ callbackUrl: '/landing' })} className="text-[#F85149] hover:bg-[#F85149]/10 w-full py-2 rounded-lg transition-colors text-sm font-semibold cursor-pointer">
-                Sign Out
-              </button>
+              <div className="space-y-2 mt-4">
+                <button onClick={() => signOut({ callbackUrl: '/landing' })} className="text-red-500 dark:text-red-500 hover:bg-red-500/10 w-full py-2 rounded-lg transition-colors text-sm font-semibold cursor-pointer">
+                  Sign Out
+                </button>
+                <div className="pt-2 border-t border-[#D0D7DE] dark:border-[#30363D]">
+                  <button onClick={() => setDeleteAccountOpen(true)} className="text-[#F85149] hover:bg-[#F85149]/10 w-full py-2 rounded-lg transition-colors text-sm font-semibold cursor-pointer">
+                    Delete Account
+                  </button>
+                </div>
+              </div>
             )}
 
             {/* Dev Tools — development only */}
@@ -1252,6 +1261,9 @@ export default function ProfilePage() {
       {/* Friends List Modal Overlay */}
       {friendsModalOpen && (
         <FriendsListModal onClose={() => setFriendsModalOpen(false)} />
+      )}
+      {deleteAccountOpen && (
+        <DeleteAccountModal onClose={() => setDeleteAccountOpen(false)} userEmail={session?.user?.email} />
       )}
 
       {/* Editor Overlays */}
@@ -1370,7 +1382,8 @@ export default function ProfilePage() {
                     <ChevronRight />
                   </button>
                 )}
-                {session?.user && <button onClick={() => signOut({ callbackUrl: '/landing' })} className="flex items-center px-4 py-3.5 min-h-[52px] w-full text-left text-red-500 font-semibold text-sm cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">Sign Out</button>}
+                {session?.user && <button onClick={() => signOut({ callbackUrl: '/landing' })} className="flex items-center px-4 py-3.5 min-h-[52px] w-full text-left font-semibold text-sm cursor-pointer text-red-500 hover:bg-red-500/10 transition-colors border-b border-gray-100 dark:border-white/5">Sign Out</button>}
+                {session?.user && <button onClick={() => setDeleteAccountOpen(true)} className="flex items-center px-4 py-3.5 min-h-[52px] w-full text-left text-red-500 font-semibold text-sm cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">Delete Account</button>}
               </SettingsCard>
 
               {/* About */}
