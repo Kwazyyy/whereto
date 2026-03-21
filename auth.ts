@@ -14,6 +14,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Apple({
       clientId: process.env.APPLE_ID!,
       clientSecret: process.env.APPLE_SECRET!,
+      authorization: {
+        params: {
+          scope: "name email",
+          response_mode: "form_post",
+          response_type: "code",
+        },
+      },
+      profile(profile) {
+        console.log("[Apple Provider] raw profile:", profile);
+        return {
+          id: profile.sub,
+          name: profile.user?.name ? `${profile.user.name.firstName} ${profile.user.name.lastName}` : profile.email?.split("@")[0] || "Apple User",
+          email: profile.email,
+          image: null,
+          role: "user",
+        };
+      },
     }),
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -101,7 +118,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/profile",
   },
   callbacks: {
+    async signIn({ user, account, profile }) {
+      console.log("[NextAuth signIn] user:", user?.id, user?.email);
+      console.log("[NextAuth signIn] account provider:", account?.provider);
+      return true;
+    },
     async jwt({ token, user, trigger }) {
+      console.log("[NextAuth jwt] triggered. User ID:", user?.id, "Token:", token?.id);
       if (user) {
         token.id = user.id as string;
         token.role = (user as { role?: string }).role ?? "user";
