@@ -117,6 +117,12 @@ export default function BusinessLoginPage() {
             Register
           </Link>
         </p>
+
+        <p className="relative z-10 text-center text-sm mt-4">
+          <Link href="/" className="text-[#8B949E] hover:text-white transition-colors duration-200">
+            ← Back to Savrd
+          </Link>
+        </p>
       </div>
     </div>
   );

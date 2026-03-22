@@ -5,12 +5,8 @@ const config: CapacitorConfig = {
   appName: "Savrd",
   webDir: "public",
   server: {
-    // Development: loads the local Next.js dev server with live reload.
-    // For production: remove this url block (app uses bundled assets) or set
-    // url to "https://savrd.ca" so OAuth cookies are on the same domain as
-    // the SFSafariViewController session.
-    url: "http://localhost:3000",
-    cleartext: true,
+    url: "https://savrd.ca",
+    cleartext: false,
   },
   ios: {
     // "never" lets the WebView extend edge-to-edge behind the status bar.

@@ -201,12 +201,12 @@ export default function LandingPage() {
         if (status === "authenticated") router.replace("/");
     }, [status, router]);
 
-    // In the native app, the landing/marketing page should never be shown.
-    // Redirect to /auth (unauthenticated) or / (authenticated).
+    // On native, redirect authenticated users home. Unauthenticated users stay
+    // on the landing page so they see the welcome screen before signing in.
     useEffect(() => {
         if (!isNativePlatform()) return;
         if (status === "loading") return;
-        router.replace(status === "authenticated" ? "/" : "/auth");
+        if (status === "authenticated") router.replace("/");
     }, [status, router]);
 
     // Mark that this user has seen the landing page so they won't be redirected here again
