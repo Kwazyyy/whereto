@@ -304,6 +304,7 @@ interface GooglePlace {
   priceLevel?: string;
   types?: string[];
   photos?: { name: string }[];
+  websiteUri?: string;
 }
 
 async function searchPlaces(query: string, lat: number, lng: number): Promise<GooglePlace[]> {
@@ -439,6 +440,7 @@ async function main() {
               priceLevel,
               rating,
               photoUrl,
+              websiteUri: gp.websiteUri ?? null,
               vibeTags,
             },
           });

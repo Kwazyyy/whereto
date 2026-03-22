@@ -140,6 +140,7 @@ model Place {
   priceLevel      Int?
   rating          Float?
   photoUrl        String?
+  websiteUri      String?
   vibeTags        Json?
   createdAt       DateTime         @default(now())
   saves           Save[]

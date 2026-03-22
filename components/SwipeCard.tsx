@@ -181,8 +181,28 @@ export function SwipeCard({
             if (dragEnabledRef.current) e.preventDefault();
         }
         el.addEventListener("touchmove", preventScroll, { passive: false });
-        return () => el.removeEventListener("touchmove", preventScroll);
-    }, []);
+        
+        // Cancel any stuck Framer Motion drag when the tab regains focus.
+        // This happens when a button opens a new tab — pointerup never fires
+        // in the original tab, leaving Framer Motion in an infinite drag state.
+        function cancelStuckDrag() {
+            document.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
+            document.dispatchEvent(new PointerEvent("pointercancel", { bubbles: true }));
+            isDragging.current = false;
+            x.set(0);
+        }
+        function handleVisibilityChange() {
+            if (document.visibilityState === "visible") cancelStuckDrag();
+        }
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        window.addEventListener("focus", cancelStuckDrag);
+
+        return () => {
+            el.removeEventListener("touchmove", preventScroll);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            window.removeEventListener("focus", cancelStuckDrag);
+        };
+    }, [x]);
 
     function handlePointerDown(e: React.PointerEvent) {
         pointerStart.current = { x: e.clientX, y: e.clientY, time: Date.now() };
@@ -373,11 +393,17 @@ export function SwipeCard({
                     </div>
 
                     {/* Menu button — bottom right (replaces Go Now) */}
-                    {isTop && place.menuUrl && (
+                    {isTop && (
                         <button
                             onPointerDown={(e) => e.stopPropagation()}
                             onPointerUp={(e) => e.stopPropagation()}
-                            onClick={(e) => { e.stopPropagation(); window.open(place.menuUrl, '_blank'); }}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const website = place.websiteUri || (place as unknown as Record<string, unknown>).website as string | undefined;
+                                const url = website || `https://www.google.com/search?q=${encodeURIComponent(place.name)}`;
+                                window.open(url, '_blank', 'noopener,noreferrer');
+                            }}
                             className="absolute bottom-5 right-5 z-20 w-12 h-12 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center pointer-events-auto active:scale-90 transition-transform"
                             aria-label="View menu"
                         >
@@ -657,32 +683,33 @@ export function SwipeCard({
                                 </div>
                             </div>
                             {/* View Menu link */}
-                            {place.menuUrl && (
-                                <a
-                                    href={place.menuUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="mt-4 flex items-center gap-3 p-3.5 rounded-xl bg-gray-50 dark:bg-[#1C2128] hover:bg-gray-100 dark:hover:bg-[#252D38] transition-colors"
-                                    onClick={(e) => e.stopPropagation()}
-                                    onPointerDown={(e) => e.stopPropagation()}
-                                    onPointerUp={(e) => e.stopPropagation()}
-                                >
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
+                            <button
+                                className="mt-4 w-full flex items-center gap-3 p-3.5 rounded-xl bg-gray-50 dark:bg-[#1C2128] hover:bg-gray-100 dark:hover:bg-[#252D38] transition-colors"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const website = place.websiteUri || (place as unknown as Record<string, unknown>).website as string | undefined;
+                                    const url = website || `https://www.google.com/search?q=${encodeURIComponent(place.name)}`;
+                                    window.open(url, '_blank', 'noopener,noreferrer');
+                                }}
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onPointerUp={(e) => e.stopPropagation()}
+                            >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85D2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
+                                </svg>
+                                <span className="flex-1 text-left text-sm font-medium text-[#0E1116] dark:text-white">
+                                    {(place.websiteUri || (place as unknown as Record<string, unknown>).website) ? "View Menu" : "Search Menu"}
+                                </span>
+                                <div className="flex items-center gap-1">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" x2="21" y1="14" y2="3" />
                                     </svg>
-                                    <span className="flex-1 text-sm font-medium text-[#0E1116] dark:text-white">
-                                        {place.menuType === "direct" ? "View Menu" : "Search Menu"}
-                                    </span>
-                                    <div className="flex items-center gap-1">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" x2="21" y1="14" y2="3" />
-                                        </svg>
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="m9 18 6-6-6-6" />
-                                        </svg>
-                                    </div>
-                                </a>
-                            )}
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="m9 18 6-6-6-6" />
+                                    </svg>
+                                </div>
+                            </button>
                             {/* Reserve a Table row */}
                             {place.address && isReservable(place.type) && (
                                 <a

@@ -148,6 +148,18 @@ export function generateDisplayTags(
   return result.slice(0, 3);
 }
 
+/** Convert a place's own vibeTags to display labels without intent bias. */
+export function generateNeutralDisplayTags(vibeTags: string[]): string[] {
+  const result: string[] = [];
+  for (const tag of vibeTags) {
+    const display = DISPLAY_TAG_MAP[tag];
+    if (display && result.length < 3) {
+      result.push(display[0]);
+    }
+  }
+  return result;
+}
+
 export function generateDisplayTagsMulti(
   vibeTags: string[],
   intentTags: string[]

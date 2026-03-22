@@ -5,8 +5,7 @@ import {
   haversineKm,
   calculateMatchScore,
   INTENT_TO_TAG,
-  generateDisplayTags,
-  generateDisplayTagsMulti,
+  generateNeutralDisplayTags,
 } from "@/lib/recommendation";
 
 export async function GET(request: NextRequest) {
@@ -42,7 +41,6 @@ export async function GET(request: NextRequest) {
 
   // Map intent keys to vibe tags (deduplicate)
   const intentTags = [...new Set(intentKeys.map((k) => INTENT_TO_TAG[k] ?? k))];
-  const isMulti = intentTags.length > 1;
 
   try {
     // Exclude places the user has already saved
@@ -149,7 +147,6 @@ export async function GET(request: NextRequest) {
     const results = scored.slice(0, 50);
 
     // Build response
-    const primaryTag = intentTags[0];
     const places = results.map((p) => ({
       id: p.id,
       googlePlaceId: p.googlePlaceId,
@@ -165,13 +162,9 @@ export async function GET(request: NextRequest) {
       distance: Math.round(p.distKm * 100) / 100,
       matchScore: p.matchScore,
       matchTier: p.matchTier,
-      displayTags: isMulti
-        ? generateDisplayTagsMulti(p.vibeTagsArr, intentTags)
-        : generateDisplayTags(p.vibeTagsArr, primaryTag),
+      displayTags: generateNeutralDisplayTags(p.vibeTagsArr),
       communityPhotoCount: p._count.photos,
-      menuUrl: `https://www.google.com/search?q=${encodeURIComponent(
-        p.name + " " + p.address + " menu"
-      )}`,
+      menuUrl: `https://www.google.com/search?q=${encodeURIComponent(p.name)}`,
       menuType: "search" as const,
       savedByFriends: [] as string[],
     }));

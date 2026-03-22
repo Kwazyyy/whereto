@@ -20,7 +20,7 @@ import { DistanceBubble, BudgetBubble } from "@/components/Filters";
 import { SignInModal } from "@/components/SignInModal";
 import { ShareModal } from "@/components/ShareModal";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
-import { loadSkippedForIntent, persistSkippedForIntent, clearSkippedForIntent } from "@/lib/storage";
+import { loadSkipped, persistSkipped, clearSkipped } from "@/lib/storage";
 import { setPendingVisit, checkPendingVisitProximity, verifyVisitOnServer, clearPendingVisit } from "@/lib/use-visit-tracker";
 import { useBadges } from "@/components/providers/BadgeProvider";
 import { useNeighborhoodReveal } from "@/components/providers/NeighborhoodRevealProvider";
@@ -108,8 +108,7 @@ export default function Home() {
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [pageReady, setPageReady] = useState(false);
-  // skippedPerIntent: per-intent-combo set of placeIds that have been swiped
-  const [skippedPerIntent, setSkippedPerIntent] = useState<Record<string, Set<string>>>({});
+  const [skipped, setSkipped] = useState<Set<string>>(new Set());
   const [recommendations, setRecommendations] = useState<Place[]>([]);
   const [shareModalPlace, setShareModalPlace] = useState<{ placeId: string; name: string } | null>(null);
   const [visitedPlaceIds, setVisitedPlaceIds] = useState<Set<string>>(new Set());
@@ -270,16 +269,11 @@ export default function Home() {
     });
   }, [status, triggerNeighborhoodReveal, triggerBadgeCheck]);
 
-  // Load persisted skipped IDs when intent combo changes
+  // Load persisted skipped IDs (cross-intent, 24h TTL) on mount
   useEffect(() => {
-    const stored = loadSkippedForIntent(intentKey);
-    if (stored.size > 0) {
-      setSkippedPerIntent(prev => ({
-        ...prev,
-        [intentKey]: new Set([...(prev[intentKey] ?? new Set()), ...stored]),
-      }));
-    }
-  }, [intentKey]);
+    const stored = loadSkipped();
+    if (stored.size > 0) setSkipped(stored);
+  }, []);
 
   // Load saved place IDs when authenticated
   useEffect(() => {
@@ -424,6 +418,7 @@ export default function Home() {
         tags: p.displayTags ?? [],
         matchScore: p.matchScore,
         communityPhotoCount: p.communityPhotoCount ?? 0,
+        websiteUri: p.websiteUri ?? undefined,
         menuUrl: p.menuUrl ?? undefined,
         menuType: p.menuType ?? undefined,
       }));
@@ -501,7 +496,6 @@ export default function Home() {
   }, [places, priceFilter]);
 
   const visiblePlaces = useMemo(() => {
-    const skipped = skippedPerIntent[intentKey] ?? new Set<string>();
     const filtered = budgetFilteredPlaces.filter(p => !skipped.has(p.placeId));
     // Recommendation cards go first; they bypass intent/budget filters
     const merged = [...recommendations, ...filtered];
@@ -517,7 +511,7 @@ export default function Home() {
     }
 
     return merged;
-  }, [budgetFilteredPlaces, skippedPerIntent, intentKey, recommendations, featuredPlace]);
+  }, [budgetFilteredPlaces, skipped, recommendations, featuredPlace]);
 
   // Track featured impression when featured card is the top visible card
   useEffect(() => {
@@ -556,12 +550,8 @@ export default function Home() {
   const noBudgetMatches = !loading && places.length > 0 && budgetFilteredPlaces.length === 0;
 
   function addToSkipped(placeId: string, persist: boolean) {
-    setSkippedPerIntent(prev => {
-      const current = prev[intentKey] ?? new Set<string>();
-      const updated = new Set([...current, placeId]);
-      if (persist) persistSkippedForIntent(intentKey, updated);
-      return { ...prev, [intentKey]: updated };
-    });
+    setSkipped(prev => new Set([...prev, placeId]));
+    if (persist) persistSkipped(placeId);
   }
 
   function handleSwipe(direction: "left" | "right") {
@@ -638,8 +628,8 @@ export default function Home() {
   }
 
   function handleRefresh() {
-    clearSkippedForIntent(intentKey);
-    setSkippedPerIntent(prev => ({ ...prev, [intentKey]: new Set() }));
+    clearSkipped();
+    setSkipped(new Set());
   }
 
   // Multi-intent label
