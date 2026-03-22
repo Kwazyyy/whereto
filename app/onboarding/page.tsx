@@ -12,6 +12,8 @@ import {
   DollarSign,
   MessageCircle,
   Sun,
+  Sofa,
+  Flame,
   MapPin,
   Check,
   X,
@@ -19,14 +21,16 @@ import {
 } from "lucide-react";
 
 const VIBE_OPTIONS = [
-  { id: "study", icon: BookOpen, label: "Study / Work" },
-  { id: "date", icon: Heart, label: "Date / Chill" },
-  { id: "quiet", icon: Coffee, label: "Quiet Cafes" },
-  { id: "laptop", icon: Laptop, label: "Laptop-Friendly" },
-  { id: "group", icon: Users, label: "Group Hangouts" },
-  { id: "budget", icon: DollarSign, label: "Budget Eats" },
-  { id: "coffee", icon: MessageCircle, label: "Coffee & Catch-Up" },
-  { id: "outdoor", icon: Sun, label: "Outdoor / Patio" },
+  { id: "study_work", icon: BookOpen, label: "Study / Work" },
+  { id: "romantic", icon: Heart, label: "Romantic" },
+  { id: "chill", icon: Sofa, label: "Chill Vibes" },
+  { id: "trending", icon: Flame, label: "Trending Now" },
+  { id: "quiet_cafes", icon: Coffee, label: "Quiet Cafés" },
+  { id: "laptop_friendly", icon: Laptop, label: "Laptop-Friendly" },
+  { id: "group_hangouts", icon: Users, label: "Group Hangouts" },
+  { id: "budget_eats", icon: DollarSign, label: "Budget Eats" },
+  { id: "coffee_catch_up", icon: MessageCircle, label: "Coffee & Catch-Up" },
+  { id: "outdoor_patio", icon: Sun, label: "Outdoor / Patio" },
 ];
 
 function suggestUsername(name: string | null | undefined): string {
@@ -254,7 +258,12 @@ export default function OnboardingPage() {
             <StepVibes
               selected={selectedVibes}
               onToggle={toggleVibe}
-              onContinue={() => goToStep(3)}
+              onContinue={() => {
+                if (typeof window !== "undefined" && selectedVibes.length > 0) {
+                  localStorage.setItem("savrd-preferred-vibes", JSON.stringify(selectedVibes));
+                }
+                goToStep(3);
+              }}
               onSkip={() => goToStep(3)}
             />
           )}

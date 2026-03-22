@@ -191,15 +191,23 @@ export default function Home() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(PREFS_KEY);
-      if (raw) {
-        const p = JSON.parse(raw) as { defaultIntent?: string; defaultDistance?: number };
-        if (p.defaultIntent) {
-          // Migrate legacy intent IDs to new format
-          const migrated = LEGACY_INTENT_MAP[p.defaultIntent] ?? p.defaultIntent;
-          setSelectedIntents([migrated]);
+      const p = raw ? JSON.parse(raw) as { defaultIntent?: string; defaultDistance?: number } : null;
+      if (p?.defaultIntent) {
+        // Migrate legacy intent IDs to new format
+        const migrated = LEGACY_INTENT_MAP[p.defaultIntent] ?? p.defaultIntent;
+        setSelectedIntents([migrated]);
+      } else {
+        // Fall back to onboarding vibe preferences if no manual pref saved yet
+        const vibesRaw = localStorage.getItem("savrd-preferred-vibes");
+        if (vibesRaw) {
+          const vibes = JSON.parse(vibesRaw) as string[];
+          const firstVibe = vibes[0];
+          if (firstVibe && categories.some((c) => c.id === firstVibe)) {
+            setSelectedIntents([firstVibe]);
+          }
         }
-        if (p.defaultDistance) setRadius(p.defaultDistance);
       }
+      if (p?.defaultDistance) setRadius(p.defaultDistance);
     } catch {
       // ignore
     }
