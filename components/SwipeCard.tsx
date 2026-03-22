@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useMemo, useEffect } from "react";
+import { isCapacitor } from "@/lib/capacitor";
 import {
     motion,
     AnimatePresence,
@@ -401,8 +402,12 @@ export function SwipeCard({
                                 e.preventDefault();
                                 e.stopPropagation();
                                 const website = place.websiteUri || (place as unknown as Record<string, unknown>).website as string | undefined;
-                                const url = website || `https://www.google.com/search?q=${encodeURIComponent(place.name)}`;
-                                window.open(url, '_blank', 'noopener,noreferrer');
+                                const url = website || `https://www.google.com/maps/place/?q=place_id:${place.placeId}`;
+                                if (isCapacitor()) {
+                                    import("@capacitor/browser").then(({ Browser }) => Browser.open({ url }));
+                                } else {
+                                    window.open(url, '_blank', 'noopener,noreferrer');
+                                }
                             }}
                             className="absolute bottom-5 right-5 z-20 w-12 h-12 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center pointer-events-auto active:scale-90 transition-transform"
                             aria-label="View menu"
@@ -685,14 +690,20 @@ export function SwipeCard({
                             {/* View Menu link */}
                             {(() => {
                                 const website = place.websiteUri || (place as unknown as Record<string, unknown>).website as string | undefined;
-                                const menuHref = website || `https://www.google.com/search?q=${encodeURIComponent(place.name + ' ' + place.address + ' menu')}`;
+                                const menuUrl = website || `https://www.google.com/maps/place/?q=place_id:${place.placeId}`;
+                                const openMenu = (e: React.MouseEvent | React.PointerEvent) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (isCapacitor()) {
+                                        import("@capacitor/browser").then(({ Browser }) => Browser.open({ url: menuUrl }));
+                                    } else {
+                                        window.open(menuUrl, '_blank', 'noopener,noreferrer');
+                                    }
+                                };
                                 return (
-                                    <a
-                                        href={menuHref}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="mt-4 w-full flex items-center gap-3 p-3.5 rounded-xl bg-gray-50 dark:bg-[#1C2128] hover:bg-gray-100 dark:hover:bg-[#252D38] transition-colors"
-                                        onClick={(e) => e.stopPropagation()}
+                                    <button
+                                        className="mt-4 w-full flex items-center gap-3 p-3.5 rounded-xl bg-gray-50 dark:bg-[#1C2128] hover:bg-gray-100 dark:hover:bg-[#252D38] transition-colors text-left"
+                                        onClick={openMenu}
                                         onPointerDown={(e) => e.stopPropagation()}
                                         onPointerUp={(e) => e.stopPropagation()}
                                     >
@@ -710,7 +721,7 @@ export function SwipeCard({
                                                 <path d="m9 18 6-6-6-6" />
                                             </svg>
                                         </div>
-                                    </a>
+                                    </button>
                                 );
                             })()}
                             {/* Reserve a Table row */}

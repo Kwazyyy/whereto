@@ -54,7 +54,7 @@ export default function BottomNav() {
         {NAV_ITEMS.map((item) => {
           const active = item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(item.href + "/");
           const Icon = item.Icon;
-          const isDiscover = item.href === "/";
+          const isSocial = item.href === "/social";
 
           return (
             <Link
@@ -75,7 +75,7 @@ export default function BottomNav() {
                   {item.label}
                 </span>
               )}
-              {isDiscover && <UnseenBadge />}
+              {isSocial && <UnseenBadge />}
             </Link>
           );
         })}

@@ -536,6 +536,12 @@ export default function AuthPage() {
           {" "}and{" "}
           <a href="/privacy" className="text-[#8B949E] hover:text-white underline transition-colors duration-200">Privacy Policy</a>
         </p>
+
+        {/* Business login link */}
+        <p className="text-sm text-center mt-4">
+          <span className="text-[#8B949E]">Own a business? </span>
+          <a href="/business/login" className="text-[#E85D2A] hover:text-[#E85D2A]/80 transition-colors duration-200">Sign in here</a>
+        </p>
       </div>
     </div>
   );

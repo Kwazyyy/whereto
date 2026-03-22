@@ -453,6 +453,8 @@ function UserLocationDot({
   return null;
 }
 
+type HighlightPlace = { placeId: string; name: string; lat: number; lng: number; photoUrl: string | null; rating: number | null };
+
 // --- Markers + InfoWindow — rendered inside <Map> so they have map context ---
 function MapMarkers({
   savedPlaces,
@@ -461,6 +463,9 @@ function MapMarkers({
   isDarkMode,
   userLocation,
   onSelectPlace,
+  highlightedPlaces,
+  selectedMarker,
+  setSelectedMarker,
 }: {
   savedPlaces: SavedPlace[];
   nearbyPlaces: Place[];
@@ -468,16 +473,43 @@ function MapMarkers({
   isDarkMode: boolean;
   userLocation?: { lat: number; lng: number };
   onSelectPlace: (place: Place) => void;
+  highlightedPlaces?: HighlightPlace[];
+  selectedMarker: { place: Place | SavedPlace; isSaved: boolean; } | null;
+  setSelectedMarker: (val: { place: Place | SavedPlace; isSaved: boolean; } | null) => void;
 }) {
-  const [selected, setSelected] = useState<{
-    place: Place | SavedPlace;
-    isSaved: boolean;
-  } | null>(null);
-
   const savedIds = new Set(savedPlaces.map((p) => p.placeId));
 
   return (
     <>
+      {/* Exploration highlighted markers — places from the selected neighborhood */}
+      {highlightedPlaces
+        ?.filter((hp) => !savedIds.has(hp.placeId) && !visitedIds.has(hp.placeId) && !nearbyPlaces.some((n) => n.placeId === hp.placeId))
+        .map((hp) => {
+          const place: Place = {
+            placeId: hp.placeId,
+            name: hp.name,
+            address: "",
+            location: { lat: hp.lat, lng: hp.lng },
+            price: "",
+            rating: hp.rating ?? 0,
+            photoRef: hp.photoUrl,
+            type: "restaurant",
+            openNow: true,
+            hours: [],
+            distance: "",
+            tags: [],
+          };
+          return (
+            <Marker
+              key={`highlight-${hp.placeId}`}
+              position={{ lat: hp.lat, lng: hp.lng }}
+              icon={isDarkMode ? NEARBY_CRACKED_PIN_DARK : NEARBY_CRACKED_PIN_LIGHT}
+              zIndex={9997}
+              onClick={() => setSelectedMarker({ place, isSaved: false })}
+            />
+          );
+        })}
+
       {/* Grey markers — nearby unvisited places, rendered first */}
       {nearbyPlaces
         .filter((p) => !savedIds.has(p.placeId) && !visitedIds.has(p.placeId))
@@ -487,7 +519,7 @@ function MapMarkers({
             position={place.location}
             icon={isDarkMode ? NEARBY_CRACKED_PIN_DARK : NEARBY_CRACKED_PIN_LIGHT}
             zIndex={9998}
-            onClick={() => setSelected({ place, isSaved: false })}
+            onClick={() => setSelectedMarker({ place, isSaved: false })}
           />
         ))}
 
@@ -500,7 +532,7 @@ function MapMarkers({
             position={place.location}
             icon={VISITED_CRACKED_PIN}
             zIndex={10000}
-            onClick={() => setSelected({ place, isSaved: false })}
+            onClick={() => setSelectedMarker({ place, isSaved: false })}
           />
         ))}
 
@@ -511,28 +543,27 @@ function MapMarkers({
           position={place.location}
           icon={SAVED_CRACKED_PIN}
           zIndex={9999}
-          onClick={() => setSelected({ place, isSaved: true })}
+          onClick={() => setSelectedMarker({ place, isSaved: true })}
         />
       ))}
 
-      {/* Info popup */}
-      {selected && (
+      {selectedMarker && (
         <InfoWindow
-          position={selected.place.location}
-          onCloseClick={() => setSelected(null)}
+          position={selectedMarker.place.location}
+          onCloseClick={() => setSelectedMarker(null)}
           headerDisabled
           pixelOffset={[0, -8]}
           maxWidth={300}
         >
           <InfoCard
-            place={selected.place}
-            isSaved={selected.isSaved}
+            place={selectedMarker.place}
+            isSaved={selectedMarker.isSaved}
             isDark={isDarkMode}
             userLocation={userLocation}
-            onClose={() => setSelected(null)}
+            onClose={() => setSelectedMarker(null)}
             onViewDetails={() => {
-              onSelectPlace(selected.place as Place);
-              setSelected(null);
+              onSelectPlace(selectedMarker.place as Place);
+              setSelectedMarker(null);
             }}
           />
         </InfoWindow>
@@ -564,6 +595,11 @@ export default function MapPage() {
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
   const [locating, setLocating] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const [highlightedPlaces, setHighlightedPlaces] = useState<HighlightPlace[]>([]);
+  const [selectedMarker, setSelectedMarker] = useState<{
+    place: Place | SavedPlace;
+    isSaved: boolean;
+  } | null>(null);
 
   const { theme } = useTheme();
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -676,6 +712,29 @@ export default function MapPage() {
     fetchNearby();
   }, [fetchNearby]);
 
+  const handleSelectExplorationPlace = useCallback((hp: HighlightPlace) => {
+    const place: Place = {
+      placeId: hp.placeId,
+      name: hp.name,
+      address: "",
+      location: { lat: hp.lat, lng: hp.lng },
+      price: "",
+      rating: hp.rating ?? 0,
+      photoRef: hp.photoUrl,
+      type: "restaurant",
+      openNow: true,
+      hours: [],
+      distance: "",
+      tags: [],
+    };
+    if (mapInstance) {
+      mapInstance.panTo({ lat: hp.lat, lng: hp.lng });
+      mapInstance.setZoom(17);
+    }
+    const isSaved = savedPlaces.some((p) => p.placeId === hp.placeId);
+    setSelectedMarker({ place, isSaved });
+  }, [mapInstance, savedPlaces]);
+
   if (status === "loading" || status === "unauthenticated") {
     if (status === "unauthenticated") router.replace("/auth");
     return <div className="min-h-screen bg-[#0E1116]" />;
@@ -695,7 +754,7 @@ export default function MapPage() {
         {/* Floating intent chips over the map */}
         <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none pt-2 lg:pt-4 px-3 lg:pl-[88px] xl:pl-[256px]">
           <div
-            className="flex gap-2 overflow-x-auto lg:flex-wrap lg:justify-center lg:overflow-x-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-2 overflow-x-auto pointer-events-auto lg:flex-wrap lg:justify-center lg:overflow-x-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {categories.map((cat) => (
               <button
@@ -741,6 +800,9 @@ export default function MapPage() {
                   isDarkMode={isDarkMode}
                   userLocation={userLocation ?? undefined}
                   onSelectPlace={setDetailPlace}
+                  highlightedPlaces={highlightedPlaces}
+                  selectedMarker={selectedMarker}
+                  setSelectedMarker={setSelectedMarker}
                 />
               </Map>
             </APIProvider>
@@ -850,7 +912,13 @@ export default function MapPage() {
 
 
         {/* Exploration panel */}
-        {userLocation && status === "authenticated" && <ExplorationPanel mapInstance={mapInstance} />}
+        {userLocation && status === "authenticated" && (
+          <ExplorationPanel
+            mapInstance={mapInstance}
+            onHighlightPlaces={setHighlightedPlaces}
+            onSelectPlace={handleSelectExplorationPlace}
+          />
+        )}
       </div>
 
       {/* Bottom gradient fade on mobile — blends map into nav area */}

@@ -39,9 +39,12 @@ interface ChallengeData {
   overallPercentage: number;
 }
 
+type HighlightPlace = { placeId: string; name: string; lat: number; lng: number; photoUrl: string | null; rating: number | null };
+
 interface ExplorationPanelProps {
   mapInstance?: google.maps.Map | null;
-  onHighlightPlaces?: (places: { placeId: string; name: string; lat: number; lng: number; photoUrl: string | null; rating: number | null }[]) => void;
+  onHighlightPlaces?: (places: HighlightPlace[]) => void;
+  onSelectPlace?: (place: HighlightPlace) => void;
 }
 
 const AREAS = ["All", "Downtown", "West End", "East End", "Midtown", "North York", "Scarborough", "Etobicoke"];
@@ -57,7 +60,7 @@ const AREA_VIEWS: Record<string, { lat: number; lng: number; zoom: number }> = {
   Etobicoke:    { lat: 43.6205, lng: -79.5132, zoom: 12 },
 };
 
-export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: ExplorationPanelProps) {
+export default function ExplorationPanel({ mapInstance, onHighlightPlaces, onSelectPlace }: ExplorationPanelProps) {
   const { status } = useSession();
   const { theme } = useTheme();
   const [challengeData, setChallengeData] = useState<ChallengeData | null>(null);
@@ -163,7 +166,7 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
   if (status !== "authenticated") {
     return (
       <button
-        className="fixed bottom-36 left-1/2 -translate-x-1/2 lg:bottom-auto lg:left-auto lg:translate-x-0 lg:top-20 lg:right-6 z-30 flex items-center gap-2 px-4 py-2.5 rounded-full cursor-pointer text-sm font-medium text-gray-900 dark:text-white hover:scale-[1.02] transition-all duration-300 shadow-lg"
+        className="fixed bottom-36 left-1/2 -translate-x-1/2 lg:bottom-auto lg:left-auto lg:translate-x-0 lg:top-20 lg:right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full cursor-pointer text-sm font-medium text-gray-900 dark:text-white hover:scale-[1.02] transition-all duration-300 shadow-lg"
         style={pillGlassStyle}
       >
         <Compass className="w-4 h-4 text-[#E85D2A]" />
@@ -200,7 +203,7 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
           {!expanded ? (
             <button
               onClick={() => setExpanded(true)}
-              className="fixed top-20 right-6 z-30 flex items-center gap-2.5 px-4 py-2.5 rounded-full hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-lg"
+              className="fixed top-20 right-6 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-full hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-lg"
               style={pillGlassStyle}
             >
               <Compass className="w-4 h-4 text-[#E85D2A]" />
@@ -209,7 +212,7 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
           ) : (
             <div
               ref={panelRef}
-              className="fixed top-20 right-6 z-30 rounded-2xl"
+              className="fixed top-20 right-6 z-50 rounded-2xl"
               style={{ ...panelGlassStyle, width: 360, maxWidth: 360 }}
             >
               <div className="flex justify-end p-4 pb-0">
@@ -226,7 +229,7 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
           {!expanded ? (
             <button
               onClick={() => setExpanded(true)}
-              className="fixed bottom-36 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 px-4 py-2.5 rounded-full cursor-pointer transition-all duration-300 shadow-lg"
+              className="fixed bottom-36 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-full cursor-pointer transition-all duration-300 shadow-lg"
               style={pillGlassStyle}
             >
               <Compass className="w-4 h-4 text-[#E85D2A]" />
@@ -237,7 +240,7 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
               <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setExpanded(false)} />
               <div
                 ref={mobilePanelRef}
-                className="fixed bottom-20 inset-x-3 z-50 rounded-2xl flex flex-col max-h-[65vh] bg-[#161B22]/80 backdrop-blur-xl border border-white/10 shadow-xl"
+                className="fixed bottom-20 inset-x-3 z-50 rounded-2xl flex flex-col max-h-[70vh] overflow-hidden bg-[#161B22]/80 backdrop-blur-xl border border-white/10 shadow-xl"
               >
                 <div className="shrink-0 pt-3" />
                 <div className="shrink-0 flex justify-end px-4">
@@ -375,7 +378,22 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
             Places to Visit
           </p>
           {selectedNbData.challengePlaces.map((place) => (
-            <div key={place.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}>
+            <button
+              key={place.id}
+              className="w-full flex items-center gap-3 p-3 rounded-xl text-left transition-colors cursor-pointer"
+              style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.09)' : 'rgba(0,0,0,0.09)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'; }}
+              onClick={() => {
+                if (place.lat && place.lng) {
+                  if (mapInstance) {
+                    mapInstance.panTo({ lat: place.lat, lng: place.lng });
+                    mapInstance.setZoom(17);
+                  }
+                  onSelectPlace?.({ placeId: place.googlePlaceId, name: place.name, lat: place.lat, lng: place.lng, photoUrl: place.photoUrl, rating: place.rating });
+                }
+              }}
+            >
               {place.photoUrl ? (
                 <img src={place.photoUrl} alt={place.name} className="w-14 h-14 lg:w-12 lg:h-12 rounded-lg object-cover flex-shrink-0" />
               ) : (
@@ -396,7 +414,7 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
               ) : (
                 <div className="w-5 h-5 rounded-full border-2 flex-shrink-0" style={{ borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)' }} />
               )}
-            </div>
+            </button>
           ))}
         </div>
       )}
@@ -445,7 +463,7 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
           <div className="w-2 h-2 rounded-full" style={dotStyle} />
         </div>
         <div className="flex-1 min-w-0 ml-2">
-          <span className="text-sm font-medium text-gray-900 dark:text-gray-100 block text-left" style={{ lineHeight: '20px' }}>
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100 block text-left truncate" style={{ lineHeight: '20px' }}>
             {hood.name}
           </span>
           <span className="text-xs block" style={{ lineHeight: '16px', marginTop: 2, color: progressColor }}>
@@ -510,6 +528,7 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
               onClick={() => {
                 setSelectedArea(area);
                 setSelectedNeighborhood(null);
+                onHighlightPlaces?.([]);
                 const view = AREA_VIEWS[area];
                 if (view && mapInstance) {
                   mapInstance.panTo({ lat: view.lat, lng: view.lng });
@@ -533,7 +552,7 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
 
   // ── Neighborhood list (scrollable vertically) ──
   const neighborhoodList = (
-    <div className="overflow-y-auto scrollbar-hide px-4 pb-4" style={{ maxHeight: '400px' }}>
+    <div className="px-4 pb-4">
       {sorted.map((hood, i) => renderRow(hood, i === sorted.length - 1))}
     </div>
   );
@@ -541,9 +560,13 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
   // ── Panel content (shared between desktop & mobile) ──
   const panelContent = (
     <>
-      {headerBlock}
-      {chipsBlock}
-      {selectedNeighborhood ? neighborhoodDetail : neighborhoodList}
+      <div className="shrink-0">
+        {headerBlock}
+        {chipsBlock}
+      </div>
+      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide pb-4">
+        {selectedNeighborhood ? neighborhoodDetail : neighborhoodList}
+      </div>
     </>
   );
 
@@ -578,7 +601,7 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
               transition={{ duration: 0.15 }}
-              className="fixed top-20 right-6 z-30"
+              className="fixed top-20 right-6 z-50"
             >
               {showPulse && (
                 <div
@@ -602,8 +625,8 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="fixed top-20 right-6 z-30 rounded-2xl"
-              style={{ ...panelGlassStyle, width: 360, maxWidth: 360, maxHeight: '60vh' }}
+              className="fixed top-20 right-6 z-50 rounded-2xl flex flex-col overflow-hidden"
+              style={{ ...panelGlassStyle, width: 360, maxWidth: 360, maxHeight: '70vh' }}
             >
               {panelContent}
             </motion.div>
@@ -620,7 +643,7 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
               transition={{ duration: 0.15 }}
-              className="fixed bottom-36 left-1/2 -translate-x-1/2 z-30"
+              className="fixed bottom-36 left-1/2 -translate-x-1/2 z-50"
             >
               {showPulse && (
                 <div
@@ -655,39 +678,26 @@ export default function ExplorationPanel({ mapInstance, onHighlightPlaces }: Exp
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 28, stiffness: 300 }}
-                className="fixed bottom-20 inset-x-3 z-50 rounded-2xl flex flex-col max-h-[65vh] bg-[#161B22]/80 backdrop-blur-xl border border-white/10 shadow-xl"
+                className="fixed bottom-20 inset-x-3 z-50 rounded-2xl flex flex-col max-h-[70vh] overflow-hidden bg-[#161B22]/80 backdrop-blur-xl border border-white/10 shadow-xl"
                 style={{ touchAction: "none" }}
                 onTouchStart={handleMobileTouchStart}
                 onTouchEnd={handleMobileTouchEnd}
               >
                 {/* Drag handle — pinned */}
                 <div className="shrink-0 pt-3" />
-                {/* Header — pinned */}
+                {/* Header & Chips — pinned */}
                 <div className="shrink-0">
                   {headerBlock}
-                </div>
-                {/* Area chips — pinned */}
-                <div className="shrink-0">
                   {chipsBlock}
                 </div>
-                {/* Scrollable neighborhood list */}
-                {selectedNeighborhood ? (
-                  <div
-                    ref={mobileScrollRef}
-                    className="flex-1 min-h-0 overflow-y-auto scrollbar-hide pb-4"
-                    style={{ overscrollBehavior: "contain", touchAction: "pan-y", WebkitOverflowScrolling: "touch" }}
-                  >
-                    {neighborhoodDetail}
-                  </div>
-                ) : (
-                  <div
-                    ref={mobileScrollRef}
-                    className="flex-1 min-h-0 overflow-y-auto scrollbar-hide px-4 pb-4"
-                    style={{ overscrollBehavior: "contain", touchAction: "pan-y", WebkitOverflowScrolling: "touch" }}
-                  >
-                    {sorted.map((hood, i) => renderRow(hood, i === sorted.length - 1))}
-                  </div>
-                )}
+                {/* Scrollable list content */}
+                <div
+                  ref={mobileScrollRef}
+                  className="flex-1 min-h-0 overflow-y-auto scrollbar-hide pb-4"
+                  style={{ overscrollBehavior: "contain", touchAction: "pan-y", WebkitOverflowScrolling: "touch" }}
+                >
+                  {selectedNeighborhood ? neighborhoodDetail : neighborhoodList}
+                </div>
               </motion.div>
             </>
           )}
