@@ -689,7 +689,7 @@ export function SwipeCard({
                                     e.preventDefault();
                                     e.stopPropagation();
                                     const website = place.websiteUri || (place as unknown as Record<string, unknown>).website as string | undefined;
-                                    const url = website || `https://www.google.com/search?q=${encodeURIComponent(place.name)}`;
+                                    const url = website || `https://www.google.com/search?q=${encodeURIComponent(place.name + ' menu')}`;
                                     window.open(url, '_blank', 'noopener,noreferrer');
                                 }}
                                 onPointerDown={(e) => e.stopPropagation()}

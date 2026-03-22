@@ -164,7 +164,7 @@ export async function GET(request: NextRequest) {
       matchTier: p.matchTier,
       displayTags: generateNeutralDisplayTags(p.vibeTagsArr),
       communityPhotoCount: p._count.photos,
-      menuUrl: `https://www.google.com/search?q=${encodeURIComponent(p.name)}`,
+      menuUrl: `https://www.google.com/search?q=${encodeURIComponent(p.name + ' menu')}`,
       menuType: "search" as const,
       savedByFriends: [] as string[],
     }));
