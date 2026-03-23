@@ -545,6 +545,11 @@ function AuthContent() {
           <span className="text-[#8B949E]">Own a business? </span>
           <a href="/business/login" className="text-[#E85D2A] hover:text-[#E85D2A]/80 transition-colors duration-200">Sign in here</a>
         </p>
+
+        {/* Back to welcome */}
+        <p className="text-sm text-center mt-3">
+          <a href="/welcome" className="text-[#8B949E] hover:text-white transition-colors duration-200">← Back</a>
+        </p>
       </div>
     </div>
   );
