@@ -5,73 +5,8 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { UtensilsCrossed, Heart, Flame } from "lucide-react";
+import { Coffee, Croissant, UtensilsCrossed, IceCreamCone, Soup, CupSoda } from "lucide-react";
 import { isNativePlatform } from "@/lib/is-native";
-
-const FRONT_PHOTO = "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=800&fit=crop";
-const BACK_PHOTO = "https://images.unsplash.com/photo-1493857671505-72967e2e2760?w=600&h=800&fit=crop";
-
-function DemoCard({
-  photoUrl,
-  name,
-  rating,
-  type,
-  price,
-  tags,
-  rotate,
-  translateY,
-  translateX,
-  zIndex,
-}: {
-  photoUrl: string;
-  name: string;
-  rating: number;
-  type: string;
-  price: string;
-  tags: string[];
-  rotate: number;
-  translateY: number;
-  translateX: number;
-  zIndex: number;
-}) {
-  return (
-    <div
-      className="absolute rounded-3xl overflow-hidden shadow-2xl"
-      style={{
-        width: 280,
-        height: 360,
-        transform: `rotate(${rotate}deg) translateY(${translateY}px) translateX(${translateX}px)`,
-        zIndex,
-      }}
-    >
-      {/* Photo */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={photoUrl} alt={name} className="absolute inset-0 w-full h-full object-cover" />
-
-      {/* Gradient overlay */}
-      <div className="absolute bottom-0 inset-x-0 h-[55%] bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
-
-      {/* Info */}
-      <div className="absolute bottom-0 left-0 right-0 p-5">
-        <h2 className="text-2xl font-bold text-white leading-tight">{name}</h2>
-        <div className="flex items-center gap-2 mt-1.5 text-white/80 text-xs font-medium">
-          <span className="capitalize">{type}</span>
-          <span className="w-1 h-1 rounded-full bg-white/60" />
-          <span>{price}</span>
-          <span className="w-1 h-1 rounded-full bg-white/60" />
-          <span>&#9733; {rating.toFixed(1)}</span>
-        </div>
-        <div className="flex flex-wrap gap-1.5 mt-2.5">
-          {tags.map((tag) => (
-            <span key={tag} className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white text-[11px] font-semibold">
-              {tag}
-            </span>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function WelcomePage() {
   const { status } = useSession();
@@ -93,10 +28,10 @@ export default function WelcomePage() {
 
   return (
     <div
-      className="min-h-screen bg-[#0E1116] overflow-hidden flex flex-col items-center justify-between px-6"
+      className="min-h-screen bg-[#0E1116] overflow-hidden flex flex-col items-center justify-between"
       style={{
         paddingTop: "max(3.5rem, env(safe-area-inset-top))",
-        paddingBottom: "max(2.5rem, env(safe-area-inset-bottom))",
+        paddingBottom: "max(3rem, env(safe-area-inset-bottom))",
       }}
     >
       {/* Radial center glow */}
@@ -105,88 +40,102 @@ export default function WelcomePage() {
         style={{ background: "radial-gradient(ellipse 70% 55% at 50% 50%, rgba(232,93,42,0.07) 0%, transparent 70%)" }}
       />
 
-      {/* ── Title + tagline ── */}
-      <div className="relative z-10 flex flex-col items-center text-center">
+      {/* ── Floating food icons ── */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {/* Coffee — top-left */}
+        <motion.div
+          className="absolute top-[7%] left-[4%] opacity-30"
+          style={{ rotate: 12 }}
+          animate={{ y: [0, -15, 0], rotate: [12, 17, 12] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="absolute -inset-8 w-48 h-48 bg-[#E85D2A]/20 rounded-full blur-[50px]" />
+          <Coffee color="#E85D2A" size={90} strokeWidth={1.5} className="relative" />
+        </motion.div>
+
+        {/* Croissant — top-right */}
+        <motion.div
+          className="absolute top-[6%] right-[5%] opacity-30"
+          style={{ rotate: -15 }}
+          animate={{ y: [0, -15, 0], rotate: [-15, -10, -15] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="absolute -inset-8 w-48 h-48 bg-[#E85D2A]/20 rounded-full blur-[50px]" />
+          <Croissant color="#E85D2A" size={85} strokeWidth={1.5} className="relative" />
+        </motion.div>
+
+        {/* UtensilsCrossed — mid-left */}
+        <motion.div
+          className="absolute top-[44%] left-[2%] opacity-30"
+          style={{ rotate: 20 }}
+          animate={{ y: [0, -14, 0], rotate: [20, 25, 20] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="absolute -inset-8 w-40 h-40 bg-[#E85D2A]/20 rounded-full blur-[50px]" />
+          <UtensilsCrossed color="#E85D2A" size={70} strokeWidth={1.5} className="relative" />
+        </motion.div>
+
+        {/* IceCreamCone — mid-right */}
+        <motion.div
+          className="absolute top-[42%] right-[3%] opacity-30"
+          style={{ rotate: -8 }}
+          animate={{ y: [0, -14, 0], rotate: [-8, -3, -8] }}
+          transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="absolute -inset-8 w-40 h-40 bg-[#E85D2A]/20 rounded-full blur-[50px]" />
+          <IceCreamCone color="#E85D2A" size={70} strokeWidth={1.5} className="relative" />
+        </motion.div>
+
+        {/* Soup — bottom-left */}
+        <motion.div
+          className="absolute bottom-[18%] left-[6%] opacity-30"
+          style={{ rotate: 6 }}
+          animate={{ y: [0, -14, 0], rotate: [6, 11, 6] }}
+          transition={{ duration: 8.5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="absolute -inset-8 w-36 h-36 bg-[#E85D2A]/20 rounded-full blur-[50px]" />
+          <Soup color="#E85D2A" size={65} strokeWidth={1.5} className="relative" />
+        </motion.div>
+
+        {/* CupSoda — bottom-right */}
+        <motion.div
+          className="absolute bottom-[16%] right-[5%] opacity-30"
+          style={{ rotate: -20 }}
+          animate={{ y: [0, -15, 0], rotate: [-20, -15, -20] }}
+          transition={{ duration: 7.5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="absolute -inset-8 w-36 h-36 bg-[#E85D2A]/20 rounded-full blur-[50px]" />
+          <CupSoda color="#E85D2A" size={65} strokeWidth={1.5} className="relative" />
+        </motion.div>
+      </div>
+
+      {/* ── Center: title + tagline ── */}
+      <div className="flex-1 relative z-10 flex flex-col items-center justify-center text-center px-6">
         <motion.h1
-          initial={{ opacity: 0, y: -12 }}
+          initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="text-5xl font-bold text-[#E85D2A]"
+          transition={{ duration: 0.55, ease: "easeOut" }}
+          className="text-6xl font-bold text-[#E85D2A]"
           style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
           Savrd
         </motion.h1>
         <motion.p
-          initial={{ opacity: 0, y: -8 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
-          className="text-[#8B949E] text-lg mt-2"
+          transition={{ duration: 0.55, delay: 0.12, ease: "easeOut" }}
+          className="text-[#8B949E] text-lg mt-3"
         >
           Discover your city, one swipe at a time.
         </motion.p>
       </div>
 
-      {/* ── Card stack ── */}
-      <div className="relative z-10 flex items-center justify-center" style={{ width: 320, height: 380 }}>
-        {/* Orange glow behind cards */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-64 h-64 rounded-full bg-[#E85D2A]/20 blur-3xl" />
-        </div>
-
-        {/* Floating icons */}
-        <div className="absolute -top-3 -right-2 z-30 w-10 h-10 rounded-full bg-[#161B22] border border-white/10 flex items-center justify-center">
-          <UtensilsCrossed size={16} color="#8B949E" />
-        </div>
-        <div className="absolute top-1/2 -right-5 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-[#161B22] border border-white/10 flex items-center justify-center">
-          <Heart size={16} color="white" />
-        </div>
-        <div className="absolute -bottom-2 -left-2 z-30 w-10 h-10 rounded-full bg-[#161B22] border border-white/10 flex items-center justify-center">
-          <Flame size={16} color="#8B949E" />
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.88 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="relative"
-          style={{ width: 280, height: 360 }}
-        >
-          {/* Back card */}
-          <DemoCard
-            photoUrl={BACK_PHOTO}
-            name="Pilot Coffee Roasters"
-            rating={4.4}
-            type="café"
-            price="$$"
-            tags={["Study / Work"]}
-            rotate={6}
-            translateY={8}
-            translateX={4}
-            zIndex={1}
-          />
-
-          {/* Front card */}
-          <DemoCard
-            photoUrl={FRONT_PHOTO}
-            name="The Little Goat"
-            rating={4.6}
-            type="café"
-            price="$$"
-            tags={["Chill Vibes", "Coffee & Catch-Up"]}
-            rotate={0}
-            translateY={0}
-            translateX={0}
-            zIndex={2}
-          />
-        </motion.div>
-      </div>
-
-      {/* ── CTA + legal ── */}
+      {/* ── Bottom: button + legal ── */}
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
-        className="relative z-10 w-full flex flex-col items-center gap-4 mb-16"
+        className="relative z-10 w-full flex flex-col items-center gap-4 px-6 pb-12"
       >
         <Link
           href="/auth"
@@ -195,21 +144,16 @@ export default function WelcomePage() {
           GET STARTED
         </Link>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.5 }}
-          className="text-xs text-[#8B949E] text-center"
-        >
+        <p className="text-xs text-[#8B949E] text-center">
           By continuing, you agree to our{" "}
-          <Link href="/terms" className="underline text-[#8B949E] hover:text-white transition-colors">
+          <Link href="/terms" className="underline hover:text-white transition-colors duration-200">
             Terms of Service
           </Link>
           {" "}and{" "}
-          <Link href="/privacy" className="underline text-[#8B949E] hover:text-white transition-colors">
+          <Link href="/privacy" className="underline hover:text-white transition-colors duration-200">
             Privacy Policy
           </Link>
-        </motion.p>
+        </p>
       </motion.div>
     </div>
   );
