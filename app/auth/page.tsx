@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { isCapacitor, getAuthBaseUrl } from "@/lib/capacitor";
@@ -8,7 +8,7 @@ import { App } from "@capacitor/app";
 import { motion } from "framer-motion";
 import { Coffee, Croissant, Utensils, Wine, CakeSlice, IceCreamCone, Pizza, Soup, Sandwich, CupSoda } from "lucide-react";
 
-export default function AuthPage() {
+function AuthContent() {
   const { status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -547,5 +547,13 @@ export default function AuthPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0E1116]" />}>
+      <AuthContent />
+    </Suspense>
   );
 }
