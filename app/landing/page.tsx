@@ -4,7 +4,6 @@ import { motion, useScroll, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef, FormEvent } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { isNativePlatform } from "@/lib/is-native";
 import Link from "next/link";
 import { Map, LayoutGrid, Users, Camera, UtensilsCrossed } from "lucide-react";
 
@@ -201,13 +200,6 @@ export default function LandingPage() {
         if (status === "authenticated") router.replace("/");
     }, [status, router]);
 
-    // On native, redirect authenticated users home. Unauthenticated users stay
-    // on the landing page so they see the welcome screen before signing in.
-    useEffect(() => {
-        if (!isNativePlatform()) return;
-        if (status === "loading") return;
-        if (status === "authenticated") router.replace("/");
-    }, [status, router]);
 
     // Mark that this user has seen the landing page so they won't be redirected here again
     useEffect(() => {

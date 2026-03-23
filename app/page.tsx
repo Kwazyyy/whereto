@@ -172,7 +172,7 @@ export default function Home() {
     sessionStatusRef.current = status;
     if (status === "loading") return;
     if (status === "unauthenticated") {
-      router.replace("/landing");
+      router.replace("/welcome");
       return;
     }
     if (session?.user && session.user.hasCompletedOnboarding === false) {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { isCapacitor, getAuthBaseUrl } from "@/lib/capacitor";
 import { App } from "@capacitor/app";
 import { motion } from "framer-motion";
@@ -11,7 +11,10 @@ import { Coffee, Croissant, Utensils, Wine, CakeSlice, IceCreamCone, Pizza, Soup
 export default function AuthPage() {
   const { status } = useSession();
   const router = useRouter();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const searchParams = useSearchParams();
+  const [mode, setMode] = useState<"signin" | "signup">(
+    searchParams.get("tab") === "signup" ? "signup" : "signin"
+  );
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
