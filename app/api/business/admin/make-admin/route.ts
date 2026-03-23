@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,6 +23,23 @@ export async function POST(req: NextRequest) {
         { error: "Invalid admin secret" },
         { status: 403 }
       );
+    }
+
+    // If any admin already exists, require the caller to be an authenticated admin.
+    // This prevents the secret-only path from being exploited after bootstrapping.
+    const existingAdmin = await prisma.user.findFirst({
+      where: { role: "admin" },
+      select: { id: true },
+    });
+
+    if (existingAdmin) {
+      const session = await auth();
+      if (!session?.user || (session.user as { role?: string }).role !== "admin") {
+        return NextResponse.json(
+          { error: "Forbidden" },
+          { status: 403 }
+        );
+      }
     }
 
     const user = await prisma.user.findUnique({
