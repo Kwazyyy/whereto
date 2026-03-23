@@ -33,6 +33,7 @@ import PhotoUploadPrompt from "@/components/PhotoUploadPrompt";
 import { useToast } from "@/components/Toast";
 import { shouldShowNudge, NUDGE_10_SAVES_SHARE } from "@/lib/nudges";
 import NudgeModal from "@/components/nudges/NudgeModal";
+import { isNativePlatform } from "@/lib/is-native";
 
 const categories = [
   { id: "study_work", icon: BookOpen, label: "Study / Work" },
@@ -172,7 +173,7 @@ export default function Home() {
     sessionStatusRef.current = status;
     if (status === "loading") return;
     if (status === "unauthenticated") {
-      router.replace("/welcome");
+      router.replace(isNativePlatform() ? "/welcome" : "/landing");
       return;
     }
     if (session?.user && session.user.hasCompletedOnboarding === false) {
