@@ -684,7 +684,7 @@ export default function Home() {
 
       {/* Loading State */}
       {(loading || !userLocation) ? (
-        <div className="flex-1 relative px-4 pb-4 lg:max-w-[540px] lg:mx-auto lg:w-full max-h-[70dvh]">
+        <div className="h-[calc(100dvh-180px)] relative px-4 pb-4 lg:max-w-[540px] lg:mx-auto lg:w-full">
           <div className="w-full h-full rounded-3xl bg-gray-100 dark:bg-[#161B22]/60 animate-pulse shadow-xl flex flex-col justify-end p-6 border border-gray-200/50 dark:border-white/5">
             <div className="w-2/3 h-8 bg-gray-200 dark:bg-white/10 rounded-xl mb-3"></div>
             <div className="w-1/2 h-4 bg-gray-200 dark:bg-white/10 rounded-lg mb-4"></div>
@@ -760,7 +760,7 @@ export default function Home() {
           )}
         </motion.div>
       ) : (
-        <div className="flex-1 relative md:max-w-[420px] md:mx-auto md:w-full max-h-[70dvh]" data-tour="card">
+        <div className="h-[calc(100dvh-180px)] relative md:max-w-[420px] md:mx-auto md:w-full" data-tour="card">
           <AnimatePresence>
             {visiblePlaces.slice(0, 3).reverse().map((place, i, arr) => {
               const isTop = i === arr.length - 1;
