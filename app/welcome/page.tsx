@@ -8,6 +8,71 @@ import { motion } from "framer-motion";
 import { UtensilsCrossed, Heart, Flame } from "lucide-react";
 import { isNativePlatform } from "@/lib/is-native";
 
+const FRONT_PHOTO = "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=800&fit=crop";
+const BACK_PHOTO = "https://images.unsplash.com/photo-1493857671505-72967e2e2760?w=600&h=800&fit=crop";
+
+function DemoCard({
+  photoUrl,
+  name,
+  rating,
+  type,
+  price,
+  tags,
+  rotate,
+  translateY,
+  translateX,
+  zIndex,
+}: {
+  photoUrl: string;
+  name: string;
+  rating: number;
+  type: string;
+  price: string;
+  tags: string[];
+  rotate: number;
+  translateY: number;
+  translateX: number;
+  zIndex: number;
+}) {
+  return (
+    <div
+      className="absolute rounded-3xl overflow-hidden shadow-2xl"
+      style={{
+        width: 280,
+        height: 360,
+        transform: `rotate(${rotate}deg) translateY(${translateY}px) translateX(${translateX}px)`,
+        zIndex,
+      }}
+    >
+      {/* Photo */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={photoUrl} alt={name} className="absolute inset-0 w-full h-full object-cover" />
+
+      {/* Gradient overlay */}
+      <div className="absolute bottom-0 inset-x-0 h-[55%] bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+
+      {/* Info */}
+      <div className="absolute bottom-0 left-0 right-0 p-5">
+        <h2 className="text-2xl font-bold text-white leading-tight">{name}</h2>
+        <div className="flex items-center gap-2 mt-1.5 text-white/80 text-xs font-medium">
+          <span className="capitalize">{type}</span>
+          <span className="w-1 h-1 rounded-full bg-white/60" />
+          <span>{price}</span>
+          <span className="w-1 h-1 rounded-full bg-white/60" />
+          <span>&#9733; {rating.toFixed(1)}</span>
+        </div>
+        <div className="flex flex-wrap gap-1.5 mt-2.5">
+          {tags.map((tag) => (
+            <span key={tag} className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white text-[11px] font-semibold">
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function WelcomePage() {
   const { status } = useSession();
   const router = useRouter();
@@ -27,11 +92,17 @@ export default function WelcomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0E1116] overflow-hidden flex flex-col items-center justify-between px-6 pt-14 pb-10" style={{ paddingBottom: "max(2.5rem, env(safe-area-inset-bottom))" }}>
-      {/* Radial center glow vignette */}
+    <div
+      className="min-h-screen bg-[#0E1116] overflow-hidden flex flex-col items-center justify-between px-6"
+      style={{
+        paddingTop: "max(3.5rem, env(safe-area-inset-top))",
+        paddingBottom: "max(2.5rem, env(safe-area-inset-bottom))",
+      }}
+    >
+      {/* Radial center glow */}
       <div
         className="pointer-events-none fixed inset-0 z-0"
-        style={{ background: "radial-gradient(ellipse 70% 60% at 50% 48%, rgba(232,93,42,0.07) 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(ellipse 70% 55% at 50% 50%, rgba(232,93,42,0.07) 0%, transparent 70%)" }}
       />
 
       {/* ── Title + tagline ── */}
@@ -55,24 +126,21 @@ export default function WelcomePage() {
         </motion.p>
       </div>
 
-      {/* ── Card stack illustration ── */}
-      <div className="relative z-10 flex items-center justify-center" style={{ width: 260, height: 320 }}>
+      {/* ── Card stack ── */}
+      <div className="relative z-10 flex items-center justify-center" style={{ width: 320, height: 380 }}>
         {/* Orange glow behind cards */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="w-64 h-64 rounded-full bg-[#E85D2A]/20 blur-3xl" />
         </div>
 
         {/* Floating icons */}
-        {/* Top-right */}
-        <div className="absolute -top-2 -right-4 z-20 w-10 h-10 rounded-full bg-[#161B22] border border-white/10 flex items-center justify-center">
+        <div className="absolute -top-3 -right-2 z-30 w-10 h-10 rounded-full bg-[#161B22] border border-white/10 flex items-center justify-center">
           <UtensilsCrossed size={16} color="#8B949E" />
         </div>
-        {/* Right middle */}
-        <div className="absolute top-1/2 -right-6 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-[#161B22] border border-white/10 flex items-center justify-center">
+        <div className="absolute top-1/2 -right-5 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-[#161B22] border border-white/10 flex items-center justify-center">
           <Heart size={16} color="white" />
         </div>
-        {/* Bottom-left */}
-        <div className="absolute -bottom-2 -left-4 z-20 w-10 h-10 rounded-full bg-[#161B22] border border-white/10 flex items-center justify-center">
+        <div className="absolute -bottom-2 -left-2 z-30 w-10 h-10 rounded-full bg-[#161B22] border border-white/10 flex items-center justify-center">
           <Flame size={16} color="#8B949E" />
         </div>
 
@@ -81,61 +149,51 @@ export default function WelcomePage() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="relative"
-          style={{ width: 240, height: 280 }}
+          style={{ width: 280, height: 360 }}
         >
           {/* Back card */}
-          <div
-            className="absolute inset-0 rounded-3xl"
-            style={{
-              background: "rgba(232, 93, 42, 0.4)",
-              transform: "rotate(6deg) translateY(6px)",
-            }}
+          <DemoCard
+            photoUrl={BACK_PHOTO}
+            name="Pilot Coffee Roasters"
+            rating={4.4}
+            type="café"
+            price="$$"
+            tags={["Study / Work"]}
+            rotate={6}
+            translateY={8}
+            translateX={4}
+            zIndex={1}
           />
-          {/* Middle card */}
-          <div
-            className="absolute inset-0 rounded-3xl"
-            style={{
-              background: "rgba(232, 93, 42, 0.6)",
-              transform: "rotate(-3deg) translateY(2px)",
-            }}
-          />
+
           {/* Front card */}
-          <div
-            className="absolute inset-0 rounded-3xl flex flex-col items-center justify-center gap-5"
-            style={{ background: "linear-gradient(145deg, #E85D2A 0%, #D14E1F 100%)" }}
-          >
-            {/* Glassmorphism S box */}
-            <div
-              className="rounded-xl p-4 flex items-center justify-center"
-              style={{
-                background: "rgba(255,255,255,0.2)",
-                backdropFilter: "blur(8px)",
-                WebkitBackdropFilter: "blur(8px)",
-              }}
-            >
-              <span className="text-6xl font-bold text-white leading-none select-none">S</span>
-            </div>
-            {/* Progress bar */}
-            <div className="w-32 h-1.5 rounded-full bg-white/40" />
-          </div>
+          <DemoCard
+            photoUrl={FRONT_PHOTO}
+            name="The Little Goat"
+            rating={4.6}
+            type="café"
+            price="$$"
+            tags={["Chill Vibes", "Coffee & Catch-Up"]}
+            rotate={0}
+            translateY={0}
+            translateX={0}
+            zIndex={2}
+          />
         </motion.div>
       </div>
 
       {/* ── CTA + legal ── */}
-      <div className="relative z-10 w-full flex flex-col items-center gap-5">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
-          className="w-full"
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
+        className="relative z-10 w-full flex flex-col items-center gap-4 mb-16"
+      >
+        <Link
+          href="/auth"
+          className="block w-full py-4 bg-[#E85D2A] text-white font-bold text-lg rounded-full text-center shadow-[0_0_30px_rgba(232,93,42,0.4)] active:scale-[0.98] transition-transform duration-150"
         >
-          <Link
-            href="/auth"
-            className="block w-full py-4 bg-[#E85D2A] text-white font-bold text-lg rounded-full text-center shadow-[0_0_30px_rgba(232,93,42,0.4)] active:scale-[0.98] transition-transform duration-150"
-          >
-            GET STARTED
-          </Link>
-        </motion.div>
+          GET STARTED
+        </Link>
 
         <motion.p
           initial={{ opacity: 0 }}
@@ -152,7 +210,7 @@ export default function WelcomePage() {
             Privacy Policy
           </Link>
         </motion.p>
-      </div>
+      </motion.div>
     </div>
   );
 }
