@@ -258,7 +258,7 @@ function AuthContent() {
     "w-full px-4 py-3 rounded-lg bg-[#0E1116] border border-[#30363D] text-white placeholder-[#8B949E] text-sm focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200";
 
   return (
-    <div className="min-h-screen bg-[#0E1116] relative overflow-y-auto">
+    <div className="min-h-screen bg-[#0E1116] relative">
       {/* Decorative ambient blobs */}
       <div className="fixed top-1/4 -left-32 w-[500px] h-[500px] bg-[#E85D2A]/8 rounded-full blur-[120px] pointer-events-none" />
       <div className="fixed bottom-1/4 -right-32 w-[400px] h-[400px] bg-[#E85D2A]/8 rounded-full blur-[120px] pointer-events-none" />
