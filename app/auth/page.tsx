@@ -258,13 +258,13 @@ function AuthContent() {
     "w-full px-4 py-3 rounded-lg bg-[#0E1116] border border-[#30363D] text-white placeholder-[#8B949E] text-sm focus:border-[#E85D2A] focus:ring-1 focus:ring-[#E85D2A]/20 focus:outline-none transition-colors duration-200";
 
   return (
-    <div className="min-h-screen bg-[#0E1116] flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-[#0E1116] relative overflow-y-auto">
       {/* Decorative ambient blobs */}
-      <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-[#E85D2A]/8 rounded-full blur-[120px]" />
-      <div className="absolute bottom-1/4 -right-32 w-[400px] h-[400px] bg-[#E85D2A]/8 rounded-full blur-[120px]" />
+      <div className="fixed top-1/4 -left-32 w-[500px] h-[500px] bg-[#E85D2A]/8 rounded-full blur-[120px] pointer-events-none" />
+      <div className="fixed bottom-1/4 -right-32 w-[400px] h-[400px] bg-[#E85D2A]/8 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Floating food icons layer */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+      <div className="fixed inset-0 z-0 pointer-events-none">
         {/* 1. Coffee — top-left */}
         <motion.div
           className="absolute top-[6%] left-[5%] opacity-30 pointer-events-none"
@@ -380,20 +380,23 @@ function AuthContent() {
       </div>
 
       {/* Ambient glow orbs behind card */}
-      <div className="absolute top-[30%] left-[35%] w-80 h-80 rounded-full pointer-events-none z-[5]" style={{ background: 'radial-gradient(circle, rgba(232, 93, 42, 0.25) 0%, transparent 70%)' }} />
-      <div className="absolute top-[30%] right-[33%] w-72 h-72 rounded-full pointer-events-none z-[5]" style={{ background: 'radial-gradient(circle, rgba(232, 93, 42, 0.2) 0%, transparent 70%)' }} />
-      <div className="absolute bottom-[20%] left-[38%] w-96 h-64 rounded-full pointer-events-none z-[5]" style={{ background: 'radial-gradient(ellipse, rgba(232, 93, 42, 0.15) 0%, transparent 70%)' }} />
+      <div className="fixed top-[30%] left-[35%] w-80 h-80 rounded-full pointer-events-none z-[5]" style={{ background: 'radial-gradient(circle, rgba(232, 93, 42, 0.25) 0%, transparent 70%)' }} />
+      <div className="fixed top-[30%] right-[33%] w-72 h-72 rounded-full pointer-events-none z-[5]" style={{ background: 'radial-gradient(circle, rgba(232, 93, 42, 0.2) 0%, transparent 70%)' }} />
+      <div className="fixed bottom-[20%] left-[38%] w-96 h-64 rounded-full pointer-events-none z-[5]" style={{ background: 'radial-gradient(ellipse, rgba(232, 93, 42, 0.15) 0%, transparent 70%)' }} />
+
+      {/* Scrollable content — keyboard-safe: min-h-screen + pb-40 so bottom fields are reachable */}
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 py-10 pb-40">
 
       {/* Logo + tagline above card */}
-      <div className="relative z-10 w-full max-w-md mx-auto text-center mb-6">
+      <div className="w-full max-w-md mx-auto text-center mb-6">
         <h1 className="text-3xl font-extrabold tracking-tight text-[#E85D2A]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Savrd</h1>
         <p className="text-sm text-[#8B949E] mt-1">
           Discover your city, one swipe at a time.
         </p>
       </div>
 
-      {/* Centered form */}
-      <div className="relative z-10 w-full max-w-md mx-auto px-6 py-12" style={{ background: 'rgba(22, 27, 34, 0.4)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', border: '1px solid rgba(255, 255, 255, 0.22)', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)', borderRadius: '24px' }}>
+      {/* Form card */}
+      <div className="w-full max-w-md mx-auto py-12 px-6" style={{ background: 'rgba(22, 27, 34, 0.4)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', border: '1px solid rgba(255, 255, 255, 0.22)', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)', borderRadius: '24px' }}>
         {/* Heading */}
         <h2 className="text-2xl font-bold text-white text-center mb-1">
           {mode === "signin" ? "Welcome back" : "Create your account"}
@@ -551,6 +554,7 @@ function AuthContent() {
           <a href="/welcome" className="text-[#8B949E] hover:text-white transition-colors duration-200">← Back</a>
         </p>
       </div>
+      </div>{/* end scrollable content wrapper */}
     </div>
   );
 }
