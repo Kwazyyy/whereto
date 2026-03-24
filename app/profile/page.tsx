@@ -23,6 +23,7 @@ import { CreatorMyLists } from "@/components/CreatorMyLists";
 import { VisitStatsSection } from "@/components/VisitStatsSection";
 import { TabTooltip } from "@/components/onboarding/TabTooltip";
 import { normalizeIntent, intentLabel } from "@/lib/intents";
+import { isNativePlatform } from "@/lib/is-native";
 import { Camera } from "lucide-react";
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -642,6 +643,7 @@ export default function ProfilePage() {
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const [planExpiresAt, setPlanExpiresAt] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [isNative, setIsNative] = useState(false);
 
   // Modal system states
   const [friendsModalOpen, setFriendsModalOpen] = useState(false);
@@ -662,6 +664,8 @@ export default function ProfilePage() {
   const [editBio, setEditBio] = useState("");
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
   const [savingProfile, setSavingProfile] = useState(false);
+
+  useEffect(() => { setIsNative(isNativePlatform()); }, []);
 
   // Edit Hooks
   useEffect(() => {
@@ -1184,22 +1188,24 @@ export default function ProfilePage() {
                   <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Joined</span>
                   <span className="text-sm text-[#8B949E]">{joinedDate ?? "—"}</span>
                 </div>
-                {/* Subscription */}
-                <div className="flex items-center justify-between px-1 py-2">
-                  <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Plan</span>
-                  {userPlan ? (
-                    <span className="text-sm text-[#8B949E]">{PLAN_DISPLAY[userPlan] ?? userPlan}</span>
-                  ) : (
-                    <Link href="/pro" className="text-sm text-[#E85D2A] font-medium hover:underline">Upgrade to Pro</Link>
-                  )}
-                </div>
-                {userPlan && planExpiresAt && (
+                {/* Subscription — hidden in native Capacitor (Apple IAP rules) */}
+                {!isNative && (
+                  <div className="flex items-center justify-between px-1 py-2">
+                    <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Plan</span>
+                    {userPlan ? (
+                      <span className="text-sm text-[#8B949E]">{PLAN_DISPLAY[userPlan] ?? userPlan}</span>
+                    ) : (
+                      <Link href="/pro" className="text-sm text-[#E85D2A] font-medium hover:underline">Upgrade to Pro</Link>
+                    )}
+                  </div>
+                )}
+                {!isNative && userPlan && planExpiresAt && (
                   <div className="flex items-center justify-between px-1 py-2">
                     <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">{subscriptionStatus === "canceled" ? "Access Until" : "Next Billing"}</span>
                     <span className="text-sm text-[#8B949E]">{new Date(planExpiresAt).toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric" })}</span>
                   </div>
                 )}
-                {userPlan && (
+                {!isNative && userPlan && (
                   <div className="px-1 pt-1">
                     <button
                       onClick={handleManageSubscription}
@@ -1360,19 +1366,22 @@ export default function ProfilePage() {
               <SectionHeader title="Account" />
               <SettingsCard>
                 {session?.user && <Row label="Joined"><span className="text-sm text-gray-400 dark:text-gray-500">{joinedDate ?? "—"}</span></Row>}
-                <Row label="Plan">
-                  {userPlan ? (
-                    <span className="text-sm text-[#8B949E]">{PLAN_DISPLAY[userPlan] ?? userPlan}</span>
-                  ) : (
-                    <Link href="/pro" className="text-sm text-[#E85D2A] font-medium hover:underline">Upgrade to Pro</Link>
-                  )}
-                </Row>
-                {userPlan && planExpiresAt && (
+                {/* Plan row — hidden in native Capacitor (Apple IAP rules) */}
+                {!isNative && (
+                  <Row label="Plan">
+                    {userPlan ? (
+                      <span className="text-sm text-[#8B949E]">{PLAN_DISPLAY[userPlan] ?? userPlan}</span>
+                    ) : (
+                      <Link href="/pro" className="text-sm text-[#E85D2A] font-medium hover:underline">Upgrade to Pro</Link>
+                    )}
+                  </Row>
+                )}
+                {!isNative && userPlan && planExpiresAt && (
                   <Row label={subscriptionStatus === "canceled" ? "Access Until" : "Next Billing"}>
                     <span className="text-sm text-gray-400 dark:text-gray-500">{new Date(planExpiresAt).toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric" })}</span>
                   </Row>
                 )}
-                {userPlan && (
+                {!isNative && userPlan && (
                   <button
                     onClick={handleManageSubscription}
                     disabled={portalLoading}

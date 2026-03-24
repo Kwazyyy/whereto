@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
+import { isNativePlatform } from "@/lib/is-native";
 
 function CheckIcon() {
   return (
@@ -106,12 +107,17 @@ function PricingPageContent() {
   const router = useRouter();
 
   useEffect(() => {
+    // Pricing page uses Stripe checkout — not allowed inside native Capacitor app (Apple IAP rules)
+    if (isNativePlatform()) {
+      router.replace("/");
+      return;
+    }
     if (searchParams.get("success") === "true") {
       showToast("Welcome! Your subscription is active \u{1F389}", "success");
     } else if (searchParams.get("canceled") === "true") {
       showToast("Checkout canceled");
     }
-  }, [searchParams, showToast]);
+  }, [searchParams, showToast, router]);
 
   const handleCheckout = async (planKey: string) => {
     if (!session?.user) {

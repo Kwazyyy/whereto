@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/components/Toast";
+import { isNativePlatform } from "@/lib/is-native";
 import {
     Crown,
     ChevronDown,
@@ -129,12 +130,17 @@ function ProPageContent() {
     const router = useRouter();
 
     useEffect(() => {
+        // Pro page uses Stripe checkout — not allowed inside native Capacitor app (Apple IAP rules)
+        if (isNativePlatform()) {
+            router.replace("/");
+            return;
+        }
         if (searchParams.get("success") === "true") {
             showToast("Welcome to Savrd Pro! \u{1F389}", "success");
         } else if (searchParams.get("canceled") === "true") {
             showToast("Checkout canceled");
         }
-    }, [searchParams, showToast]);
+    }, [searchParams, showToast, router]);
 
     const handleCta = async () => {
         if (!session?.user) {
