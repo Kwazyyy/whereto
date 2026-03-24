@@ -1236,7 +1236,7 @@ export default function ProfilePage() {
             {/* Account Actions */}
             {session?.user && (
               <div className="space-y-2 mt-4">
-                <button onClick={() => signOut({ callbackUrl: '/landing' })} className="text-red-500 dark:text-red-500 hover:bg-red-500/10 w-full py-2 rounded-lg transition-colors text-sm font-semibold cursor-pointer">
+                <button onClick={() => signOut({ callbackUrl: isNativePlatform() ? '/welcome' : '/landing' })} className="text-red-500 dark:text-red-500 hover:bg-red-500/10 w-full py-2 rounded-lg transition-colors text-sm font-semibold cursor-pointer">
                   Sign Out
                 </button>
                 <div className="pt-2 border-t border-[#D0D7DE] dark:border-[#30363D]">
@@ -1391,7 +1391,7 @@ export default function ProfilePage() {
                     <ChevronRight />
                   </button>
                 )}
-                {session?.user && <button onClick={() => signOut({ callbackUrl: '/landing' })} className="flex items-center px-4 py-3.5 min-h-[52px] w-full text-left font-semibold text-sm cursor-pointer text-red-500 hover:bg-red-500/10 transition-colors border-b border-gray-100 dark:border-white/5">Sign Out</button>}
+                {session?.user && <button onClick={() => signOut({ callbackUrl: isNativePlatform() ? '/welcome' : '/landing' })} className="flex items-center px-4 py-3.5 min-h-[52px] w-full text-left font-semibold text-sm cursor-pointer text-red-500 hover:bg-red-500/10 transition-colors border-b border-gray-100 dark:border-white/5">Sign Out</button>}
                 {session?.user && <button onClick={() => setDeleteAccountOpen(true)} className="flex items-center px-4 py-3.5 min-h-[52px] w-full text-left text-red-500 font-semibold text-sm cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">Delete Account</button>}
               </SettingsCard>
 

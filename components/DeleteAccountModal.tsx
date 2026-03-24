@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signOut } from "next-auth/react";
+import { isNativePlatform } from "@/lib/is-native";
 
 export default function DeleteAccountModal({ onClose, userEmail }: { onClose: () => void, userEmail?: string | null }) {
   const [confirmText, setConfirmText] = useState("");
@@ -21,7 +22,7 @@ export default function DeleteAccountModal({ onClose, userEmail }: { onClose: ()
       });
 
       if (res.ok) {
-        await signOut({ callbackUrl: "/landing" });
+        await signOut({ callbackUrl: isNativePlatform() ? "/welcome" : "/landing" });
       } else {
         const data = await res.json();
         setError(data.error || "Failed to delete account");

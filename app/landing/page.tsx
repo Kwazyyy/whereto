@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, FormEvent } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { isNativePlatform } from "@/lib/is-native";
 import { Map, LayoutGrid, Users, Camera, UtensilsCrossed } from "lucide-react";
 
 /* ─── Images ────────────────────────────────────────────────── */
@@ -195,8 +196,12 @@ export default function LandingPage() {
     const [mobileMenu, setMobileMenu] = useState(false);
     const { scrollY } = useScroll();
 
-    // Redirect signed-in users to the app
+    // Safety net: native Capacitor users should never see /landing — send to /welcome
     useEffect(() => {
+        if (isNativePlatform()) {
+            router.replace("/welcome");
+            return;
+        }
         if (status === "authenticated") router.replace("/");
     }, [status, router]);
 
