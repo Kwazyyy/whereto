@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import stripe from "@/lib/stripe";
 import { PLANS, type PlanKey } from "@/lib/stripe-config";
 
-export async function POST(_req: Request) {
+export async function POST(req: Request) {
   return NextResponse.json({ error: "Pro subscriptions coming soon" }, { status: 403 });
   // eslint-disable-next-line no-unreachable
   console.log("[stripe/checkout] STRIPE_SECRET_KEY exists:", !!process.env.STRIPE_SECRET_KEY);
