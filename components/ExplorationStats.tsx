@@ -179,11 +179,11 @@ export default function ExplorationStats({ compact = false }: { compact?: boolea
 
         return (
             <div className="bg-white dark:bg-[#161B22] rounded-xl p-5 border border-[#D0D7DE] dark:border-[#30363D] h-full flex flex-col">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                     <h2 className="text-lg font-semibold text-[#0E1116] dark:text-white">Exploration</h2>
                     <Link
                         href="/map"
-                        className="text-sm font-semibold text-[#E85D2A] hover:underline flex items-center gap-1 cursor-pointer"
+                        className="text-sm font-semibold text-[#E85D2A] hover:underline flex items-center gap-1 cursor-pointer shrink-0"
                     >
                         Explore on Map <span>→</span>
                     </Link>

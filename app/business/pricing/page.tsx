@@ -112,7 +112,7 @@ function PricingPageContent() {
         {tiers.map((tier) => (
           <div
             key={tier.name}
-            className={`rounded-2xl p-6 relative ${
+            className={`rounded-2xl p-6 relative flex flex-col ${
               tier.highlighted
                 ? "bg-[#161B22] border-2 border-[#CA8A04]"
                 : "bg-[#161B22] border border-white/10"
@@ -166,13 +166,13 @@ function PricingPageContent() {
             {tier.planKey === "business_pro" ? (
               <a
                 href="mailto:partners@savrd.app?subject=Savrd%20Business%20Pro%20Inquiry"
-                className={`block text-center w-full py-2.5 rounded-lg text-sm mt-6 transition ${tier.ctaStyle}`}
+                className={`block text-center w-full py-2.5 rounded-lg text-sm mt-auto pt-6 transition ${tier.ctaStyle}`}
               >
                 {tier.cta}
               </a>
             ) : (
               <button
-                className={`w-full py-2.5 rounded-lg text-sm mt-6 transition ${tier.ctaStyle}`}
+                className={`w-full py-2.5 rounded-lg text-sm mt-auto pt-6 transition ${tier.ctaStyle}`}
                 disabled={true}
               >
                 {tier.cta}

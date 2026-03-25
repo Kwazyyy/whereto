@@ -112,13 +112,6 @@ function formatJoinDate(iso: string): string {
   });
 }
 
-const PLAN_DISPLAY: Record<string, string> = {
-  pro_monthly: "Savrd Pro (Monthly)",
-  pro_yearly: "Savrd Pro (Yearly)",
-  business_starter: "Business Starter",
-  business_growth: "Business Growth",
-  business_pro: "Business Pro",
-};
 
 // ── Sub-components ─────────────────────────────────────────────────────────
 
@@ -641,7 +634,6 @@ export default function ProfilePage() {
   const [isCreator, setIsCreator] = useState<boolean>(false);
   const [userPlan, setUserPlan] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
-  const [planExpiresAt, setPlanExpiresAt] = useState<string | null>(null);
   // Modal system states
   const [friendsModalOpen, setFriendsModalOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -842,7 +834,7 @@ export default function ProfilePage() {
 
     fetch("/api/user")
       .then((r) => r.json())
-      .then((data: { createdAt?: string; isCreator?: boolean; displayName?: string; username?: string; customAvatar?: string; creatorBio?: string; plan?: string | null; subscriptionStatus?: string | null; planExpiresAt?: string | null }) => {
+      .then((data: { createdAt?: string; isCreator?: boolean; displayName?: string; username?: string; customAvatar?: string; creatorBio?: string; plan?: string | null; subscriptionStatus?: string | null }) => {
         if (data.createdAt) setJoinedDate(formatJoinDate(data.createdAt));
         if (data.isCreator) setIsCreator(data.isCreator);
         if (data.displayName) setDisplayName(data.displayName);
@@ -851,7 +843,6 @@ export default function ProfilePage() {
         if (data.creatorBio) setBio(data.creatorBio);
         setUserPlan(data.plan ?? null);
         setSubscriptionStatus(data.subscriptionStatus ?? null);
-        setPlanExpiresAt(data.planExpiresAt ?? null);
       })
       .catch(() => { });
 
