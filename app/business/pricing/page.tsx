@@ -1,10 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { useSession } from "next-auth/react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useToast } from "@/components/Toast";
-import { isNativePlatform } from "@/lib/is-native";
+import { Suspense } from "react";
 
 function CheckIcon() {
   return (
@@ -56,8 +52,8 @@ const tiers: PricingTier[] = [
       { text: "Peak discovery hours", gold: true },
       { text: "Weekly email reports", gold: true },
     ],
-    cta: "Start Free Trial",
-    ctaStyle: "bg-[#E85D2A] text-white hover:bg-[#d4522a] font-medium",
+    cta: "Coming Soon",
+    ctaStyle: "bg-white/5 text-gray-400 cursor-default",
     showBeta: true,
     planKey: "business_starter",
   },
@@ -73,8 +69,8 @@ const tiers: PricingTier[] = [
       { text: "Customer intent demographics", gold: true },
       { text: "Missed opportunity alerts", gold: true },
     ],
-    cta: "Start Free Trial",
-    ctaStyle: "bg-[#E85D2A] text-white hover:bg-[#d4522a] font-medium",
+    cta: "Coming Soon",
+    ctaStyle: "bg-white/5 text-gray-400 cursor-default",
     highlighted: true,
     showBeta: true,
     planKey: "business_growth",
@@ -92,7 +88,7 @@ const tiers: PricingTier[] = [
       { text: "Priority support", gold: true },
       { text: "Custom featured placements", gold: true },
     ],
-    cta: "Contact Sales",
+    cta: "Contact Us",
     ctaStyle: "bg-transparent border border-white/20 text-gray-300 hover:border-white/40",
     showBeta: true,
     planKey: "business_pro",
@@ -100,51 +96,6 @@ const tiers: PricingTier[] = [
 ];
 
 function PricingPageContent() {
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
-  const { data: session } = useSession();
-  const { showToast } = useToast();
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
-  useEffect(() => {
-    // Pricing page uses Stripe checkout — not allowed inside native Capacitor app (Apple IAP rules)
-    if (isNativePlatform()) {
-      router.replace("/");
-      return;
-    }
-    if (searchParams.get("success") === "true") {
-      showToast("Welcome! Your subscription is active \u{1F389}", "success");
-    } else if (searchParams.get("canceled") === "true") {
-      showToast("Checkout canceled");
-    }
-  }, [searchParams, showToast, router]);
-
-  const handleCheckout = async (planKey: string) => {
-    if (!session?.user) {
-      router.push("/business/register");
-      return;
-    }
-
-    setLoadingPlan(planKey);
-    try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: planKey }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        showToast(data.error || "Something went wrong", "error");
-        setLoadingPlan(null);
-      }
-    } catch {
-      showToast("Something went wrong", "error");
-      setLoadingPlan(null);
-    }
-  };
-
   return (
     <div className="py-4">
       {/* Header */}
@@ -221,11 +172,10 @@ function PricingPageContent() {
               </a>
             ) : (
               <button
-                className={`w-full py-2.5 rounded-lg text-sm mt-6 transition cursor-pointer ${tier.ctaStyle} ${loadingPlan === tier.planKey ? "opacity-60 cursor-not-allowed" : ""}`}
-                disabled={tier.isCurrent || loadingPlan === tier.planKey}
-                onClick={() => tier.planKey ? handleCheckout(tier.planKey) : undefined}
+                className={`w-full py-2.5 rounded-lg text-sm mt-6 transition ${tier.ctaStyle}`}
+                disabled={true}
               >
-                {loadingPlan === tier.planKey ? "Redirecting..." : tier.cta}
+                {tier.cta}
               </button>
             )}
           </div>

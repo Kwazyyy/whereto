@@ -642,9 +642,6 @@ export default function ProfilePage() {
   const [userPlan, setUserPlan] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const [planExpiresAt, setPlanExpiresAt] = useState<string | null>(null);
-  const [portalLoading, setPortalLoading] = useState(false);
-  const [isNative, setIsNative] = useState(false);
-
   // Modal system states
   const [friendsModalOpen, setFriendsModalOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -664,8 +661,6 @@ export default function ProfilePage() {
   const [editBio, setEditBio] = useState("");
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
   const [savingProfile, setSavingProfile] = useState(false);
-
-  useEffect(() => { setIsNative(isNativePlatform()); }, []);
 
   // Edit Hooks
   useEffect(() => {
@@ -899,19 +894,6 @@ export default function ProfilePage() {
     const t = v as Theme;
     updatePref("theme", t);
     setTheme(t);
-  }
-
-  async function handleManageSubscription() {
-    setPortalLoading(true);
-    try {
-      const res = await fetch("/api/stripe/portal", { method: "POST" });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-    } catch {
-      showToast("Failed to open billing portal", "error");
-    } finally {
-      setPortalLoading(false);
-    }
   }
 
   // Compute board groupings for the Recent Boards carousel (normalize intents)
@@ -1188,34 +1170,6 @@ export default function ProfilePage() {
                   <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Joined</span>
                   <span className="text-sm text-[#8B949E]">{joinedDate ?? "—"}</span>
                 </div>
-                {/* Subscription — hidden in native Capacitor (Apple IAP rules) */}
-                {!isNative && (
-                  <div className="flex items-center justify-between px-1 py-2">
-                    <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">Plan</span>
-                    {userPlan ? (
-                      <span className="text-sm text-[#8B949E]">{PLAN_DISPLAY[userPlan] ?? userPlan}</span>
-                    ) : (
-                      <Link href="/pro" className="text-sm text-[#E85D2A] font-medium hover:underline">Upgrade to Pro</Link>
-                    )}
-                  </div>
-                )}
-                {!isNative && userPlan && planExpiresAt && (
-                  <div className="flex items-center justify-between px-1 py-2">
-                    <span className="text-sm font-medium text-[#0E1116] dark:text-[#e8edf4]">{subscriptionStatus === "canceled" ? "Access Until" : "Next Billing"}</span>
-                    <span className="text-sm text-[#8B949E]">{new Date(planExpiresAt).toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric" })}</span>
-                  </div>
-                )}
-                {!isNative && userPlan && (
-                  <div className="px-1 pt-1">
-                    <button
-                      onClick={handleManageSubscription}
-                      disabled={portalLoading}
-                      className="w-full py-2 text-sm font-semibold text-gray-400 hover:text-[#E85D2A] rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-                    >
-                      {portalLoading ? "Opening..." : "Manage Subscription"}
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -1366,31 +1320,6 @@ export default function ProfilePage() {
               <SectionHeader title="Account" />
               <SettingsCard>
                 {session?.user && <Row label="Joined"><span className="text-sm text-gray-400 dark:text-gray-500">{joinedDate ?? "—"}</span></Row>}
-                {/* Plan row — hidden in native Capacitor (Apple IAP rules) */}
-                {!isNative && (
-                  <Row label="Plan">
-                    {userPlan ? (
-                      <span className="text-sm text-[#8B949E]">{PLAN_DISPLAY[userPlan] ?? userPlan}</span>
-                    ) : (
-                      <Link href="/pro" className="text-sm text-[#E85D2A] font-medium hover:underline">Upgrade to Pro</Link>
-                    )}
-                  </Row>
-                )}
-                {!isNative && userPlan && planExpiresAt && (
-                  <Row label={subscriptionStatus === "canceled" ? "Access Until" : "Next Billing"}>
-                    <span className="text-sm text-gray-400 dark:text-gray-500">{new Date(planExpiresAt).toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric" })}</span>
-                  </Row>
-                )}
-                {!isNative && userPlan && (
-                  <button
-                    onClick={handleManageSubscription}
-                    disabled={portalLoading}
-                    className="flex items-center justify-between px-4 py-3.5 min-h-[52px] w-full text-left text-gray-400 hover:text-[#E85D2A] font-semibold text-sm cursor-pointer transition-colors disabled:opacity-50"
-                  >
-                    {portalLoading ? "Opening..." : "Manage Subscription"}
-                    <ChevronRight />
-                  </button>
-                )}
                 {session?.user && <button onClick={() => signOut({ callbackUrl: isNativePlatform() ? '/welcome' : '/landing' })} className="flex items-center px-4 py-3.5 min-h-[52px] w-full text-left font-semibold text-sm cursor-pointer text-red-500 hover:bg-red-500/10 transition-colors border-b border-gray-100 dark:border-white/5">Sign Out</button>}
                 {session?.user && <button onClick={() => setDeleteAccountOpen(true)} className="flex items-center px-4 py-3.5 min-h-[52px] w-full text-left text-red-500 font-semibold text-sm cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">Delete Account</button>}
               </SettingsCard>
